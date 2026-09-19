@@ -10,13 +10,17 @@ import seedu.address.logic.commands.RemarkCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
 /**
- * Parses input arguments and creates a new {@code RemarkCommand} object
+ * Parses input arguments and creates a new {@code RemarkCommand} object.
  */
 public class RemarkCommandParser implements Parser<RemarkCommand> {
     /**
      * Parses the given {@code String} of arguments in the context of the {@code RemarkCommand}
      * and returns a {@code RemarkCommand} object for execution.
-     * @throws ParseException if the user input does not conform the expected format
+     * An absent or empty {@code r/} value clears the person's remark.
+     *
+     * @param args Non-null command arguments containing the index and optional remark.
+     * @return A command that updates the selected person's remark.
+     * @throws ParseException If the index is missing or is not a positive integer.
      */
     public RemarkCommand parse(String args) throws ParseException {
         requireNonNull(args);

@@ -34,8 +34,10 @@ public class RemarkCommand extends Command {
     private final String remark;
 
     /**
-     * @param index of the person in the filtered person list to edit the remark
-     * @param remark of the person to be updated to
+     * Creates a command that replaces or clears a person's remark.
+     *
+     * @param index Index of the person in the displayed list.
+     * @param remark Non-null replacement text; an empty string clears the remark.
      */
     public RemarkCommand(Index index, String remark) {
         requireAllNonNull(index, remark);
@@ -44,6 +46,13 @@ public class RemarkCommand extends Command {
         this.remark = remark;
     }
 
+    /**
+     * Replaces the selected person with a copy containing the new remark, then shows all persons.
+     *
+     * @param model Model containing the displayed person list.
+     * @return Feedback indicating whether the remark was added or removed.
+     * @throws CommandException If the index is outside the displayed list.
+     */
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
@@ -64,6 +73,9 @@ public class RemarkCommand extends Command {
         return new CommandResult(generateSuccessMessage(editedPerson));
     }
 
+    /**
+     * Returns feedback for the updated person, using the removal message when the remark is empty.
+     */
     private String generateSuccessMessage(Person personToEdit) {
         String message = !remark.isEmpty() ? MESSAGE_ADD_REMARK_SUCCESS : MESSAGE_DELETE_REMARK_SUCCESS;
         return String.format(message, Messages.format(personToEdit));

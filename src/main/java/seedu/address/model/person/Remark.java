@@ -4,11 +4,17 @@ import static java.util.Objects.requireNonNull;
 
 /**
  * Represents a Person's remark in the address book.
- * Guarantees: immutable; is always valid
+ * Guarantees: immutable and non-null; an empty value represents no remark.
  */
 public class Remark {
+    /** The remark text, which may be empty. */
     public final String value;
 
+    /**
+     * Constructs a {@code Remark} with the given text.
+     *
+     * @param remark Non-null remark text; may be empty.
+     */
     public Remark(String remark) {
         requireNonNull(remark);
         value = remark;

@@ -96,12 +96,18 @@ public class PersonBuilder {
 
     /**
      * Sets the {@code Remark} of the {@code Person} that we are building.
+     *
+     * @param remark Non-null remark text; may be empty.
+     * @return This builder for further configuration.
      */
     public PersonBuilder withRemark(String remark) {
         this.remark = new Remark(remark);
         return this;
     }
 
+    /**
+     * Returns a person with the configured details, including the remark.
+     */
     public Person build() {
         return new Person(name, phone, email, address, remark, tags);
     }

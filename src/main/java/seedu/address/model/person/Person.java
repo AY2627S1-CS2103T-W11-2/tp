@@ -27,7 +27,9 @@ public class Person {
     private final Set<Tag> tags = new HashSet<>();
 
     /**
-     * Every field must be present and not null.
+     * Creates a person with the given details. Every field must be present and not null.
+     *
+     * @param remark Remark associated with the person; use an empty remark when none is provided.
      */
     public Person(Name name, Phone phone, Email email, Address address, Remark remark, Set<Tag> tags) {
         requireAllNonNull(name, phone, email, address, tags);
@@ -55,6 +57,9 @@ public class Person {
         return address;
     }
 
+    /**
+     * Returns this person's immutable remark, whose value may be empty.
+     */
     public Remark getRemark() {
         return remark;
     }
