@@ -45,7 +45,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[github](https://github.com/legned-wenze)]
 
 * Role: Developer
-* Responsibilities: Requirements documentation (user stories)
+* Responsibilities: UI mockup and non-functional requirements
 
 ### James Doe
 
