@@ -259,68 +259,264 @@ _{Explain here how the data archiving feature will be implemented}_
 
 ### Product scope
 
-**Target user profile**:
+#### Target user profile
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+* Manager who are handling large amount of booths 
+* Able to type fast
+* Interested in storing and finding specific contact from a large database
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
-
+**Value proposition**: Able to add and delete the status of clients quickly and find their information faster as compared to mouse driven GUI.
 
 ### User stories
 
-Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
+<!-- Owner: Gerard. Keep story IDs stable for cross-references. -->
 
-| Priority | As a …​                                    | I want to …​                     | So that I can…​                                                        |
-| -------- | ------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------- |
-| `* * *`  | new user                                   | see usage instructions         | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person               |                                                                        |
-| `* * *`  | user                                       | delete a person                | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name          | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details   | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name           | locate a person easily                                                 |
+Planned requirements for BoothManagerPro; implementation status is tracked separately. Here, **organiser** means convention organiser.
 
-*{More to be added}*
+**Priorities:** `***` High (must have), `**` Medium (should have), `*` Low (nice to have).
+
+- Priorities follow the feature list and explicit MVP requirements.
+- Considered stories are candidates, not commitments.
+- Out-of-scope stories are excluded regardless of priority.
+
+#### Planned user stories
+
+| ID | Priority | As a... | I want to... | So that... |
+| --- | --- | --- | --- | --- |
+| US-01 | `***` | organiser | add a representative's name, company, email, and phone | I have their essential contact details. |
+| US-02 | `***` | organiser | delete outdated contacts | my records stay relevant. |
+| US-03 | `***` | organiser | list all exhibitor contacts | I can review my records. |
+| US-04 | `***` | organiser | view a contact's full details | I can contact the right representative. |
+| US-05 | `***` | organiser | have duplicate contacts rejected with an explanation | I avoid repeated records. |
+| US-06 | `***` | organiser | distinguish same-name contacts when viewing or deleting | I select the correct record. |
+| US-07 | `***` | organiser | see clear errors for missing or invalid fields | I can correct my input. |
+| US-08 | `**` | first-time organiser | see features and usage instructions | I know how to begin. |
+| US-09 | `**` | organiser | edit contact details | my records stay accurate. |
+| US-10 | `**` | organiser | find contacts by exact name, company, email, or phone | I can locate contacts quickly. |
+| US-11 | `**` | organiser | filter contacts by enquiry status | I can review each enquiry stage. |
+| US-12 | `**` | organiser | combine search fields and alternatives | I can narrow my results. |
+| US-13 | `**` | organiser | set enquiry status to new, contacted, confirmed, or rejected | I can track progress. |
+| US-14 | `**` | organiser | set a next follow-up date | I know when to contact someone again. |
+| US-15 | `**` | organiser | view due or overdue follow-ups | I can prioritise outreach. |
+| US-16 | `**` | organiser | tag contacts by industry, priority, or need | I can group exhibitors. |
+| US-17 | `**` | organiser | filter contacts by tags | I can retrieve relevant groups. |
+| US-18 | `**` | organiser | record a preferred contact method | I can use the appropriate channel. |
+
+- **US-05:** Duplicates share a normalised email or a name-and-company combination.
+- **US-12:** Repeated values within a field use OR; different fields use AND.
+
+#### Considered user stories
+
+| ID | Priority | As a... | I want to... | So that... | Scope note |
+| --- | --- | --- | --- | --- | --- |
+| US-19 | `*` | organiser | import contacts from CSV | I avoid manual entry. | Optional enhancement. |
+| US-20 | `*` | organiser | export contacts to CSV | I can share records. | Optional enhancement. |
+| US-21 | `*` | organiser | undo my last change | I can recover from mistakes. | Optional enhancement. |
+| US-22 | `**` | organiser | record notes and booth requirements | I retain context for follow-ups. | Behaviour to be defined. |
+| US-23 | `**` | organiser | link representatives from one organisation | I understand their relationships. | Beyond recording company names. |
+| US-24 | `**` | organiser | mark a primary contact | I know whom to contact first. | Outside the selected feature list. |
+| US-25 | `**` | organiser | record a confirmed exhibitor's booth number | I can reference their allocation. | Metadata only. |
+| US-26 | `**` | fellow organiser | see who last contacted an exhibitor and when | I avoid duplicate outreach. | Contact-history design needed. |
+| US-27 | `*` | sales team member | export confirmed exhibitors | I can prepare invoices elsewhere. | Depends on CSV export. |
+| US-28 | `*` | operations staff member | receive exhibitor lists with booth numbers | I can plan services elsewhere. | Depends on export and booth metadata. |
+| US-29 | `**` | system maintainer | back up and restore records | I can recover lost data. | Recovery design needed. |
+
+#### Out-of-scope user stories
+
+| ID | Priority | As a... | I want to... | So that... | Reason excluded |
+| --- | --- | --- | --- | --- | --- |
+| US-30 | `*` | compliance officer | control data access and exports | I can restrict sharing. | Multi-user permissions outside scope. |
+| US-31 | `*` | organiser | design floor plans and allocate booths spatially | I can plan the layout. | Floor-plan management outside scope. |
+| US-32 | `*` | sales team member | invoice exhibitors and process payments | I can collect booth fees. | Financial workflows outside scope. |
+| US-33 | `*` | organiser | manage exhibitor contracts | I can administer agreements. | Contract management outside scope. |
+| US-34 | `*` | organiser | sell tickets and manage admission | I can run registration. | Ticketing outside scope. |
+| US-35 | `*` | operations staff member | schedule venue services and equipment | I can coordinate operations. | Logistics outside scope. |
+
+Exhibitors benefit from accurate statuses and follow-ups (US-13 to US-15); they are not direct application users.
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+For all use cases below, the **System** is **BoothManagerPro** and the **Actor** is a **convention organiser**.
+**Precondition:** The application is running.
 
-**Use case: Delete a person**
+A contact represents an exhibitor or an exhibitor representative.
+**MSS** means **Main Success Scenario**; **extensions** describe alternative or unsuccessful interactions.
+
+These use cases cover contact-management workflows from the feature specification.
+**Guarantee:** Rejected requests leave the stored contacts unchanged.
+
+#### UC01: Add an exhibitor contact
 
 **MSS**
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1. Organiser requests to add a contact, supplying the name, company, email, phone, and any optional contact method or tags.
+2. BoothManagerPro adds the contact and displays the newly added contact's details.
 
-    Use case ends.
+Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 1a. A required field is missing or a supplied value is invalid.
+  * 1a1. BoothManagerPro explains the input error and rejects the request.
+
+  Use case resumes at step 1.
+
+* 1b. A contact with the same normalised email address or the same combination of name and company already exists.
+  * 1b1. BoothManagerPro rejects the new contact and identifies the possible duplicate.
 
   Use case ends.
 
-* 3a. The given index is invalid.
+* 1c. The request contains an unsupported field, an unprefixed value, or a repeated field other than tags.
+  * 1c1. BoothManagerPro explains the input error and rejects the request.
 
-    * 3a1. AddressBook shows an error message.
+  Use case resumes at step 1.
 
-      Use case resumes at step 2.
+#### UC02: View an exhibitor contact
 
-*{More to be added}*
+**MSS**
+
+1. Organiser requests to view a contact by name.
+2. BoothManagerPro displays the matching contact's name, company, email, phone, preferred contact method, and tags.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. The name is missing or invalid.
+  * 1a1. BoothManagerPro explains the input error.
+
+  Use case resumes at step 1.
+
+* 1b. No contact matches the supplied name, including when there are no stored contacts.
+  * 1b1. BoothManagerPro informs the organiser that no matching contact was found.
+
+  Use case resumes at step 1.
+
+* 1c. More than one contact matches the supplied name.
+  * 1c1. BoothManagerPro displays the matching contacts with their companies and asks the organiser to select one.
+  * 1c2. Organiser selects the intended contact.
+  * 1c3. If the selection is invalid, BoothManagerPro explains the valid choices and requests another selection.
+
+  Steps 1c2 to 1c3 repeat until a valid contact is selected.
+
+  Use case resumes at step 2 for the selected contact.
+
+* 1d. The view request contains an unsupported field, an unprefixed value, or a repeated name field.
+  * 1d1. BoothManagerPro rejects the request and explains the accepted request format.
+
+  Use case resumes at step 1.
+
+#### UC03: Delete an exhibitor contact
+
+**MSS**
+
+1. Organiser requests to delete a contact by name.
+2. BoothManagerPro deletes the matching contact and displays the deleted contact's details.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. The name is missing or invalid.
+  * 1a1. BoothManagerPro explains the input error.
+
+  Use case resumes at step 1.
+
+* 1b. No contact matches the supplied name, including when there are no stored contacts.
+  * 1b1. BoothManagerPro informs the organiser that no matching contact was found.
+
+  Use case resumes at step 1.
+
+* 1c. More than one contact matches the supplied name.
+  * 1c1. BoothManagerPro displays the matching contacts with their companies and asks the organiser to select one.
+  * 1c2. Organiser selects the intended contact.
+  * 1c3. If the selection is invalid, BoothManagerPro explains the valid choices and requests another selection.
+
+  Steps 1c2 to 1c3 repeat until a valid contact is selected.
+
+  Use case resumes at step 2, deleting only the selected contact.
+
+#### UC04: List exhibitor contacts
+
+**MSS**
+
+1. Organiser requests to list all exhibitor contacts.
+2. BoothManagerPro displays all stored contacts with their names, companies, emails, phones, preferred contact methods,
+   and tags, followed by the total number of contacts.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. The organiser supplies parameters with the list request.
+  * 1a1. BoothManagerPro rejects the request and explains that the list command does not accept parameters.
+
+  Use case resumes at step 1.
+
+* 1b. There are no stored contacts.
+  * 1b1. BoothManagerPro informs the organiser that no contacts were found and suggests using the add command to add one.
+
+  Use case ends.
+
+#### UC05: Find and filter contacts
+
+**MSS**
+
+1. Organiser requests to find contacts using one or more names, companies, emails, phone numbers, enquiry statuses, or tags.
+2. BoothManagerPro displays all contacts that match the supplied criteria, together with the number of matching contacts.
+   Each matching contact is displayed separately with an index and contact details, even if contacts share a name or company.
+
+Use case ends.
+
+**Matching rules**
+
+* Values for the same field are combined using OR; criteria for different fields are combined using AND.
+* Matches use complete field values. Name and company comparisons ignore case and leading/trailing spaces.
+  Email comparisons ignore case and use normalised addresses; phone comparisons ignore spaces and hyphens.
+  Status and tag comparisons ignore case.
+* Repeated identical search values are ignored.
+
+**Extensions**
+
+* 1a. No search field is supplied.
+  * 1a1. BoothManagerPro rejects the request and asks the organiser to provide at least one search field.
+
+  Use case resumes at step 1.
+
+* 1b. A search field is supplied without a value.
+  * 1b1. BoothManagerPro rejects the request and explains that search values cannot be empty.
+
+  Use case resumes at step 1.
+
+* 1c. An enquiry status is not one of the supported values.
+  * 1c1. BoothManagerPro rejects the request and explains that the supported statuses are new, contacted, confirmed, and rejected.
+
+  Use case resumes at step 1.
+
+* 1d. Another search value does not meet the specified format for its field.
+  * 1d1. BoothManagerPro rejects the request and explains that the value does not match the required format.
+
+  Use case resumes at step 1.
+
+* 1e. The request contains an unknown prefix or an unprefixed value.
+  * 1e1. BoothManagerPro rejects the request and explains that every search value must use a supported field prefix.
+
+  Use case resumes at step 1.
+
+* 1f. No contacts match the search criteria.
+  * 1f1. BoothManagerPro informs the organiser that no matching exhibitor contacts were found.
+
+  Use case ends.
 
 ### Non-Functional Requirements
 
 1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
 2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
 3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-
-*{More to be added}*
+4. All actions must be able to be typed into command line only.
+5. The system should only accept English characters and numbers.
+6. The project is expected to adhere to a schedule that delivers the finished product by 29th Oct 2027.
+7. Clients information should not hold any unwarranted personal data. 
 
 ### Glossary
 
