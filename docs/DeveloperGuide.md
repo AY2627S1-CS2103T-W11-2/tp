@@ -520,11 +520,26 @@ Use case ends.
 
 ### Glossary
 
-<!-- Owner: Jenna. Define the domain terms used throughout the guide. During integration, check terminology, story references, priorities, and consistency across the team's contributions. -->
-
-_To be completed by Jenna._
-
---------------------------------------------------------------------------------------------------------------------
+* **Booth allocation**: The process of assigning booths to exhibitors, from first enquiry through to confirmation
+* **CLI (Command Line Interface)**: A way of using the application by typing text commands instead of clicking through menus
+* **Company**: The exhibitor organisation a contact belongs to. Also called *organisation*; this project uses *company*
+* **Contact**: A single record in the address book representing one exhibitor representative. Also called *client* or *person*; this project uses *contact*
+* **Contacted**: The enquiry status for an exhibitor the organiser has reached out to but who has not yet been confirmed or rejected. Refers to this status, not the general act of contacting someone
+* **Convention organiser**: The primary user of the application: a person at a convention centre who manages exhibitor enquiries and booth allocation. Also referred to as *organiser*
+* **CSV (Comma-Separated Values)**: A plain-text file format for tabular data, used to import and export contact lists
+* **Duplicate (possible duplicate)**: A contact with the same normalised email address, or the same name and company, as an existing contact. Does not mean two contacts that merely share a name
+* **Enquiry**: An exchange between an organiser and an exhibitor about the exhibitor taking part in a convention
+* **Enquiry status**: The stage an exhibitor's enquiry has reached: `new`, `contacted`, `confirmed`, or `rejected`. Also referred to as *status*
+* **Exhibitor**: An organisation that is interested in, or has been invited to, take a booth at a convention
+* **Exact match**: A search result where the search value matches the complete field value (ignoring case and leading/trailing spaces), not just part of it. For example, `find n/Alicia` does not match "Alicia Tan"
+* **Index**: The number shown beside a contact in a displayed list, used to select a specific contact when several share the same name
+* **Mainstream OS**: Windows, Linux, Unix, and macOS
+* **Normalisation**: Converting input to a standard form before storing or comparing it, such as lowercasing emails and removing spaces and hyphens from phone numbers
+* **Prefix**: A marker ending in `/` that identifies which field a value belongs to, e.g. `n/` for name or `s/` for status
+* **Primary contact**: The representative to contact first when an exhibitor has several representatives
+* **Representative**: A person who acts on behalf of an exhibitor. One exhibitor may have several
+* **Tag**: A short label attached to a contact to group it beyond enquiry status, for example by industry or priority
+* **User**: The person operating BoothManagerPro (the convention organiser). Does not refer to the contacts stored in the app
 
 ## **Appendix: Instructions for manual testing**
 
