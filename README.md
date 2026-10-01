@@ -18,10 +18,11 @@
 ## Core Features
 
 1. Add exhibitor contact
-    * For organiser to create new contact record 
+    * For organiser to create new contact record
 1. Delete exhibitor contact
     * For organiser to delete unwanted contact records
 1. List exhibitor contacts
     * For organiser to view all stored contacts
 1. View specific contact details
     * For organiser to inspect one exhibitor’s contact
+  
