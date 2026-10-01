@@ -338,9 +338,177 @@ Exhibitors benefit from accurate statuses and follow-ups (US-13 to US-15); they 
 
 ### Use cases
 
-<!-- Owner: Rhineson. Add representative multi-step BoothManagerPro use cases. Reference the relevant US IDs above and include actors, preconditions, main success scenarios, and extensions as appropriate. -->
+For all use cases below, the **System** is **BoothManagerPro** and the **Actor** is a **convention organiser**.
+**Precondition:** The application is running.
 
-_To be completed by Rhineson._
+A contact represents an exhibitor or an exhibitor representative.
+**MSS** means **Main Success Scenario**; **extensions** describe alternative or unsuccessful interactions.
+
+These use cases cover contact-management workflows from the feature specification.
+**Guarantee:** Rejected requests leave the stored contacts unchanged.
+
+#### UC01: Add an exhibitor contact
+
+**MSS**
+
+1. Organiser requests to add a contact, supplying the name, company, email, phone, and any optional contact method or tags.
+2. BoothManagerPro adds the contact and displays the newly added contact's details.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. A required field is missing or a supplied value is invalid.
+  * 1a1. BoothManagerPro explains the input error and rejects the request.
+
+  Use case resumes at step 1.
+
+* 1b. A contact with the same normalised email address or the same combination of name and company already exists.
+  * 1b1. BoothManagerPro rejects the new contact and identifies the possible duplicate.
+
+  Use case ends.
+
+* 1c. The request contains an unsupported field, an unprefixed value, or a repeated field other than tags.
+  * 1c1. BoothManagerPro explains the input error and rejects the request.
+
+  Use case resumes at step 1.
+
+#### UC02: View an exhibitor contact
+
+**MSS**
+
+1. Organiser requests to view a contact by name.
+2. BoothManagerPro displays the matching contact's name, company, email, phone, preferred contact method, and tags.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. The name is missing or invalid.
+  * 1a1. BoothManagerPro explains the input error.
+
+  Use case resumes at step 1.
+
+* 1b. No contact matches the supplied name, including when there are no stored contacts.
+  * 1b1. BoothManagerPro informs the organiser that no matching contact was found.
+
+  Use case resumes at step 1.
+
+* 1c. More than one contact matches the supplied name.
+  * 1c1. BoothManagerPro displays the matching contacts with their companies and asks the organiser to select one.
+  * 1c2. Organiser selects the intended contact.
+  * 1c3. If the selection is invalid, BoothManagerPro explains the valid choices and requests another selection.
+
+  Steps 1c2 to 1c3 repeat until a valid contact is selected.
+
+  Use case resumes at step 2 for the selected contact.
+
+* 1d. The view request contains an unsupported field, an unprefixed value, or a repeated name field.
+  * 1d1. BoothManagerPro rejects the request and explains the accepted request format.
+
+  Use case resumes at step 1.
+
+#### UC03: Delete an exhibitor contact
+
+**MSS**
+
+1. Organiser requests to delete a contact by name.
+2. BoothManagerPro deletes the matching contact and displays the deleted contact's details.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. The name is missing or invalid.
+  * 1a1. BoothManagerPro explains the input error.
+
+  Use case resumes at step 1.
+
+* 1b. No contact matches the supplied name, including when there are no stored contacts.
+  * 1b1. BoothManagerPro informs the organiser that no matching contact was found.
+
+  Use case resumes at step 1.
+
+* 1c. More than one contact matches the supplied name.
+  * 1c1. BoothManagerPro displays the matching contacts with their companies and asks the organiser to select one.
+  * 1c2. Organiser selects the intended contact.
+  * 1c3. If the selection is invalid, BoothManagerPro explains the valid choices and requests another selection.
+
+  Steps 1c2 to 1c3 repeat until a valid contact is selected.
+
+  Use case resumes at step 2, deleting only the selected contact.
+
+#### UC04: List exhibitor contacts
+
+**MSS**
+
+1. Organiser requests to list all exhibitor contacts.
+2. BoothManagerPro displays all stored contacts with their names, companies, emails, phones, preferred contact methods,
+   and tags, followed by the total number of contacts.
+
+Use case ends.
+
+**Extensions**
+
+* 1a. The organiser supplies parameters with the list request.
+  * 1a1. BoothManagerPro rejects the request and explains that the list command does not accept parameters.
+
+  Use case resumes at step 1.
+
+* 1b. There are no stored contacts.
+  * 1b1. BoothManagerPro informs the organiser that no contacts were found and suggests using the add command to add one.
+
+  Use case ends.
+
+#### UC05: Find and filter contacts
+
+**MSS**
+
+1. Organiser requests to find contacts using one or more names, companies, emails, phone numbers, enquiry statuses, or tags.
+2. BoothManagerPro displays all contacts that match the supplied criteria, together with the number of matching contacts.
+   Each matching contact is displayed separately with an index and contact details, even if contacts share a name or company.
+
+Use case ends.
+
+**Matching rules**
+
+* Values for the same field are combined using OR; criteria for different fields are combined using AND.
+* Matches use complete field values. Name and company comparisons ignore case and leading/trailing spaces.
+  Email comparisons ignore case and use normalised addresses; phone comparisons ignore spaces and hyphens.
+  Status and tag comparisons ignore case.
+* Repeated identical search values are ignored.
+
+**Extensions**
+
+* 1a. No search field is supplied.
+  * 1a1. BoothManagerPro rejects the request and asks the organiser to provide at least one search field.
+
+  Use case resumes at step 1.
+
+* 1b. A search field is supplied without a value.
+  * 1b1. BoothManagerPro rejects the request and explains that search values cannot be empty.
+
+  Use case resumes at step 1.
+
+* 1c. An enquiry status is not one of the supported values.
+  * 1c1. BoothManagerPro rejects the request and explains that the supported statuses are new, contacted, confirmed, and rejected.
+
+  Use case resumes at step 1.
+
+* 1d. Another search value does not meet the specified format for its field.
+  * 1d1. BoothManagerPro rejects the request and explains that the value does not match the required format.
+
+  Use case resumes at step 1.
+
+* 1e. The request contains an unknown prefix or an unprefixed value.
+  * 1e1. BoothManagerPro rejects the request and explains that every search value must use a supported field prefix.
+
+  Use case resumes at step 1.
+
+* 1f. No contacts match the search criteria.
+  * 1f1. BoothManagerPro informs the organiser that no matching exhibitor contacts were found.
+
+  Use case ends.
 
 ### Non-Functional Requirements
 
