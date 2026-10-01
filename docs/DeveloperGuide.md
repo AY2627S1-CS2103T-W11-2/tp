@@ -259,73 +259,100 @@ _{Explain here how the data archiving feature will be implemented}_
 
 ### Product scope
 
-**Target user profile**:
+<!-- Owner: Cedric. Replace the placeholders below with the agreed BoothManagerPro target users and value proposition. -->
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+#### Target user profile
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+_To be completed by Cedric._
 
+#### Value proposition
+
+_To be completed by Cedric._
 
 ### User stories
 
-Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
+<!-- Owner: Gerard. Keep story IDs stable for cross-references. -->
 
-| Priority | As a …​                                    | I want to …​                     | So that I can…​                                                        |
-| -------- | ------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------- |
-| `* * *`  | new user                                   | see usage instructions         | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person               |                                                                        |
-| `* * *`  | user                                       | delete a person                | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name          | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details   | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name           | locate a person easily                                                 |
+Planned requirements for BoothManagerPro; implementation status is tracked separately. Here, **organiser** means convention organiser.
 
-*{More to be added}*
+**Priorities:** `***` High (must have), `**` Medium (should have), `*` Low (nice to have).
+
+- Priorities follow the feature list and explicit MVP requirements.
+- Considered stories are candidates, not commitments.
+- Out-of-scope stories are excluded regardless of priority.
+
+#### Planned user stories
+
+| ID | Priority | As a... | I want to... | So that... |
+| --- | --- | --- | --- | --- |
+| US-01 | `***` | organiser | add a representative's name, company, email, and phone | I have their essential contact details. |
+| US-02 | `***` | organiser | delete outdated contacts | my records stay relevant. |
+| US-03 | `***` | organiser | list all exhibitor contacts | I can review my records. |
+| US-04 | `***` | organiser | view a contact's full details | I can contact the right representative. |
+| US-05 | `***` | organiser | have duplicate contacts rejected with an explanation | I avoid repeated records. |
+| US-06 | `***` | organiser | distinguish same-name contacts when viewing or deleting | I select the correct record. |
+| US-07 | `***` | organiser | see clear errors for missing or invalid fields | I can correct my input. |
+| US-08 | `**` | first-time organiser | see features and usage instructions | I know how to begin. |
+| US-09 | `**` | organiser | edit contact details | my records stay accurate. |
+| US-10 | `**` | organiser | find contacts by exact name, company, email, or phone | I can locate contacts quickly. |
+| US-11 | `**` | organiser | filter contacts by enquiry status | I can review each enquiry stage. |
+| US-12 | `**` | organiser | combine search fields and alternatives | I can narrow my results. |
+| US-13 | `**` | organiser | set enquiry status to new, contacted, confirmed, or rejected | I can track progress. |
+| US-14 | `**` | organiser | set a next follow-up date | I know when to contact someone again. |
+| US-15 | `**` | organiser | view due or overdue follow-ups | I can prioritise outreach. |
+| US-16 | `**` | organiser | tag contacts by industry, priority, or need | I can group exhibitors. |
+| US-17 | `**` | organiser | filter contacts by tags | I can retrieve relevant groups. |
+| US-18 | `**` | organiser | record a preferred contact method | I can use the appropriate channel. |
+
+- **US-05:** Duplicates share a normalised email or a name-and-company combination.
+- **US-12:** Repeated values within a field use OR; different fields use AND.
+
+#### Considered user stories
+
+| ID | Priority | As a... | I want to... | So that... | Scope note |
+| --- | --- | --- | --- | --- | --- |
+| US-19 | `*` | organiser | import contacts from CSV | I avoid manual entry. | Optional enhancement. |
+| US-20 | `*` | organiser | export contacts to CSV | I can share records. | Optional enhancement. |
+| US-21 | `*` | organiser | undo my last change | I can recover from mistakes. | Optional enhancement. |
+| US-22 | `**` | organiser | record notes and booth requirements | I retain context for follow-ups. | Behaviour to be defined. |
+| US-23 | `**` | organiser | link representatives from one organisation | I understand their relationships. | Beyond recording company names. |
+| US-24 | `**` | organiser | mark a primary contact | I know whom to contact first. | Outside the selected feature list. |
+| US-25 | `**` | organiser | record a confirmed exhibitor's booth number | I can reference their allocation. | Metadata only. |
+| US-26 | `**` | fellow organiser | see who last contacted an exhibitor and when | I avoid duplicate outreach. | Contact-history design needed. |
+| US-27 | `*` | sales team member | export confirmed exhibitors | I can prepare invoices elsewhere. | Depends on CSV export. |
+| US-28 | `*` | operations staff member | receive exhibitor lists with booth numbers | I can plan services elsewhere. | Depends on export and booth metadata. |
+| US-29 | `**` | system maintainer | back up and restore records | I can recover lost data. | Recovery design needed. |
+
+#### Out-of-scope user stories
+
+| ID | Priority | As a... | I want to... | So that... | Reason excluded |
+| --- | --- | --- | --- | --- | --- |
+| US-30 | `*` | compliance officer | control data access and exports | I can restrict sharing. | Multi-user permissions outside scope. |
+| US-31 | `*` | organiser | design floor plans and allocate booths spatially | I can plan the layout. | Floor-plan management outside scope. |
+| US-32 | `*` | sales team member | invoice exhibitors and process payments | I can collect booth fees. | Financial workflows outside scope. |
+| US-33 | `*` | organiser | manage exhibitor contracts | I can administer agreements. | Contract management outside scope. |
+| US-34 | `*` | organiser | sell tickets and manage admission | I can run registration. | Ticketing outside scope. |
+| US-35 | `*` | operations staff member | schedule venue services and equipment | I can coordinate operations. | Logistics outside scope. |
+
+Exhibitors benefit from accurate statuses and follow-ups (US-13 to US-15); they are not direct application users.
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+<!-- Owner: Rhineson. Add representative multi-step BoothManagerPro use cases. Reference the relevant US IDs above and include actors, preconditions, main success scenarios, and extensions as appropriate. -->
 
-**Use case: Delete a person**
-
-**MSS**
-
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
-
-    Use case ends.
-
-**Extensions**
-
-* 2a. The list is empty.
-
-  Use case ends.
-
-* 3a. The given index is invalid.
-
-    * 3a1. AddressBook shows an error message.
-
-      Use case resumes at step 2.
-
-*{More to be added}*
+_To be completed by Rhineson._
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+<!-- Owner: Wenze. Add measurable BoothManagerPro NFRs and applicable project constraints. -->
 
-*{More to be added}*
+_To be completed by Wenze._
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+<!-- Owner: Jenna. Define the domain terms used throughout the guide. During integration, check terminology, story references, priorities, and consistency across the team's contributions. -->
+
+_To be completed by Jenna._
 
 --------------------------------------------------------------------------------------------------------------------
 
