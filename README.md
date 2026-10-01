@@ -29,8 +29,9 @@ and identify whom to contact next.
 
 ## UI preview
 
-<!-- Wenze: Replace docs/images/Ui.png with the team's UI mockup, preserving its proportions and this exact filename. -->
 ![Application UI preview](docs/images/Ui.png)
+
+*Planned UI mockup with fictional sample data. Enquiry status and follow-up fields illustrate the planned direction, not implemented functionality.*
 
 ## Who it is for
 
