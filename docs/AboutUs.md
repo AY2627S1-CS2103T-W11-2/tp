@@ -21,9 +21,6 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](https://github.com/rhinesonn)] 
 
-* Role: Team Lead
-* Responsibilities: UI
-
 ### Cedric Cheng
 
 <img src="images/cedriccheng.png" width="200px">
