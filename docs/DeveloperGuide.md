@@ -510,13 +510,17 @@ Use case ends.
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-4. All actions must be able to be typed into command line only.
-5. The system should only accept English characters and numbers.
-6. The project is expected to adhere to a schedule that delivers the finished product by 29th Oct 2027.
-7. Clients information should not hold any unwarranted personal data. 
+These are requirements for the intended product, not claims that every target has already been implemented or tested.
+
+1. **Platform compatibility:** The application shall run on Windows, Linux, and macOS with Java `25` installed, without requiring another Java version or OS-specific software.
+2. **Portable distribution:** The application shall be distributed as a single JAR and shall not require an installer. The distributed JAR shall not exceed 100 MB.
+3. **Single-user, offline operation:** The application shall serve one convention organiser on their own computer. Core contact-management operations shall work without an Internet connection, a user account, or a remote server. Concurrent multi-user access and shared live data files are outside scope.
+4. **Local, human-editable storage:** Contact data shall be stored locally in a human-editable text format such as JSON, without a DBMS. Successfully saved records shall remain available after a normal shutdown and restart.
+5. **Performance:** The application should support at least 1,000 exhibitor contacts. As a proposed acceptance target, typical add, list, view, delete, and search operations should display their result within two seconds of command submission with a representative 1,000-contact dataset. Record the test machine specifications when measuring this target.
+6. **Keyboard usability:** All core contact-management operations shall be accessible through typed commands. An organiser who types faster than average should be able to perform repeated contact-management tasks efficiently without switching to the mouse. This requirement concerns application operations, not OS window controls.
+7. **Clear feedback and data integrity:** Invalid commands shall identify the input problem and leave stored contacts unchanged. Storage read/write failures shall be reported rather than presented as successful saves. Command feedback shall distinguish successful operations, invalid input, and empty search results.
+8. **Display compatibility:** The GUI shall work without resolution-related inconvenience at 1920 x 1080 or higher with 100% and 125% scaling, and remain usable at 1280 x 720 or higher with 150% scaling, as required by the course screen-resolution constraint.
+9. **Data minimisation:** Stored information shall be limited to exhibitor contact and enquiry-management needs. The application shall not require unrelated sensitive information such as identity-document numbers or payment-card details.
 
 ### Glossary
 
