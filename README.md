@@ -34,8 +34,14 @@ and identify whom to contact next.
 
 ## Who it is for
 
-<!-- Cedric: Update these target user profiles for the team's product. -->
-BoothManagerPro is designed for...
+BoothManagerPro is designed for organisers at convention centres who need to keep track of the exhibitors they have invited for booths and the status of each enquiry. 
+Used to track contact details, it is best suited to organisers who:
+
+* handle dozens to hundreds of potential exhibitors, often with several representatives from the same exhibitor
+* frequently update enquiry statuses and need to know which exhibitors are due for a follow-up
+* need to pull up an exhibitor's contact details quickly, such as while on a call or replying to an email
+* are comfortable with computers and prefer typing commands, as they need to process information quickly
+* find full event-management software too slow or complex for day-to-day contact tracking
 
 ## Core features
 
