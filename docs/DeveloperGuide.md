@@ -259,15 +259,13 @@ _{Explain here how the data archiving feature will be implemented}_
 
 ### Product scope
 
-<!-- Owner: Cedric. Replace the placeholders below with the agreed BoothManagerPro target users and value proposition. -->
-
 #### Target user profile
 
-_To be completed by Cedric._
+* Manager who are handling large amount of booths 
+* Able to type fast
+* Interested in storing and finding specific contact from a large database
 
-#### Value proposition
-
-_To be completed by Cedric._
+**Value proposition**: Able to add and delete the status of clients quickly and find their information faster as compared to mouse driven GUI.
 
 ### User stories
 
@@ -512,9 +510,13 @@ Use case ends.
 
 ### Non-Functional Requirements
 
-<!-- Owner: Wenze. Add measurable BoothManagerPro NFRs and applicable project constraints. -->
-
-_To be completed by Wenze._
+1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
+2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
+3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+4. All actions must be able to be typed into command line only.
+5. The system should only accept English characters and numbers.
+6. The project is expected to adhere to a schedule that delivers the finished product by 29th Oct 2027.
+7. Clients information should not hold any unwarranted personal data. 
 
 ### Glossary
 
