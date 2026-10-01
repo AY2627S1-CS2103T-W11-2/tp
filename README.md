@@ -15,3 +15,13 @@
 * For the detailed documentation of this project, see the **[Address Book Product Website](https://se-education.org/addressbook-level3)**.
 * This project is a **part of the se-education.org** initiative. If you would like to contribute code to this project, see [se-education.org](https://se-education.org/#contributing-to-se-edu) for more info.
 
+## Core Features
+
+1. Add exhibitor contact
+    * For organiser to create new contact record 
+1. Delete exhibitor contact
+    * For organiser to delete unwanted contact records
+1. List exhibitor contacts
+    * For organiser to view all stored contacts
+1. View specific contact details
+    * For organiser to inspect one exhibitor’s contact
