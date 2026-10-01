@@ -3,10 +3,8 @@
 [![CI Status](https://github.com/AY2627S1-CS2103T-W11-2/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-W11-2/tp/actions/workflows/gradle.yml)
 [![codecov](https://codecov.io/github/AY2627S1-CS2103T-W11-2/tp/graph/badge.svg?token=EXE9YQFB7G)](https://codecov.io/github/AY2627S1-CS2103T-W11-2/tp)
 
-## Find the right exhibitor, track enquiries, and stay on top of follow-ups with quick, typed commands.
-
 **Manage exhibitor contacts efficiently through typed commands.**
-
+  
 BoothManagerPro is a desktop application designed for convention organisers
 who manage dozens to hundreds of exhibitor contacts and prefer working
 with the keyboard. It combines command-line input with a graphical
@@ -41,8 +39,16 @@ BoothManagerPro is designed for...
 
 ## Core features
 
-<!-- Jenna: Update the core features list to reflect the team's product. -->
-BoothManagerPro is under development, building on AddressBook-Level3. The following features describe the planned product scope...
+BoothManagerPro is under development, building on AddressBook-Level3. The following features describe the planned product scope;
+
+1. Add exhibitor contact
+    * For organiser to create new contact record
+1. Delete exhibitor contact
+    * For organiser to delete unwanted contact records
+1. List exhibitor contacts
+    * For organiser to view all stored contacts
+1. View specific contact details
+    * For organiser to inspect one exhibitor’s contact
 
 ### Future enhancements
 
