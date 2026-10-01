@@ -261,13 +261,11 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+* Manager who are handling large amount of booths 
+* Able to type fast
+* Interested in storing and finding specific contact from a large database
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: Able to add and delete the status of clients quickly and find their information faster as compared to mouse driven GUI.
 
 
 ### User stories
