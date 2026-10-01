@@ -1,21 +1,45 @@
-[![CI Status](https://github.com/se-edu/addressbook-level3/workflows/Java%20CI/badge.svg)](https://github.com/se-edu/addressbook-level3/actions)
+﻿# BoothManagerPro
 
+[![CI Status](https://github.com/AY2627S1-CS2103T-W11-2/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-W11-2/tp/actions/workflows/gradle.yml)
 [![codecov](https://codecov.io/github/AY2627S1-CS2103T-W11-2/tp/graph/badge.svg?token=EXE9YQFB7G)](https://codecov.io/github/AY2627S1-CS2103T-W11-2/tp)
 
-![Ui](docs/images/Ui.png)
+**Manage exhibitor contacts efficiently through typed commands.**
+  
+BoothManagerPro is a desktop application designed for convention organisers
+who manage dozens to hundreds of exhibitor contacts and prefer working
+with the keyboard. It combines command-line input with a graphical
+interface to make contact information easy to enter and view.
 
-* This is **a sample project for Software Engineering (SE) students**.<br>
-  Example usages:
-  * as a starting point of a course project (as opposed to writing everything from scratch)
-  * as a case study
-* The project simulates an ongoing software project for a desktop application (called _AddressBook_) used for managing contact details.
-  * It is **written in an object-oriented programming (OOP) style** and provides a **reasonably well-written** codebase of about 6 KLoC. It is **larger** than what students typically write in beginner-level software-engineering modules, without being overwhelming.
-  * It comes with a **reasonable level of user and developer documentation**.
-* It is named `AddressBook Level 3` (`AB3` for short) because it was initially created as a part of a series of `AddressBook` projects (`Level 1`, `Level 2`, `Level 3` ...).
-* For the detailed documentation of this project, see the **[Address Book Product Website](https://se-education.org/addressbook-level3)**.
-* This project is a **part of the se-education.org** initiative. If you would like to contribute code to this project, see [se-education.org](https://se-education.org/#contributing-to-se-edu) for more info.
+## Why BoothManagerPro?
 
-## Core Features
+Keeping track of exhibitor representatives and their contact details can
+become difficult as a convention grows. BoothManagerPro brings this
+information together in one place, helping organisers quickly find the
+right person and maintain organised contact records.
+
+## About the project
+
+BoothManagerPro focuses on managing exhibitors and their representatives
+throughout the enquiry process. Its initial development includes adding,
+listing, viewing, and deleting contact records.
+
+The planned direction includes enquiry status tracking and follow-up
+management, helping organisers keep track of communication progress
+and identify whom to contact next.
+
+## UI preview
+
+<!-- Wenze: Replace docs/images/Ui.png with the team's UI mockup, preserving its proportions and this exact filename. -->
+![Application UI preview](docs/images/Ui.png)
+
+## Who it is for
+
+<!-- Cedric: Update these target user profiles for the team's product. -->
+BoothManagerPro is designed for...
+
+## Core features
+
+BoothManagerPro is under development, building on AddressBook-Level3. The following features describe the planned product scope;
 
 1. Add exhibitor contact
     * For organiser to create new contact record
@@ -25,4 +49,28 @@
     * For organiser to view all stored contacts
 1. View specific contact details
     * For organiser to inspect one exhibitor’s contact
-  
+
+### Future enhancements
+
+- **CSV import and export:** Bring in existing contacts and share exhibitor lists with colleagues.
+- **Undo:** Reverse an accidental action.
+
+## Getting started
+
+To build and run the current development version, see the [development setup guide](docs/SettingUp.md). The [User Guide](docs/UserGuide.md) currently describes the inherited AddressBook functionality and will be updated as BoothManagerPro features become available.
+
+## Documentation
+
+<!-- Jenna (Docs & Links, Integration): Review these links alongside the final feature list and integrated README. -->
+- [User Guide](docs/UserGuide.md) - Learn how to use the application.
+- [Developer Guide](docs/DeveloperGuide.md) - Understand the architecture and development practices.
+- [Development setup](docs/SettingUp.md) - Set up the project to build and run locally.
+- [About us](docs/AboutUs.md) - Meet the project team.
+
+## Acknowledgements
+
+This project is based on the [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) project created by the [SE-EDU initiative](https://se-education.org). We acknowledge its code and documentation as the foundation for this application.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).

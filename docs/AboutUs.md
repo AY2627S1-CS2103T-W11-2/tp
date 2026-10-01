@@ -9,51 +9,41 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ## Project team
 
-### John Doe
+### Jenna Ng
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/jennangke.png" width="200px">
 
-[[homepage](http://www.comp.nus.edu.sg/~damithch)]
-[[github](https://github.com/johndoe)]
+[[github](https://github.com/jennangke)]
+
+### Rhineson Kok
+
+<img src="images/rhinesonn.png" width="200px">
+
+[[github](https://github.com/rhinesonn)] 
+
+### Cedric Cheng
+
+<img src="images/cedriccheng.png" width="200px">
+
+[[github](http://github.com/seadrickbug)] 
 [[portfolio](team/johndoe.md)]
 
-* Role: Project Advisor
+### Gerard Lum
 
-### Jane Doe
+<img src="images/gerardlke.png" width="200px">
 
-<img src="images/johndoe.png" width="200px">
-
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
-
-* Role: Team Lead
-* Responsibilities: UI
-
-### Johnny Doe
-
-<img src="images/johndoe.png" width="200px">
-
-[[github](http://github.com/johndoe)] [[portfolio](team/johndoe.md)]
-
-* Role: Developer
-* Responsibilities: Data
-
-### Jean Doe
-
-<img src="images/johndoe.png" width="200px">
-
-[[github](http://github.com/johndoe)]
+[[homepage](https://www.linkedin.com/in/gerardlumkaien/)]
+[[github](https://github.com/gerardlke)]
 [[portfolio](team/johndoe.md)]
 
 * Role: Developer
-* Responsibilities: Dev Ops + Threading
+* Responsibilities: Backend
 
-### James Doe
+### Li Wenze
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/legned-wenze.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](https://github.com/legned-wenze)]
 
 * Role: Developer
-* Responsibilities: UI
+* Responsibilities: UI mockup and non-functional requirements
