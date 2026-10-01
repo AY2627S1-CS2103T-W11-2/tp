@@ -4,14 +4,28 @@
 
 ![Ui](docs/images/Ui.png)
 
-* This is **a sample project for Software Engineering (SE) students**.<br>
-  Example usages:
-  * as a starting point of a course project (as opposed to writing everything from scratch)
-  * as a case study
-* The project simulates an ongoing software project for a desktop application (called _AddressBook_) used for managing contact details.
-  * It is **written in an object-oriented programming (OOP) style** and provides a **reasonably well-written** codebase of about 6 KLoC. It is **larger** than what students typically write in beginner-level software-engineering modules, without being overwhelming.
-  * It comes with a **reasonable level of user and developer documentation**.
-* It is named `AddressBook Level 3` (`AB3` for short) because it was initially created as a part of a series of `AddressBook` projects (`Level 1`, `Level 2`, `Level 3` ...).
-* For the detailed documentation of this project, see the **[Address Book Product Website](https://se-education.org/addressbook-level3)**.
-* This project is a **part of the se-education.org** initiative. If you would like to contribute code to this project, see [se-education.org](https://se-education.org/#contributing-to-se-edu) for more info.
+# BoothManagerPro
 
+**Manage exhibitor contacts efficiently through typed commands.**
+
+BoothManagerPro is a desktop application designed for convention organisers
+who manage dozens to hundreds of exhibitor contacts and prefer working
+with the keyboard. It combines command-line input with a graphical
+interface to make contact information easy to enter and view.
+
+## Why BoothManagerPro?
+
+Keeping track of exhibitor representatives and their contact details can
+become difficult as a convention grows. BoothManagerPro brings this
+information together in one place, helping organisers quickly find the
+right person and maintain organised contact records.
+
+## About the project
+
+BoothManagerPro focuses on managing exhibitors and their representatives
+throughout the enquiry process. Its initial development includes adding,
+listing, viewing, and deleting contact records.
+
+The planned direction includes enquiry status tracking and follow-up
+management, helping organisers keep track of communication progress
+and identify whom to contact next.
