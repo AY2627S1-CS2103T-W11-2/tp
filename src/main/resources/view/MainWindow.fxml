@@ -1,59 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import java.net.URL?>
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.Scene?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.SplitPane?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
-
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <fx:root type="javafx.stage.Stage" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-         title="Address App" minWidth="450" minHeight="600" onCloseRequest="#handleExit">
-  <icons>
-    <Image url="@/images/address_book_32.png" />
-  </icons>
+         title="BoothManagerPro" minWidth="860" minHeight="640" onCloseRequest="#handleExit">
   <scene>
     <Scene>
-      <stylesheets>
-        <URL value="@DarkTheme.css" />
-        <URL value="@Extensions.css" />
-      </stylesheets>
-
-      <VBox>
-        <MenuBar fx:id="menuBar" VBox.vgrow="NEVER">
-          <Menu mnemonicParsing="false" text="File">
-            <MenuItem mnemonicParsing="false" onAction="#handleExit" text="Exit" />
-          </Menu>
-          <Menu mnemonicParsing="false" text="Help">
-            <MenuItem fx:id="helpMenuItem" mnemonicParsing="false" onAction="#handleHelp" text="Help" />
-          </Menu>
+      <stylesheets><URL value="@BoothManagerPro.css" /></stylesheets>
+      <VBox styleClass="app-shell">
+        <HBox styleClass="brand-bar" alignment="CENTER_LEFT" spacing="16">
+          <Label text="BoothManagerPro" styleClass="brand-title" />
+          <Region HBox.hgrow="ALWAYS" />
+          <Label text="Exhibitor contacts / Enquiries" styleClass="brand-caption" />
+        </HBox>
+        <MenuBar>
+          <Menu text="File"><MenuItem text="Exit" onAction="#handleExit" /></Menu>
+          <Menu text="Help"><MenuItem fx:id="helpMenuItem" text="User guide" onAction="#handleHelp" /></Menu>
         </MenuBar>
-
-        <StackPane VBox.vgrow="NEVER" fx:id="commandBoxPlaceholder" styleClass="pane-with-border">
-          <padding>
-            <Insets top="5" right="10" bottom="5" left="10" />
-          </padding>
-        </StackPane>
-
-        <StackPane VBox.vgrow="NEVER" fx:id="resultDisplayPlaceholder" styleClass="pane-with-border"
-                   minHeight="100" prefHeight="100" maxHeight="100">
-          <padding>
-            <Insets top="5" right="10" bottom="5" left="10" />
-          </padding>
-        </StackPane>
-
-        <VBox fx:id="personList" styleClass="pane-with-border" minWidth="340" prefWidth="340" VBox.vgrow="ALWAYS">
-          <padding>
-            <Insets top="10" right="10" bottom="10" left="10" />
-          </padding>
-          <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS"/>
+        <VBox styleClass="workspace" spacing="10" VBox.vgrow="ALWAYS">
+          <HBox alignment="CENTER_LEFT">
+            <Label text="COMMAND" styleClass="section-label" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label text="Enter to run  |  Ctrl+L to focus  |  F1 for help" styleClass="muted" />
+          </HBox>
+          <StackPane fx:id="commandBoxPlaceholder" />
+          <Label text="RESULT" styleClass="section-label" />
+          <StackPane fx:id="resultDisplayPlaceholder" minHeight="76" prefHeight="90" maxHeight="110" />
+          <SplitPane dividerPositions="0.45" VBox.vgrow="ALWAYS" styleClass="contact-split">
+            <VBox minWidth="290" spacing="10">
+              <HBox alignment="CENTER_LEFT" spacing="8">
+                <Label text="EXHIBITOR CONTACTS" styleClass="section-label" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label fx:id="recordCount" styleClass="muted" />
+              </HBox>
+              <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS" />
+            </VBox>
+            <VBox minWidth="330" spacing="10">
+              <Label text="CONTACT DETAILS" styleClass="section-label" />
+              <StackPane fx:id="contactDetailsPlaceholder" VBox.vgrow="ALWAYS" />
+            </VBox>
+          </SplitPane>
         </VBox>
-
-        <StackPane fx:id="statusbarPlaceholder" VBox.vgrow="NEVER" />
+        <StackPane fx:id="statusbarPlaceholder" />
       </VBox>
     </Scene>
   </scene>
