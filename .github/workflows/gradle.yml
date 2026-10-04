@@ -36,3 +36,11 @@ jobs:
         uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Build and check on Linux
+        if: runner.os == 'Linux'
+        run: xvfb-run -a ./gradlew check coverage
+
+      - name: Build and check on Windows and macOS
+        if: runner.os != 'Linux'
+        run: ./gradlew check coverage
