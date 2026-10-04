@@ -83,21 +83,6 @@ The `UI` component,
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
 * depends on some classes in the `Model` component because it displays `Person` objects from the model.
 
-#### UI extension points
-
-| Component | Responsibility |
-| --- | --- |
-| `MainWindow.fxml` / `BoothManagerPro.css` | Shared layout, colours, spacing, and responsive split view. |
-| `PersonListPanel` / `PersonCard` | Contact list and summary cards; exposes `selectedPersonProperty()`. |
-| `ContactDetailsPanel` | Selected contact details; add company, status, contact method, and follow-up fields here when the model supports them. |
-| `CommandBox` / `ResultDisplay` | Command entry and success/error feedback. Commands continue through `Logic.execute()`. |
-
-- Selection drives the details panel; the filtered list drives the record count.
-- Future fields show a coming-soon message; no placeholder data is persisted.
-- Keep new commands in the logic layer and expose new data through the model.
-- Keyboard controls: Enter executes, Ctrl+L (Command+L on macOS) focuses command input, F1 opens help, and arrow keys navigate the focused contact list.
-- `MainWindowTest` checks FXML loading, selection, command feedback, and empty states. It also writes UI previews to `build/reports/ui/`; Linux needs a display (for example, Xvfb).
-
 ### Logic component
 
 **API** : [`Logic.java`](../src/main/java/seedu/boothmanagerpro/logic/Logic.java)
