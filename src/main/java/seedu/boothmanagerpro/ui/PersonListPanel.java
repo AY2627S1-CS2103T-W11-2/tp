@@ -2,10 +2,8 @@ package seedu.boothmanagerpro.ui;
 
 import java.util.logging.Logger;
 
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.Region;
@@ -29,23 +27,6 @@ public class PersonListPanel extends UiPart<Region> {
         super(FXML);
         personListView.setItems(personList);
         personListView.setCellFactory(listView -> new PersonListViewCell());
-        Label emptyState = new Label("No contacts to show.\nType list to show all contacts, or add a new contact.");
-        emptyState.setWrapText(true);
-        emptyState.getStyleClass().add("empty-state");
-        personListView.setPlaceholder(emptyState);
-        personListView.setAccessibleText("Exhibitor contacts. Use arrow keys to select a contact.");
-    }
-
-    /** Exposes selection for detail panels without coupling them to the list implementation. */
-    public ReadOnlyObjectProperty<Person> selectedPersonProperty() {
-        return personListView.getSelectionModel().selectedItemProperty();
-    }
-
-    /** Selects the first contact when a list update leaves no selection. */
-    public void ensureSelection() {
-        if (personListView.getSelectionModel().getSelectedItem() == null && !personListView.getItems().isEmpty()) {
-            personListView.getSelectionModel().selectFirst();
-        }
     }
 
     /**
@@ -60,9 +41,7 @@ public class PersonListPanel extends UiPart<Region> {
                 setGraphic(null);
                 setText(null);
             } else {
-                Region card = new PersonCard(person, getIndex() + 1).getRoot();
-                card.prefWidthProperty().bind(widthProperty().subtract(4));
-                setGraphic(card);
+                setGraphic(new PersonCard(person, getIndex() + 1).getRoot());
             }
         }
     }
