@@ -21,8 +21,18 @@ public class ResultDisplay extends UiPart<Region> {
     }
 
     public void setFeedbackToUser(String feedbackToUser) {
+        setFeedbackToUser(feedbackToUser, false);
+    }
+
+    /** Shows feedback with a distinct error state when a command fails. */
+    public void setFeedbackToUser(String feedbackToUser, boolean isError) {
         requireNonNull(feedbackToUser);
+        resultDisplay.getStyleClass().remove("error");
+        if (isError) {
+            resultDisplay.getStyleClass().add("error");
+        }
         resultDisplay.setText(feedbackToUser);
+        resultDisplay.positionCaret(0);
     }
 
 }

@@ -3,8 +3,12 @@ package seedu.boothmanagerpro.ui;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
+import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCombination;
@@ -17,6 +21,7 @@ import seedu.boothmanagerpro.logic.Logic;
 import seedu.boothmanagerpro.logic.commands.CommandResult;
 import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
+import seedu.boothmanagerpro.model.person.Person;
 
 /**
  * The Main Window. Provides the basic application layout containing
@@ -36,6 +41,13 @@ public class MainWindow extends UiPart<Stage> {
     private PersonListPanel personListPanel;
     private ResultDisplay resultDisplay;
     private HelpWindow helpWindow;
+    private CommandBox commandBox;
+
+    @FXML
+    private Label recordCount;
+
+    @FXML
+    private StackPane contactDetailsPlaceholder;
 
     @FXML
     private StackPane commandBoxPlaceholder;
@@ -116,23 +128,42 @@ public class MainWindow extends UiPart<Stage> {
     void fillInnerParts() {
         personListPanel = new PersonListPanel(logic.getFilteredPersonList());
         personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
+        ContactDetailsPanel detailsPanel = new ContactDetailsPanel();
+        contactDetailsPlaceholder.getChildren().add(detailsPanel.getRoot());
+        personListPanel.selectedPersonProperty().addListener((observable, previous, selected) ->
+                detailsPanel.showPerson(selected));
+        recordCount.textProperty().bind(Bindings.createStringBinding(() -> {
+            int count = logic.getFilteredPersonList().size();
+            return count + (count == 1 ? " record" : " records");
+        }, logic.getFilteredPersonList()));
+        logic.getFilteredPersonList().addListener((ListChangeListener<Person>) change ->
+                Platform.runLater(personListPanel::ensureSelection));
+        personListPanel.ensureSelection();
 
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
+        resultDisplay.setFeedbackToUser("Ready. Type a command to begin, or help for usage instructions.");
 
         StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
 
-        CommandBox commandBox = new CommandBox(this::executeCommand);
+        commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
+        getRoot().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (KeyCombination.valueOf("Shortcut+L").match(event)) {
+                commandBox.focus();
+                event.consume();
+            }
+        });
+        commandBox.focus();
     }
 
     /**
      * Sets the default size based on {@code guiSettings}.
      */
     private void setWindowDefaultSize(GuiSettings guiSettings) {
-        primaryStage.setHeight(guiSettings.getWindowHeight());
-        primaryStage.setWidth(guiSettings.getWindowWidth());
+        primaryStage.setHeight(Math.max(primaryStage.getMinHeight(), guiSettings.getWindowHeight()));
+        primaryStage.setWidth(Math.max(primaryStage.getMinWidth(), guiSettings.getWindowWidth()));
         if (guiSettings.getWindowCoordinates() != null) {
             primaryStage.setX(guiSettings.getWindowCoordinates().getX());
             primaryStage.setY(guiSettings.getWindowCoordinates().getY());
@@ -193,7 +224,7 @@ public class MainWindow extends UiPart<Stage> {
             return commandResult;
         } catch (CommandException | ParseException e) {
             logger.info("An error occurred while executing command: " + commandText);
-            resultDisplay.setFeedbackToUser(e.getMessage());
+            resultDisplay.setFeedbackToUser(e.getMessage(), true);
             throw e;
         }
     }
