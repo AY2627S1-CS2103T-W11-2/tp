@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.Region;
 
 /**
@@ -22,7 +23,8 @@ public class StatusBarFooter extends UiPart<Region> {
      */
     public StatusBarFooter(Path saveLocation) {
         super(FXML);
-        saveLocationStatus.setText(Paths.get(".").resolve(saveLocation).toString());
+        saveLocationStatus.setText("Single-user desktop app  |  Local contact data");
+        saveLocationStatus.setTooltip(new Tooltip(Paths.get(".").resolve(saveLocation).toString()));
     }
 
 }
