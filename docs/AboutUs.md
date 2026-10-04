@@ -28,7 +28,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ### Cedric Cheng
 
-<img src="images/cedriccheng.png" width="200px">
+<img src="images/seadrickbug.png" width="200px">
 
 [[github](http://github.com/seadrickbug)] 
 [[portfolio](team/johndoe.md)]
