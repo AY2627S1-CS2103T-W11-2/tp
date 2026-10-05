@@ -51,9 +51,6 @@ public class FindCommandParser implements Parser<FindCommand> {
     }
 
     private void addCriterion(Map<String, Set<String>> criteria, String field, String value) throws ParseException {
-        if (!Set.of("n/", "e/", "p/", "t/").contains(field)) {
-            throw new ParseException(MESSAGE_UNSUPPORTED_FIELD);
-        }
         if (value.trim().isEmpty()) {
             throw new ParseException(MESSAGE_EMPTY_VALUE);
         }

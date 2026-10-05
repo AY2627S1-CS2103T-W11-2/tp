@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.boothmanagerpro.logic.Messages.MESSAGE_PERSONS_LISTED_OVERVIEW;
 import static seedu.boothmanagerpro.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.boothmanagerpro.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.boothmanagerpro.testutil.TypicalPersons.ALICE;
@@ -19,6 +20,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import seedu.boothmanagerpro.logic.commands.FindCommand;
+import seedu.boothmanagerpro.logic.commands.ListCommand;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 import seedu.boothmanagerpro.model.Model;
 import seedu.boothmanagerpro.model.ModelManager;
@@ -100,5 +102,44 @@ public class FindFieldsTest {
         assertEquals(copy.hashCode(), predicate.hashCode());
         assertFalse(predicate.equals(null));
         assertFalse(predicate.equals("other"));
+    }
+
+    @Test
+    public void predicate_equalityChecksSelfAndDifferentCriteria() {
+        ContactMatchesFieldsPredicate predicate = new ContactMatchesFieldsPredicate(
+                Map.of("n/", Set.of("alice pauline")));
+        assertTrue(predicate.equals(predicate));
+        assertFalse(predicate.equals(new ContactMatchesFieldsPredicate(
+                Map.of("n/", Set.of("benson meier")))));
+        assertEquals("{n/=[alice pauline]}", predicate.toString());
+    }
+
+    @Test
+    public void predicate_unknownFieldDoesNotMatch() {
+        ContactMatchesFieldsPredicate predicate = new ContactMatchesFieldsPredicate(
+                Map.of("x/", Set.of("alice pauline")));
+        assertFalse(predicate.test(ALICE));
+    }
+
+    @Test
+    public void parse_invalidInputPreservesExistingResultsAndContacts() throws Exception {
+        Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        parser.parse("n/Alice Pauline").execute(model);
+        for (String input : List.of("n/", "e/not-an-email", "x/test", "s/new")) {
+            assertThrows(ParseException.class, () -> parser.parse(input).execute(model));
+            assertEquals(List.of(ALICE), model.getFilteredPersonList());
+            assertEquals(getTypicalAddressBook(), model.getAddressBook());
+        }
+    }
+
+    @Test
+    public void execute_resultCountAndListReset() throws Exception {
+        Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1),
+                parser.parse("e/alice@example.com").execute(model).getFeedbackToUser());
+        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0),
+                parser.parse("e/missing@example.com").execute(model).getFeedbackToUser());
+        new ListCommand().execute(model);
+        assertEquals(7, model.getFilteredPersonList().size());
     }
 }
