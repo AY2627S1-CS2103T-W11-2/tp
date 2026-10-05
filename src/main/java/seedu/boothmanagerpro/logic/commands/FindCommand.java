@@ -2,28 +2,31 @@ package seedu.boothmanagerpro.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.function.Predicate;
+
 import seedu.boothmanagerpro.commons.util.ToStringBuilder;
 import seedu.boothmanagerpro.logic.Messages;
 import seedu.boothmanagerpro.model.Model;
-import seedu.boothmanagerpro.model.person.NameContainsKeywordsPredicate;
+import seedu.boothmanagerpro.model.person.Person;
 
 /**
- * Finds and lists all persons in the address book whose name contains any of the argument keywords.
- * Keyword matching is case insensitive.
+ * Finds and lists contacts matching name keywords or exact field criteria.
  */
 public class FindCommand extends Command {
 
     public static final String COMMAND_WORD = "find";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds all persons whose names contain any of "
-            + "the specified keywords (case-insensitive) and displays them as a list with index numbers.\n"
-            + "Parameters: KEYWORD [MORE_KEYWORDS]...\n"
-            + "Example: " + COMMAND_WORD + " alice bob charlie";
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds contacts by name keywords or exact fields "
+            + "and displays matching contacts with index numbers.\n"
+            + "Parameters: KEYWORD [MORE_KEYWORDS]... or [n/NAME] [e/EMAIL] [p/PHONE] [t/TAG]...\n"
+            + "Prefixed values match complete fields. Repeat a prefix for alternatives (OR); "
+            + "different fields use AND.\n"
+            + "Example: " + COMMAND_WORD + " n/Alice Pauline t/friends";
 
-    private final NameContainsKeywordsPredicate predicate;
+    private final Predicate<Person> predicate;
 
-    public FindCommand(NameContainsKeywordsPredicate predicate) {
-        this.predicate = predicate;
+    public FindCommand(Predicate<Person> predicate) {
+        this.predicate = requireNonNull(predicate);
     }
 
     @Override
