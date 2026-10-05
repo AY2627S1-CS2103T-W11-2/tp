@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/github/AY2627S1-CS2103T-W11-2/tp/graph/badge.svg?token=EXE9YQFB7G)](https://codecov.io/github/AY2627S1-CS2103T-W11-2/tp)
 
 **Manage exhibitor contacts efficiently through typed commands.**
-  
+
 BoothManagerPro is a desktop application designed for convention organisers
 who manage dozens to hundreds of exhibitor contacts and prefer working
 with the keyboard. It combines command-line input with a graphical
@@ -35,7 +35,7 @@ and identify whom to contact next.
 
 ## Who it is for
 
-BoothManagerPro is designed for organisers at convention centres who need to keep track of the exhibitors they have invited for booths and the status of each enquiry. 
+BoothManagerPro is designed for organisers at convention centres who need to keep track of the exhibitors they have invited for booths and the status of each enquiry.
 Used to track contact details, it is best suited to organisers who:
 
 * handle dozens to hundreds of potential exhibitors, often with several representatives from the same exhibitor
@@ -64,7 +64,9 @@ BoothManagerPro is under development, building on AddressBook-Level3. The follow
 
 ## Getting started
 
-To build and run the current development version, see the [development setup guide](docs/SettingUp.md). The [User Guide](docs/UserGuide.md) currently describes the inherited AddressBook functionality and will be updated as BoothManagerPro features become available.
+To build and run the current development version, see the [development setup guide](docs/SettingUp.md).
+The [User Guide](docs/UserGuide.md) covers inherited AddressBook commands and `view n/NAME`, including
+find-style name matching and numbered selection between matching exhibitor contacts.
 
 ## Documentation
 

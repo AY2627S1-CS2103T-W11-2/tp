@@ -93,6 +93,42 @@ Shows a list of all persons in the address book.
 
 Format: `list`
 
+### Viewing an exhibitor contact: `view`
+
+Shows matching contacts in the left panel and the chosen contact's details in the right panel, with command feedback in the result area.
+
+Format: `view n/NAME`
+
+* Matching follows `find`: case-insensitive whole-name keywords, matching **any** supplied keyword.
+  For example, `view n/rhineson` matches both `rhineson` and `rhineson kok`; `rhin` does not match `rhineson`.
+* Names must contain 1 to 80 characters and at least one letter. Letters, spaces, hyphens, apostrophes,
+  and full stops are supported, for example `Anne-Marie O'Neil`.
+* Searches all stored contacts, including those hidden by a previous `find` command.
+* If several contacts match, the left panel and result show the same numbered choices with their companies.
+  The right panel prompts you to choose a contact.
+  Enter the corresponding number as your next command, for example `2`.
+  The chosen contact is highlighted on the left and their full details appear on the right.
+  A single match is selected automatically.
+* An invalid number shows the valid range and lets you try again. Another recognised command cancels the pending choice.
+* Only `n/` is accepted. Repeated names, other prefixes, missing/invalid names, and unprefixed requests are rejected.
+* Viewing does not change saved data. It filters the displayed list to the matches; use `list` to show everyone again.
+* An omitted contact method or a company missing from an older record is shown as `Not specified`.
+  Contacts without tags show `None`.
+
+Example: `view n/Alicia Tan`
+
+```text
+Exhibitor contact found:
+Alicia Tan at TechNova Pte Ltd
+Email: alicia@technova.com
+Phone: 91234567
+Contact method: email
+Tags: high-priority, technology
+```
+
+Company and preferred contact method are supported in stored records. The inherited `add` command's syntax
+remains unchanged in this increment; entering these fields through `add` depends on the separate add-feature work.
+
 ### Editing a person: `edit`
 
 Edits an existing person in the address book.
@@ -154,14 +190,17 @@ Format: `exit`
 
 ### Saving the data
 
-AddressBook automatically saves data after every command. You do not need to save manually.
+AddressBook automatically saves changes to contact data. You do not need to save manually.
+The `view` command and its numbered selection replies only read data and do not write to the data file.
 
 ### Editing the data file
 
 AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, AddressBook starts with an empty address book at the next run.
+The invalid file remains on disk until you run a command other than `view` or its numbered selection reply.
+Still, we recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 
@@ -195,4 +234,5 @@ Action | Format, Examples
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List** | `list`
+**View** | `view n/NAME`<br> e.g., `view n/Alicia Tan`; reply `2` if prompted to choose between matches
 **Help** | `help`

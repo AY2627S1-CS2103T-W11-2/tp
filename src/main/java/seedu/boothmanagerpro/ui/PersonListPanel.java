@@ -36,12 +36,16 @@ public class PersonListPanel extends UiPart<Region> {
         personListView.setAccessibleText("Exhibitor contacts. Use arrow keys to select a contact.");
     }
 
-    /** Exposes selection for detail panels without coupling them to the list implementation. */
+    /**
+     * Exposes selection for detail panels without coupling them to the list implementation.
+     */
     public ReadOnlyObjectProperty<Person> selectedPersonProperty() {
         return personListView.getSelectionModel().selectedItemProperty();
     }
 
-    /** Selects the first contact when a list update leaves no selection. */
+    /**
+     * Selects the first contact when a list update leaves no selection.
+     */
     public void ensureSelection() {
         if (personListView.getSelectionModel().getSelectedItem() == null && !personListView.getItems().isEmpty()) {
             personListView.getSelectionModel().selectFirst();
@@ -49,14 +53,29 @@ public class PersonListPanel extends UiPart<Region> {
     }
 
     /**
+     * Selects and scrolls to a contact requested through the command box.
+     */
+    public void selectPerson(Person person) {
+        personListView.getSelectionModel().select(person);
+        personListView.scrollTo(person);
+    }
+
+    /**
+     * Clears selection while the user chooses between view matches.
+     */
+    public void clearSelection() {
+        personListView.getSelectionModel().clearSelection();
+    }
+
+    /**
      * Custom {@code ListCell} that displays the graphics of a {@code Person} using a {@code PersonCard}.
      */
     class PersonListViewCell extends ListCell<Person> {
         @Override
-        protected void updateItem(Person person, boolean empty) {
-            super.updateItem(person, empty);
+        protected void updateItem(Person person, boolean isEmpty) {
+            super.updateItem(person, isEmpty);
 
-            if (empty || person == null) {
+            if (isEmpty || person == null) {
                 setGraphic(null);
                 setText(null);
             } else {

@@ -56,8 +56,10 @@ public class EditCommand extends Command {
     private final EditPersonDescriptor editPersonDescriptor;
 
     /**
-     * @param index of the person in the filtered person list to edit
-     * @param editPersonDescriptor details to edit the person with
+     * Creates a command that edits the indexed contact using a copy of the supplied changes.
+     *
+     * @param index The index of the person in the filtered person list to edit.
+     * @param editPersonDescriptor The details to edit the person with.
      */
     public EditCommand(Index index, EditPersonDescriptor editPersonDescriptor) {
         requireNonNull(index);
@@ -79,7 +81,8 @@ public class EditCommand extends Command {
         Person personToEdit = lastShownList.get(index.getZeroBased());
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
 
-        if (!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)) {
+        if (model.getAddressBook().getPersonList().stream()
+                .anyMatch(person -> !person.equals(personToEdit) && person.isSamePerson(editedPerson))) {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
 
@@ -101,7 +104,8 @@ public class EditCommand extends Command {
         Address updatedAddress = editPersonDescriptor.getAddress().orElse(personToEdit.getAddress());
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags);
+        return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags,
+                personToEdit.getCompany(), personToEdit.getPreferredContactMethod());
     }
 
     @Override
@@ -138,6 +142,9 @@ public class EditCommand extends Command {
         private Address address;
         private Set<Tag> tags;
 
+        /**
+         * Creates an empty descriptor with no fields marked for editing.
+         */
         public EditPersonDescriptor() {}
 
         /**

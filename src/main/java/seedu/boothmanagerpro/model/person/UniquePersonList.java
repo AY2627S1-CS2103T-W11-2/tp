@@ -61,7 +61,7 @@ public class UniquePersonList implements Iterable<Person> {
             throw new PersonNotFoundException();
         }
 
-        if (!target.isSamePerson(editedPerson) && contains(editedPerson)) {
+        if (internalList.stream().anyMatch(person -> !person.equals(target) && person.isSamePerson(editedPerson))) {
             throw new DuplicatePersonException();
         }
 
@@ -90,7 +90,7 @@ public class UniquePersonList implements Iterable<Person> {
      */
     public void setPersons(List<Person> persons) {
         requireAllNonNull(persons);
-        if (!personsAreUnique(persons)) {
+        if (!arePersonsUnique(persons)) {
             throw new DuplicatePersonException();
         }
 
@@ -136,7 +136,7 @@ public class UniquePersonList implements Iterable<Person> {
     /**
      * Returns true if {@code persons} contains only unique persons.
      */
-    private boolean personsAreUnique(List<Person> persons) {
+    private boolean arePersonsUnique(List<Person> persons) {
         for (int i = 0; i < persons.size() - 1; i++) {
             for (int j = i + 1; j < persons.size(); j++) {
                 if (persons.get(i).isSamePerson(persons.get(j))) {

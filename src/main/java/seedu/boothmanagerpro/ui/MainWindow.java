@@ -42,6 +42,7 @@ public class MainWindow extends UiPart<Stage> {
     private ResultDisplay resultDisplay;
     private HelpWindow helpWindow;
     private CommandBox commandBox;
+    private ContactDetailsPanel detailsPanel;
 
     @FXML
     private Label recordCount;
@@ -94,7 +95,9 @@ public class MainWindow extends UiPart<Stage> {
 
     /**
      * Sets the accelerator of a MenuItem.
-     * @param keyCombination the KeyCombination value of the accelerator
+     *
+     * @param menuItem The menu item to trigger.
+     * @param keyCombination The key combination that triggers the menu item.
      */
     private void setAccelerator(MenuItem menuItem, KeyCombination keyCombination) {
         menuItem.setAccelerator(keyCombination);
@@ -128,7 +131,7 @@ public class MainWindow extends UiPart<Stage> {
     void fillInnerParts() {
         personListPanel = new PersonListPanel(logic.getFilteredPersonList());
         personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
-        ContactDetailsPanel detailsPanel = new ContactDetailsPanel();
+        detailsPanel = new ContactDetailsPanel();
         contactDetailsPlaceholder.getChildren().add(detailsPanel.getRoot());
         personListPanel.selectedPersonProperty().addListener((observable, previous, selected) ->
                 detailsPanel.showPerson(selected));
@@ -137,7 +140,7 @@ public class MainWindow extends UiPart<Stage> {
             return count + (count == 1 ? " record" : " records");
         }, logic.getFilteredPersonList()));
         logic.getFilteredPersonList().addListener((ListChangeListener<Person>) change ->
-                Platform.runLater(personListPanel::ensureSelection));
+                Platform.runLater(this::ensureSelectionIfReady));
         personListPanel.ensureSelection();
 
         resultDisplay = new ResultDisplay();
@@ -203,6 +206,15 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     /**
+     * Restores a default selection unless a view request is waiting for the user's numbered choice.
+     */
+    private void ensureSelectionIfReady() {
+        if (!logic.isAwaitingViewSelection()) {
+            personListPanel.ensureSelection();
+        }
+    }
+
+    /**
      * Executes the command and returns the result.
      *
      * @see seedu.boothmanagerpro.logic.Logic#execute(String)
@@ -213,11 +225,20 @@ public class MainWindow extends UiPart<Stage> {
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
 
-            if (commandResult.isShowHelp()) {
+            if (!commandResult.getViewChoices().isEmpty()) {
+                personListPanel.clearSelection();
+                detailsPanel.showSelectionPrompt();
+            } else if (commandResult.getPersonToView().isPresent()) {
+                personListPanel.selectPerson(commandResult.getPersonToView().orElseThrow());
+            } else {
+                ensureSelectionIfReady();
+            }
+
+            if (commandResult.shouldShowHelp()) {
                 handleHelp();
             }
 
-            if (commandResult.isExit()) {
+            if (commandResult.shouldExit()) {
                 handleExit();
             }
 
@@ -225,6 +246,7 @@ public class MainWindow extends UiPart<Stage> {
         } catch (CommandException | ParseException e) {
             logger.info("An error occurred while executing command: " + commandText);
             resultDisplay.setFeedbackToUser(e.getMessage(), true);
+            ensureSelectionIfReady();
             throw e;
         }
     }

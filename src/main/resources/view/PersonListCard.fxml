@@ -8,6 +8,7 @@
       <Label fx:id="id" styleClass="card-name" minWidth="-1" />
       <Label fx:id="name" styleClass="card-name" wrapText="true" minWidth="0" HBox.hgrow="ALWAYS" />
     </HBox>
+    <Label fx:id="company" styleClass="muted" wrapText="true" />
     <Label fx:id="email" styleClass="contact-summary" wrapText="true" />
     <Label fx:id="phone" styleClass="contact-summary" />
     <Label fx:id="address" styleClass="muted" wrapText="true" />
