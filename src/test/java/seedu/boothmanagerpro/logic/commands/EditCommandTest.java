@@ -3,13 +3,13 @@ package seedu.boothmanagerpro.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.boothmanagerpro.logic.commands.CommandTestUtil.DESC_AMY;
+import static seedu.boothmanagerpro.logic.commands.CommandTestUtil.DESC_BOB;
 import static seedu.boothmanagerpro.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.boothmanagerpro.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.boothmanagerpro.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.boothmanagerpro.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.boothmanagerpro.logic.commands.CommandTestUtil.assertCommandSuccess;
-import static seedu.boothmanagerpro.logic.commands.CommandTestUtil.createAmyDescriptor;
-import static seedu.boothmanagerpro.logic.commands.CommandTestUtil.createBobDescriptor;
 import static seedu.boothmanagerpro.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.boothmanagerpro.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.boothmanagerpro.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
@@ -148,10 +148,10 @@ public class EditCommandTest {
 
     @Test
     public void equals() {
-        final EditCommand standardCommand = new EditCommand(INDEX_FIRST_PERSON, createAmyDescriptor());
+        final EditCommand standardCommand = new EditCommand(INDEX_FIRST_PERSON, DESC_AMY);
 
         // same values -> returns true
-        EditPersonDescriptor copyDescriptor = new EditPersonDescriptor(createAmyDescriptor());
+        EditPersonDescriptor copyDescriptor = new EditPersonDescriptor(DESC_AMY);
         EditCommand commandWithSameValues = new EditCommand(INDEX_FIRST_PERSON, copyDescriptor);
         assertTrue(standardCommand.equals(commandWithSameValues));
 
@@ -165,10 +165,10 @@ public class EditCommandTest {
         assertFalse(standardCommand.equals(new ClearCommand()));
 
         // different index -> returns false
-        assertFalse(standardCommand.equals(new EditCommand(INDEX_SECOND_PERSON, createAmyDescriptor())));
+        assertFalse(standardCommand.equals(new EditCommand(INDEX_SECOND_PERSON, DESC_AMY)));
 
         // different descriptor -> returns false
-        assertFalse(standardCommand.equals(new EditCommand(INDEX_FIRST_PERSON, createBobDescriptor())));
+        assertFalse(standardCommand.equals(new EditCommand(INDEX_FIRST_PERSON, DESC_BOB)));
     }
 
     @Test

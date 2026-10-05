@@ -17,10 +17,10 @@ public class CommandResult {
     private final String feedbackToUser;
 
     /** Help information should be shown to the user. */
-    private final boolean shouldShowHelp;
+    private final boolean showHelp;
 
     /** The application should exit. */
-    private final boolean shouldExit;
+    private final boolean exit;
 
     /** Contacts awaiting a numbered reply to a view request. */
     private final List<Person> viewChoices;
@@ -31,20 +31,20 @@ public class CommandResult {
     /**
      * Constructs a {@code CommandResult} with the specified fields.
      */
-    public CommandResult(String feedbackToUser, boolean shouldShowHelp, boolean shouldExit) {
-        this(feedbackToUser, shouldShowHelp, shouldExit, List.of(), null);
+    public CommandResult(String feedbackToUser, boolean showHelp, boolean exit) {
+        this(feedbackToUser, showHelp, exit, List.of(), null);
     }
 
     /**
      * Constructs a result with an immutable snapshot of the choices and an optional selected contact.
      */
-    private CommandResult(String feedbackToUser, boolean shouldShowHelp, boolean shouldExit,
+    private CommandResult(String feedbackToUser, boolean showHelp, boolean exit,
             List<Person> viewChoices, Person personToView) {
         this.personToView = personToView;
         this.viewChoices = List.copyOf(viewChoices);
         this.feedbackToUser = requireNonNull(feedbackToUser);
-        this.shouldShowHelp = shouldShowHelp;
-        this.shouldExit = shouldExit;
+        this.showHelp = showHelp;
+        this.exit = exit;
     }
 
     /**
@@ -81,18 +81,12 @@ public class CommandResult {
         return feedbackToUser;
     }
 
-    /**
-     * Returns whether the help window should be shown.
-     */
-    public boolean shouldShowHelp() {
-        return shouldShowHelp;
+    public boolean isShowHelp() {
+        return showHelp;
     }
 
-    /**
-     * Returns whether the application should exit.
-     */
-    public boolean shouldExit() {
-        return shouldExit;
+    public boolean isExit() {
+        return exit;
     }
 
     @Override
@@ -107,23 +101,23 @@ public class CommandResult {
         }
 
         return feedbackToUser.equals(otherCommandResult.feedbackToUser)
-                && shouldShowHelp == otherCommandResult.shouldShowHelp
-                && shouldExit == otherCommandResult.shouldExit
+                && showHelp == otherCommandResult.showHelp
+                && exit == otherCommandResult.exit
                 && viewChoices.equals(otherCommandResult.viewChoices)
                 && Objects.equals(personToView, otherCommandResult.personToView);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, shouldShowHelp, shouldExit, viewChoices, personToView);
+        return Objects.hash(feedbackToUser, showHelp, exit, viewChoices, personToView);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
                 .add("feedbackToUser", feedbackToUser)
-                .add("shouldShowHelp", shouldShowHelp)
-                .add("shouldExit", shouldExit)
+                .add("showHelp", showHelp)
+                .add("exit", exit)
                 .add("viewChoices", viewChoices)
                 .add("personToView", personToView)
                 .toString();

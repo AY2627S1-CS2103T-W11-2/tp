@@ -95,9 +95,7 @@ public class MainWindow extends UiPart<Stage> {
 
     /**
      * Sets the accelerator of a MenuItem.
-     *
-     * @param menuItem The menu item to trigger.
-     * @param keyCombination The key combination that triggers the menu item.
+     * @param keyCombination the KeyCombination value of the accelerator
      */
     private void setAccelerator(MenuItem menuItem, KeyCombination keyCombination) {
         menuItem.setAccelerator(keyCombination);
@@ -234,11 +232,11 @@ public class MainWindow extends UiPart<Stage> {
                 ensureSelectionIfReady();
             }
 
-            if (commandResult.shouldShowHelp()) {
+            if (commandResult.isShowHelp()) {
                 handleHelp();
             }
 
-            if (commandResult.shouldExit()) {
+            if (commandResult.isExit()) {
                 handleExit();
             }
 

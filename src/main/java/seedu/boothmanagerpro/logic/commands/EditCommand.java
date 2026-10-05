@@ -56,10 +56,8 @@ public class EditCommand extends Command {
     private final EditPersonDescriptor editPersonDescriptor;
 
     /**
-     * Creates a command that edits the indexed contact using a copy of the supplied changes.
-     *
-     * @param index The index of the person in the filtered person list to edit.
-     * @param editPersonDescriptor The details to edit the person with.
+     * @param index of the person in the filtered person list to edit
+     * @param editPersonDescriptor details to edit the person with
      */
     public EditCommand(Index index, EditPersonDescriptor editPersonDescriptor) {
         requireNonNull(index);
@@ -142,9 +140,6 @@ public class EditCommand extends Command {
         private Address address;
         private Set<Tag> tags;
 
-        /**
-         * Creates an empty descriptor with no fields marked for editing.
-         */
         public EditPersonDescriptor() {}
 
         /**

@@ -34,9 +34,8 @@ import seedu.boothmanagerpro.storage.StorageManager;
 import seedu.boothmanagerpro.testutil.PersonBuilder;
 
 public class LogicManagerTest {
-    private static final IOException dummyIoException = new IOException("dummy IO exception");
-    private static final IOException dummyAccessDeniedException =
-            new AccessDeniedException("dummy access denied exception");
+    private static final IOException DUMMY_IO_EXCEPTION = new IOException("dummy IO exception");
+    private static final IOException DUMMY_AD_EXCEPTION = new AccessDeniedException("dummy access denied exception");
 
     @TempDir
     public Path temporaryFolder;
@@ -73,14 +72,14 @@ public class LogicManagerTest {
 
     @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
-        assertCommandFailureForExceptionFromStorage(dummyIoException, String.format(
-                LogicManager.FILE_OPS_ERROR_FORMAT, dummyIoException.getMessage()));
+        assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
+                LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
     }
 
     @Test
     public void execute_storageThrowsAdException_throwsCommandException() {
-        assertCommandFailureForExceptionFromStorage(dummyAccessDeniedException, String.format(
-                LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, dummyAccessDeniedException.getMessage()));
+        assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, String.format(
+                LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage()));
     }
 
     @Test

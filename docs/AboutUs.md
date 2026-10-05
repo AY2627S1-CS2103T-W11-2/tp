@@ -19,13 +19,13 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 <img src="images/rhinesonn.png" width="200px">
 
-[[github](https://github.com/rhinesonn)]
+[[github](https://github.com/rhinesonn)] 
 
 ### Cedric Cheng
 
 <img src="images/seadrickbug.png" width="200px">
 
-[[github](http://github.com/seadrickbug)]
+[[github](http://github.com/seadrickbug)] 
 [[portfolio](team/johndoe.md)]
 
 ### Gerard Lum
