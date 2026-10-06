@@ -30,7 +30,7 @@ BoothManagerPro is a **desktop application for convention organisers to manage e
 
    * `add n/John Doe c/Example Ltd e/johnd@example.com p/98765432` : Adds an exhibitor contact named `John Doe`.
 
-   * `delete 3` : Deletes the 3rd contact shown in the current list.
+   * `delete Alex Yeoh` : Deletes the contact named Alex Yeoh.
 
    * `clear` : Deletes all contacts.
 
@@ -242,13 +242,19 @@ Examples:
 
 Deletes the specified person from the address book.
 
-Format: `delete INDEX`
+Format: `delete NAME` or `delete INDEX`
 
-* Deletes the person at the specified `INDEX`.
+* `NAME` must be the contact's full name (matching is case-insensitive).
+* A partial name does not match. For example, `delete Alex` does not match `Alex Yeoh`.
+* If no contact has the supplied name, no contact is deleted and an error is shown.
+* If multiple contacts match the supplied name ignoring letter case, no contact is deleted. Use `list` or `find`,
+  then delete the intended contact by its displayed index.
+* Alternatively, deletes the person at the specified `INDEX`.
 * The index refers to the index number shown in the displayed person list.
 * The index **must be a positive integer** 1, 2, 3, …​
 
 Examples:
+* `delete Alex Yeoh` deletes the contact named Alex Yeoh.
 * `list` followed by `delete 2` deletes the 2nd person in the address book.
 * `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
 
@@ -302,7 +308,7 @@ Action | Format, Examples
 --------|------------------
 **Add** | `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [t/TAG]...` <br> e.g., `add n/James Ho c/Example Ltd e/jamesho@example.com p/22224444 m/phone t/technology`
 **Clear** | `clear`
-**Delete** | `delete INDEX`<br> e.g., `delete 3`
+**Delete** | `delete NAME` or `delete INDEX`<br> e.g., `delete Alex Yeoh`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find [n/NAME] [e/EMAIL] [p/PHONE] [t/TAG]...` or `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find n/Alice Pauline t/friends`
 **List** | `list`

@@ -52,7 +52,7 @@ public class FindFieldsTest {
 
     @Test
     public void parse_invalidValues_rejectsInput() throws Exception {
-        for (String input : List.of("p/12", "p/abc", "e/not-an-email", "n/@", "t/two words")) {
+        for (String input : List.of("p/12", "p/abc", "e/not-an-email", "n/@", "t/tag/with/slash")) {
             assertThrows(ParseException.class, () -> parser.parse(input));
         }
     }
