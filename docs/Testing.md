@@ -29,8 +29,37 @@ You can run tests in two ways.
 This project has three types of tests:
 
 1. *Unit tests* target the lowest-level methods and classes.<br>
-   For example: `seedu.boothmanagerpro.commons.StringUtilTest`
+   For example: `seedu.boothmanagerpro.commons.util.StringUtilTest`
 1. *Integration tests* check how multiple code units work together; the individual units are assumed to work.<br>
    For example: `seedu.boothmanagerpro.storage.StorageManagerTest`
 1. *Hybrid tests* combine unit and integration testing. These tests check both the individual units and how they work together.<br>
    For example: `seedu.boothmanagerpro.logic.LogicManagerTest`
+
+## Testing exhibitor additions
+
+| Test class | Coverage focus |
+| --- | --- |
+| `AddCommandParserTest` | Required/optional fields, prefix errors, validation, and normalisation. |
+| `AddCommandTest` | Successful additions and duplicate rejection. |
+| `ExhibitorFieldsTest` | Field constraints and exhibitor identity rules. |
+| `PersonTest` / `UniquePersonListTest` | Contact identity and collection uniqueness. |
+| `ExhibitorAddIntegrationTest` | Parsing through logic, model, JSON saving/reloading, filtered-list duplicates, edit conflicts, and rejected commands leaving storage unchanged. |
+| `JsonAdaptedPersonTest` | Stored-field validation, including company and contact method. |
+
+Run the focused integration tests on Windows:
+
+```powershell
+.\gradlew.bat test --tests "*ExhibitorAddIntegrationTest"
+```
+
+Run the full tests, Checkstyle, and coverage before a pull request:
+
+```powershell
+.\gradlew.bat check coverage
+```
+
+On macOS use `./gradlew check coverage`. On Linux with no display, use `xvfb-run -a ./gradlew check coverage` with Xvfb installed. Backend add tests do not require a display; JavaFX UI tests do.
+
+Inspect `build/reports/jacoco/coverage/html/index.html` locally. CI generates `build/reports/jacoco/coverage/coverage.xml` before uploading it to Codecov. Check changed-line coverage as well as overall coverage.
+
+For interactive checks, use the [manual add scenarios](DeveloperGuide.md#testing-exhibitor-additions).

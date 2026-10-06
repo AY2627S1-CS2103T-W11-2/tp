@@ -48,8 +48,9 @@ Used to track contact details, it is best suited to organisers who:
 
 BoothManagerPro is under development, building on AddressBook-Level3. The following features describe the planned product scope;
 
-1. Add exhibitor contact
-    * For organiser to create new contact record
+1. Add exhibitor contact (implemented)
+    * Save name, company, email, phone, optional contact method, and tags, with validation and duplicate detection.
+    * See the [add command](docs/UserGuide.md#adding-an-exhibitor-contact-add). Company and contact-method display in the details panel is pending UI integration.
 1. Delete exhibitor contact
     * For organiser to delete unwanted contact records
 1. List exhibitor contacts
@@ -64,7 +65,7 @@ BoothManagerPro is under development, building on AddressBook-Level3. The follow
 
 ## Getting started
 
-To build and run the current development version, see the [development setup guide](docs/SettingUp.md). The [User Guide](docs/UserGuide.md) currently describes the inherited AddressBook functionality and will be updated as BoothManagerPro features become available.
+To build and run the current development version, see the [development setup guide](docs/SettingUp.md). The [User Guide](docs/UserGuide.md) covers the exhibitor add command and the remaining inherited contact-management commands.
 
 ## Documentation
 

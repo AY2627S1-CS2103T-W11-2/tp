@@ -89,7 +89,7 @@ The `UI` component,
 | --- | --- |
 | `MainWindow.fxml` / `BoothManagerPro.css` | Shared layout, colours, spacing, and responsive split view. |
 | `PersonListPanel` / `PersonCard` | Contact list and summary cards; exposes `selectedPersonProperty()`. |
-| `ContactDetailsPanel` | Selected contact details; add company, status, contact method, and follow-up fields here when the model supports them. |
+| `ContactDetailsPanel` | Selected contact details; company and contact method are available in the model and await UI integration. Status and follow-up fields remain planned. |
 | `CommandBox` / `ResultDisplay` | Command entry and success/error feedback. Commands continue through `Logic.execute()`. |
 
 - Selection drives the details panel; the filtered list drives the record count.
@@ -191,6 +191,8 @@ Integration notes:
 - Prefix-like tokens are reserved. Other words between prefixes belong to that field, allowing multi-word names and companies.
 - JSON includes `company` and `contactMethod`; legacy files without them are accepted if their other values meet current validation rules.
 - UI rendering of the new fields is a separate integration task. Logic tests run without a display server.
+
+Verification: see [automated add tests](Testing.md#testing-exhibitor-additions) and [manual add checks](#testing-exhibitor-additions). These cover US-01, US-05, US-07, US-16, and US-18 for the add workflow.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -379,7 +381,7 @@ For all use cases below, the **System** is **BoothManagerPro** and the **Actor**
 A contact represents an exhibitor or an exhibitor representative.
 **MSS** means **Main Success Scenario**; **extensions** describe alternative or unsuccessful interactions.
 
-These use cases cover contact-management workflows from the feature specification.
+These use cases describe the intended product workflows, including features not yet implemented. Refer to the [User Guide](UserGuide.md) for currently supported commands.
 **Guarantee:** Rejected requests leave the stored contacts unchanged.
 
 #### UC01: Add an exhibitor contact
@@ -605,9 +607,27 @@ testers are expected to do more *exploratory* testing.
    1. Resize the window to an optimal size. Move the window to a different location. Close the window.
 
    1. Relaunch the app by double-clicking the JAR file.<br>
-       Expected: The most recent window size and location are retained.
+       Expected: The most recent window size and location are retained when they fit an available screen. Off-screen positions are moved onto an available screen, and oversized windows are resized to fit.
 
 1. _{ more test cases …​ }_
+
+### Testing exhibitor additions
+
+Use a separate test data folder with no Alicia Tan or Ben Lim records. Run each command separately, in order.
+
+| Check | Command / action | Expected result |
+| --- | --- | --- |
+| Full record and normalisation | `add n/Alicia Tan c/TechNova Pte Ltd e/ALICIA@example.com p/+65 9123-4567 m/EMAIL t/technology t/technology t/high-priority` | Contact added; feedback shows `alicia@example.com`, `+6591234567`, `email`, and each tag once. |
+| Optional fields omitted | `add n/Ben Lim c/GreenWorks e/ben@example.com p/87654321` | Contact added; feedback shows method `Not specified` and tags `None`. |
+| Duplicate email, even when hidden | Run `find Ben`, then `add n/Another Person c/Another Company e/ALICIA@example.com p/98765432` | Rejected; identifies Alicia Tan at TechNova Pte Ltd. |
+| Duplicate name and company | `add n/alicia tan c/technova pte ltd e/different@example.com p/98765432` | Rejected despite different email and letter case. |
+| Missing field | `add n/Chris Tan e/chris@example.com p/98765432` | Missing-required-field error; no contact added. |
+| Repeated field | `add n/Chris Tan n/Chris Lim c/Example Ltd e/chris@example.com p/98765432` | Each-field-once error; no contact added. |
+| Unknown prefix | `add n/Chris Tan c/Example Ltd e/chris@example.com p/98765432 a/Somewhere` | Unknown-field-prefix error; no contact added. |
+| Invalid phone | `add n/Chris Tan c/Example Ltd e/chris@example.com p/123` | Phone-length error; no contact added. |
+| Persistence | Exit and relaunch from the same folder; run `list`, then repeat the first add command. | Both added contacts remain; repeated add is rejected. The saved `data/addressbook.json` retains company and contact method. |
+
+Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibitor-contact-add). Company and method are currently verified through command feedback and JSON; dedicated UI display is pending.
 
 ### Deleting a person
 
