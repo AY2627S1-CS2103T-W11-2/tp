@@ -124,7 +124,11 @@ public class DeleteCommandTest {
     @Test
     public void execute_ambiguousName_throwsCommandException() {
         Name targetName = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()).getName();
-        Person caseVariant = new PersonBuilder().withName(targetName.fullName.toLowerCase()).build();
+        Person caseVariant = new PersonBuilder()
+                .withName(targetName.fullName.toLowerCase())
+                .withCompany("Different Company")
+                .withEmail("casevariant@example.com")
+                .build();
         model.addPerson(caseVariant);
 
         assertCommandFailure(new DeleteCommand(targetName), model,
