@@ -523,6 +523,13 @@ Use case ends.
 
 #### UC05: Find and filter contacts
 
+**Current implementation (v1.2 development):** `find` supports exact name (`n/`), email (`e/`),
+phone (`p/`), and tag (`t/`) criteria, with OR within a field and AND between fields.
+`ContactMatchesFieldsPredicate` applies these criteria to the full address book through the existing model filter.
+Unprefixed name keywords retain AB3's original word-matching behaviour for compatibility.
+Company and enquiry-status criteria below remain planned until those fields are added to the contact model;
+the parser currently rejects their prefixes explicitly. The following use case describes the intended full scope.
+
 **MSS**
 
 1. Organiser requests to find contacts using one or more names, companies, emails, phone numbers, enquiry statuses, or tags.

@@ -145,7 +145,30 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
 
-### Locating persons by name: `find`
+### Finding and filtering contacts: `find`
+
+Use prefixed criteria to match complete field values:
+
+Format: `find [n/NAME] [e/EMAIL] [p/PHONE] [t/TAG]...`
+
+* Supply at least one non-empty criterion. Each value must follow the same format as when adding a contact;
+  phone search values may additionally contain spaces or hyphens.
+* Names, emails, and tags ignore case and surrounding whitespace. Phone comparisons ignore spaces and hyphens.
+* Repeat a prefix for alternatives (OR). Different fields must all match (AND).
+* Tags match complete tag names; any matching tag satisfies that field.
+* Duplicate criteria have no effect. Results always search all stored contacts, not just the current displayed list.
+* Unknown prefixes and empty/invalid values are rejected without changing the displayed list or stored contacts.
+* Company (`c/`) and enquiry status (`s/`) are not available yet: the current contact model does not store these fields.
+* `list` restores all contacts. A result count of zero means no contacts matched.
+
+Examples:
+
+* `find n/Alice Pauline` matches the complete name, not just `Alice`.
+* `find n/Alice Pauline n/Benson Meier t/friends` returns either named contact if they also have the `friends` tag.
+* `find e/alice@example.com p/9435-1253` requires both email and phone to match.
+* `find t/technology t/food` returns contacts tagged with either label.
+
+#### Legacy name-keyword search
 
 Finds persons whose names contain any of the given keywords.
 
@@ -232,7 +255,7 @@ Action | Format, Examples
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
-**Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Find** | `find [n/NAME] [e/EMAIL] [p/PHONE] [t/TAG]...` or `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find n/Alice Pauline t/friends`
 **List** | `list`
 **View** | `view n/NAME`<br> e.g., `view n/Alicia Tan`; reply `2` if prompted to choose between matches
 **Help** | `help`
