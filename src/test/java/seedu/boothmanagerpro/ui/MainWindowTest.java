@@ -2,12 +2,15 @@ package seedu.boothmanagerpro.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
@@ -37,6 +40,7 @@ import seedu.boothmanagerpro.model.util.SampleDataUtil;
 import seedu.boothmanagerpro.storage.JsonAddressBookStorage;
 import seedu.boothmanagerpro.storage.JsonUserPrefsStorage;
 import seedu.boothmanagerpro.storage.StorageManager;
+import seedu.boothmanagerpro.testutil.PersonBuilder;
 
 /** Exercises the actual FXML, selection and command flow on the JavaFX thread. */
 public class MainWindowTest {
@@ -159,6 +163,89 @@ public class MainWindowTest {
         });
         Platform.runLater(task);
         task.get(30, TimeUnit.SECONDS);
+    }
+
+    @Test
+    public void mainWindow_viewKeywordsUpdateBothPanels() throws Exception {
+        Person first = new PersonBuilder().withName("rhineson").withCompany("TechNova")
+                .withEmail("first@example.com").withContactMethod("email").build();
+        Person second = new PersonBuilder().withName("rhineson kok").withCompany("TechIndustries")
+                .withEmail("second@example.com").withContactMethod("phone").build();
+        Person unrelated = new PersonBuilder().withName("David Lee").withEmail("third@example.com").build();
+        MainWindow window = runOnFxThread(() -> {
+            ModelManager model = new ModelManager();
+            model.addPerson(first);
+            model.addPerson(second);
+            model.addPerson(unrelated);
+            StorageManager storage = new StorageManager(new JsonAddressBookStorage(testFolder.resolve("view.json")),
+                    new JsonUserPrefsStorage(testFolder.resolve("view-prefs.json")));
+            MainWindow created = new MainWindow(new Stage(), new LogicManager(model, storage),
+                    testFolder.resolve("view.json"));
+            created.fillInnerParts();
+            Parent root = created.getRoot().getScene().getRoot();
+            root.applyCss();
+            root.layout();
+            enterCommand(root, "view n/RHINESON");
+            return created;
+        });
+        try {
+            // A second FX task lets queued list listeners run before inspecting the pending-choice state.
+            runOnFxThread(() -> {
+                Parent root = window.getRoot().getScene().getRoot();
+                @SuppressWarnings("unchecked")
+                ListView<Person> list = (ListView<Person>) root.lookup("#personListView");
+                Parent details = (Parent) root.lookup("#contactDetailsPlaceholder");
+                TextArea result = (TextArea) root.lookup("#resultDisplay");
+                assertEquals(List.of(first, second), list.getItems());
+                assertNull(list.getSelectionModel().getSelectedItem());
+                assertEquals("Choose a contact", ((Label) details.lookup("#contactName")).getText());
+                assertEquals("2 records", ((Label) root.lookup("#recordCount")).getText());
+                assertTrue(result.getText().contains("2 contacts matching"));
+                savePreview(root, 1180, 820, "view-choices.png");
+
+                enterCommand(root, "3");
+                assertTrue(result.getStyleClass().contains("error"));
+                assertNull(list.getSelectionModel().getSelectedItem());
+                enterCommand(root, "2");
+                assertEquals(second, list.getSelectionModel().getSelectedItem());
+                assertEquals("rhineson kok", ((Label) details.lookup("#contactName")).getText());
+                assertEquals("TechIndustries", ((Label) details.lookup("#company")).getText());
+                assertEquals("phone", ((Label) details.lookup("#contactMethod")).getText());
+                assertEquals("second@example.com", ((Label) details.lookup("#email")).getText());
+                assertFalse(result.getStyleClass().contains("error"));
+                savePreview(root, 1180, 820, "view-selected.png");
+
+                enterCommand(root, "view n/kok");
+                assertEquals(List.of(second), list.getItems());
+                assertEquals(second, list.getSelectionModel().getSelectedItem());
+                enterCommand(root, "view n/rhineson");
+                enterCommand(root, "list");
+                assertEquals(3, list.getItems().size());
+                assertEquals(first, list.getSelectionModel().getSelectedItem());
+                enterCommand(root, "view n/rhineson");
+                enterCommand(root, "view n/Nobody");
+                assertTrue(result.getStyleClass().contains("error"));
+                assertEquals(first, list.getSelectionModel().getSelectedItem());
+                return null;
+            });
+        } finally {
+            runOnFxThread(() -> {
+                window.getRoot().close();
+                return null;
+            });
+        }
+    }
+
+    private static void enterCommand(Parent root, String text) {
+        TextField command = (TextField) root.lookup("#commandTextField");
+        command.setText(text);
+        command.fireEvent(new ActionEvent());
+    }
+
+    private static <T> T runOnFxThread(Callable<T> action) throws Exception {
+        FutureTask<T> task = new FutureTask<>(action);
+        Platform.runLater(task);
+        return task.get(30, TimeUnit.SECONDS);
     }
 
     private static void savePreview(Parent root, int width, int height, String fileName) throws Exception {

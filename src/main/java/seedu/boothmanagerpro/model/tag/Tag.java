@@ -10,7 +10,7 @@ import static seedu.boothmanagerpro.commons.util.AppUtil.checkArgument;
 public class Tag {
 
     public static final String MESSAGE_CONSTRAINTS = "Tag must be 1 to 30 characters and cannot contain '/'.";
-    public static final String VALIDATION_REGEX = "[^/]{1,30}";
+    public static final String VALIDATION_REGEX = "[^/\\r\\n]{1,30}";
 
     public final String tagName;
 

@@ -168,6 +168,54 @@ Classes used by multiple components are in the `seedu.boothmanagerpro.commons` p
 
 ## **Implementation**
 
+### Viewing an exhibitor contact
+
+This increment follows the [team MVP feature specification](https://docs.google.com/document/d/1cRh9EyPpK2RwCaOXUsMIc6ls2n8jNccG_jbO2QjzPfw/edit).
+It uses `view n/NAME` and a numbered reply for multiple matches. Matching has been refined to behave like the
+existing `find` command: case-insensitive whole-name keywords combined with OR. Feedback and the two contact panels
+now reflect the same view request.
+
+`ViewCommandParser` enforces the specified name length and permitted characters, one `n/` field, and no other fields.
+`ViewCommand` searches the full address book using the existing `NameContainsKeywordsPredicate` and updates the
+filtered list to those matches. It leaves stored contacts unchanged. A unique match returns the formatted details
+and the selected contact via `CommandResult.personToView`.
+Multiple matches return a numbered name-and-company list plus an immutable `CommandResult.viewChoices` snapshot.
+
+`LogicManager` retains those choices for the next numbered reply. Invalid replies report the valid range and keep
+the choices available. A successful selection or another recognised command clears the pending choices.
+If the selected record has changed or disappeared, the user must run `view` again. Each LogicManager has its own
+selection state. Viewing and numbered replies bypass storage writes, because neither changes contact data.
+
+`MainWindow` clears list selection and shows a choice prompt for multiple matches. It selects and scrolls to
+`personToView` for a unique match or a numbered reply. Automatic first-item selection is suspended while
+`Logic.isAwaitingViewSelection()` is true, including queued list updates, so the first match is not mistaken for
+a user choice. Contact cards show company names; the details panel displays stored company and contact method.
+
+#### Data contract for the separate add feature
+
+The synced code did not yet implement exhibitor fields. Minimal support has been added so view can work with
+the documented records while the separate add command is developed:
+
+* `Person.getCompany()` and `Person.getPreferredContactMethod()` return strings. The extended constructor adds
+  these two fields after the existing parameters. The original constructor remains available for legacy records.
+* JSON stores `company` and `preferredContactMethod`. Absent fields load as empty strings and are displayed as
+  `Not specified`. Company values are trimmed and limited to 100 characters; new contacts should require a company
+  in the add parser. Contact methods are optional, normalised to lowercase, and restricted to email, phone, or other.
+* The existing address field remains for compatibility. Viewing uses the fields in the MVP output specification.
+* Name storage accepts realistic punctuation while retaining legacy numeric names. The view parser applies the
+  stricter MVP rules. Tags support 1–30 nonblank characters, including hyphens, and reject `/` and line breaks.
+* Duplicate detection uses case-insensitive email or name-and-company matches, allowing same-name contacts at
+  different companies with different emails. Edit checks exclude only the edited record, so changing one identity
+  field cannot introduce a duplicate of another record. Existing edits preserve the new fields.
+
+The add parser and its command syntax are unchanged. Its owner should populate the new fields and implement the
+remaining add-specific validation/normalisation rules. The Google Doc specifies field behaviour, not Java class names;
+these accessors and JSON keys are the local integration contract to coordinate with that implementation.
+
+Tests cover actual persisted exhibitor records, numbered selection and retries, cancelled/stale choices,
+invalid syntax, matching parity with `find`, legacy records, data preservation, and both GUI panels.
+The JavaFX regression test covers `rhineson` and `rhineson kok`, a numbered reply, and delayed list listeners.
+
 This section describes some noteworthy details on how certain features are implemented.
 
 ### Adding an exhibitor contact
@@ -300,7 +348,7 @@ _{Explain here how the data archiving feature will be implemented}_
 
 #### Target user profile
 
-* Manager who are handling large amount of booths 
+* Manager who are handling large amount of booths
 * Able to type fast
 * Interested in storing and finding specific contact from a large database
 
@@ -499,6 +547,13 @@ Use case ends.
 
 #### UC05: Find and filter contacts
 
+**Current implementation (v1.2 development):** `find` supports exact name (`n/`), email (`e/`),
+phone (`p/`), and tag (`t/`) criteria, with OR within a field and AND between fields.
+`ContactMatchesFieldsPredicate` applies these criteria to the full address book through the existing model filter.
+Unprefixed name keywords retain AB3's original word-matching behaviour for compatibility.
+Company and enquiry-status criteria below remain planned until those fields are added to the contact model;
+the parser currently rejects their prefixes explicitly. The following use case describes the intended full scope.
+
 **MSS**
 
 1. Organiser requests to find contacts using one or more names, companies, emails, phone numbers, enquiry statuses, or tags.
@@ -628,6 +683,21 @@ Use a separate test data folder with no Alicia Tan or Ben Lim records. Run each 
 | Persistence | Exit and relaunch from the same folder; run `list`, then repeat the first add command. | Both added contacts remain; repeated add is rejected. The saved `data/addressbook.json` retains company and contact method. |
 
 Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibitor-contact-add). Company and method are currently verified through command feedback and JSON; dedicated UI display is pending.
+
+### Viewing an exhibitor contact
+
+1. With sample data, run `find Nobody`, followed by `view n/alex yeoh`.<br>
+   Expected: Alex is selected in the left panel, with details in the right panel and result area.
+1. Try `view`, `view c/TechNova`, `view n/Alex n/Yeoh`, `view Alex Yeoh`, and `view n/123`.<br>
+   Expected: Each command reports the appropriate input error without changing any contact data.
+1. With contacts named `rhineson` and `rhineson kok`, run `view n/rhineson`.<br>
+   Expected: Both appear on the left, and the right panel asks you to choose. Reply `2` to see rhineson kok.
+1. With two stored contacts named Alicia Tan at different companies and with different emails, run
+   `view n/Alicia Tan`.<br>
+   Expected: Numbered company choices appear. Enter `0`, then `3`, then `2`.<br>
+   Expected: The invalid choices show the range 1–2; `2` displays the second contact's details.
+1. Run `view n/Alicia Tan`, then `list`, then `2`.<br>
+   Expected: `list` cancels the pending choice; the final number is not treated as a view selection.
 
 ### Deleting a person
 

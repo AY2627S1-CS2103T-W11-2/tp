@@ -2,9 +2,12 @@ package seedu.boothmanagerpro.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import seedu.boothmanagerpro.commons.util.ToStringBuilder;
+import seedu.boothmanagerpro.model.person.Person;
 
 /**
  * Represents the result of a command execution.
@@ -19,10 +22,26 @@ public class CommandResult {
     /** The application should exit. */
     private final boolean exit;
 
+    /** Contacts awaiting a numbered reply to a view request. */
+    private final List<Person> viewChoices;
+
+    /** Contact whose details should be shown, when a view selection has been resolved. */
+    private final Person personToView;
+
     /**
      * Constructs a {@code CommandResult} with the specified fields.
      */
     public CommandResult(String feedbackToUser, boolean showHelp, boolean exit) {
+        this(feedbackToUser, showHelp, exit, List.of(), null);
+    }
+
+    /**
+     * Constructs a result with an immutable snapshot of the choices and an optional selected contact.
+     */
+    private CommandResult(String feedbackToUser, boolean showHelp, boolean exit,
+            List<Person> viewChoices, Person personToView) {
+        this.personToView = personToView;
+        this.viewChoices = List.copyOf(viewChoices);
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
         this.exit = exit;
@@ -34,6 +53,28 @@ public class CommandResult {
      */
     public CommandResult(String feedbackToUser) {
         this(feedbackToUser, false, false);
+    }
+
+    /**
+     * Creates a result prompting for a numbered choice among matching contacts.
+     */
+    public CommandResult(String feedbackToUser, List<Person> viewChoices) {
+        this(feedbackToUser, false, false, viewChoices, null);
+    }
+
+    /**
+     * Creates a result requesting that the selected contact be displayed in the GUI.
+     */
+    public CommandResult(String feedbackToUser, Person personToView) {
+        this(feedbackToUser, false, false, List.of(), requireNonNull(personToView));
+    }
+
+    public Optional<Person> getPersonToView() {
+        return Optional.ofNullable(personToView);
+    }
+
+    public List<Person> getViewChoices() {
+        return viewChoices;
     }
 
     public String getFeedbackToUser() {
@@ -61,12 +102,14 @@ public class CommandResult {
 
         return feedbackToUser.equals(otherCommandResult.feedbackToUser)
                 && showHelp == otherCommandResult.showHelp
-                && exit == otherCommandResult.exit;
+                && exit == otherCommandResult.exit
+                && viewChoices.equals(otherCommandResult.viewChoices)
+                && Objects.equals(personToView, otherCommandResult.personToView);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit);
+        return Objects.hash(feedbackToUser, showHelp, exit, viewChoices, personToView);
     }
 
     @Override
@@ -75,6 +118,8 @@ public class CommandResult {
                 .add("feedbackToUser", feedbackToUser)
                 .add("showHelp", showHelp)
                 .add("exit", exit)
+                .add("viewChoices", viewChoices)
+                .add("personToView", personToView)
                 .toString();
     }
 

@@ -38,6 +38,14 @@ class JsonAdaptedPerson {
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
+     * Keeps this convenience constructor unannotated so Jackson uses only the full JSON creator.
+     */
+    public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
+        this(name, phone, email, address, tags, "", "");
+    }
+
+    /**
+     * Creates a stored contact, accepting absent exhibitor fields in older data files.
      */
     public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
         this(name, phone, email, address, tags, null, null);
@@ -52,6 +60,9 @@ class JsonAdaptedPerson {
             @JsonProperty("email") String email, @JsonProperty("address") String address,
             @JsonProperty("tags") List<JsonAdaptedTag> tags, @JsonProperty("company") String company,
             @JsonProperty("contactMethod") String contactMethod) {
+            @JsonProperty("preferredContactMethod") String preferredContactMethod) {
+        this.company = company == null ? "" : company;
+        this.preferredContactMethod = preferredContactMethod == null ? "" : preferredContactMethod;
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -67,6 +78,8 @@ class JsonAdaptedPerson {
      * Converts a given {@code Person} into this class for Jackson use.
      */
     public JsonAdaptedPerson(Person source) {
+        company = source.getCompany();
+        preferredContactMethod = source.getPreferredContactMethod();
         name = source.getName().fullName;
         phone = source.getPhone().value;
         email = source.getEmail().value;

@@ -145,6 +145,42 @@ Shows a list of all persons in the address book.
 
 Format: `list`
 
+### Viewing an exhibitor contact: `view`
+
+Shows matching contacts in the left panel and the chosen contact's details in the right panel, with command feedback in the result area.
+
+Format: `view n/NAME`
+
+* Matching follows `find`: case-insensitive whole-name keywords, matching **any** supplied keyword.
+  For example, `view n/rhineson` matches both `rhineson` and `rhineson kok`; `rhin` does not match `rhineson`.
+* Names must contain 1 to 80 characters and at least one letter. Letters, spaces, hyphens, apostrophes,
+  and full stops are supported, for example `Anne-Marie O'Neil`.
+* Searches all stored contacts, including those hidden by a previous `find` command.
+* If several contacts match, the left panel and result show the same numbered choices with their companies.
+  The right panel prompts you to choose a contact.
+  Enter the corresponding number as your next command, for example `2`.
+  The chosen contact is highlighted on the left and their full details appear on the right.
+  A single match is selected automatically.
+* An invalid number shows the valid range and lets you try again. Another recognised command cancels the pending choice.
+* Only `n/` is accepted. Repeated names, other prefixes, missing/invalid names, and unprefixed requests are rejected.
+* Viewing does not change saved data. It filters the displayed list to the matches; use `list` to show everyone again.
+* An omitted contact method or a company missing from an older record is shown as `Not specified`.
+  Contacts without tags show `None`.
+
+Example: `view n/Alicia Tan`
+
+```text
+Exhibitor contact found:
+Alicia Tan at TechNova Pte Ltd
+Email: alicia@technova.com
+Phone: 91234567
+Contact method: email
+Tags: high-priority, technology
+```
+
+Company and preferred contact method are supported in stored records. The inherited `add` command's syntax
+remains unchanged in this increment; entering these fields through `add` depends on the separate add-feature work.
+
 ### Editing a person: `edit`
 
 Edits an existing person in the address book.
@@ -162,7 +198,30 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
 
-### Locating persons by name: `find`
+### Finding and filtering contacts: `find`
+
+Use prefixed criteria to match complete field values:
+
+Format: `find [n/NAME] [e/EMAIL] [p/PHONE] [t/TAG]...`
+
+* Supply at least one non-empty criterion. Each value must follow the same format as when adding a contact;
+  phone search values may additionally contain spaces or hyphens.
+* Names, emails, and tags ignore case and surrounding whitespace. Phone comparisons ignore spaces and hyphens.
+* Repeat a prefix for alternatives (OR). Different fields must all match (AND).
+* Tags match complete tag names; any matching tag satisfies that field.
+* Duplicate criteria have no effect. Results always search all stored contacts, not just the current displayed list.
+* Unknown prefixes and empty/invalid values are rejected without changing the displayed list or stored contacts.
+* Company (`c/`) and enquiry status (`s/`) are not available yet: the current contact model does not store these fields.
+* `list` restores all contacts. A result count of zero means no contacts matched.
+
+Examples:
+
+* `find n/Alice Pauline` matches the complete name, not just `Alice`.
+* `find n/Alice Pauline n/Benson Meier t/friends` returns either named contact if they also have the `friends` tag.
+* `find e/alice@example.com p/9435-1253` requires both email and phone to match.
+* `find t/technology t/food` returns contacts tagged with either label.
+
+#### Legacy name-keyword search
 
 Finds persons whose names contain any of the given keywords.
 
@@ -245,6 +304,7 @@ Action | Format, Examples
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
-**Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Find** | `find [n/NAME] [e/EMAIL] [p/PHONE] [t/TAG]...` or `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find n/Alice Pauline t/friends`
 **List** | `list`
+**View** | `view n/NAME`<br> e.g., `view n/Alicia Tan`; reply `2` if prompted to choose between matches
 **Help** | `help`
