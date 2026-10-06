@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 
 import javafx.collections.ObservableList;
 import seedu.boothmanagerpro.commons.core.GuiSettings;
-import seedu.boothmanagerpro.logic.Messages;
 import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.model.AddressBook;
 import seedu.boothmanagerpro.model.Model;
@@ -38,7 +37,7 @@ public class AddCommandTest {
 
         CommandResult commandResult = new AddCommand(validPerson).execute(modelStub);
 
-        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
+        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, AddCommand.formatContact(validPerson)),
                 commandResult.getFeedbackToUser());
         assertEquals(List.of(validPerson), modelStub.personsAdded);
     }
@@ -49,7 +48,9 @@ public class AddCommandTest {
         AddCommand addCommand = new AddCommand(validPerson);
         ModelStub modelStub = new ModelStubWithPerson(validPerson);
 
-        assertThrows(CommandException.class, AddCommand.MESSAGE_DUPLICATE_PERSON, () -> addCommand.execute(modelStub));
+        String expectedMessage = String.format(AddCommand.MESSAGE_DUPLICATE_PERSON,
+                AddCommand.formatIdentity(validPerson));
+        assertThrows(CommandException.class, expectedMessage, () -> addCommand.execute(modelStub));
     }
 
     @Test
@@ -152,6 +153,13 @@ public class AddCommandTest {
         ModelStubWithPerson(Person person) {
             requireNonNull(person);
             this.person = person;
+        }
+
+        @Override
+        public ReadOnlyAddressBook getAddressBook() {
+            AddressBook book = new AddressBook();
+            book.addPerson(person);
+            return book;
         }
 
         @Override

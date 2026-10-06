@@ -15,21 +15,22 @@ public class Tag {
     public final String tagName;
 
     /**
-     * Constructs a {@code Tag}.
+     * Creates a trimmed, non-blank tag of at most 30 characters without the reserved slash character.
+     * Equality is case-sensitive, so only identical trimmed tags collapse in a set.
      *
      * @param tagName A valid tag name.
      */
     public Tag(String tagName) {
         requireNonNull(tagName);
         checkArgument(isValidTagName(tagName), MESSAGE_CONSTRAINTS);
-        this.tagName = tagName;
+        this.tagName = tagName.trim();
     }
 
     /**
      * Returns true if a given string is a valid tag name.
      */
     public static boolean isValidTagName(String test) {
-        return !test.isBlank() && test.matches(VALIDATION_REGEX);
+        return !test.trim().isBlank() && test.trim().matches(VALIDATION_REGEX);
     }
 
     @Override

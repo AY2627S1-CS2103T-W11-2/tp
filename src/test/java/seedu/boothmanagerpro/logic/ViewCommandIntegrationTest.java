@@ -98,7 +98,7 @@ public class ViewCommandIntegrationTest {
         logic.execute("edit 1 p/91234567");
         Person reloaded = addressStorage.readAddressBook().orElseThrow().getPersonList().getFirst();
         assertEquals(first.getCompany(), reloaded.getCompany());
-        assertEquals("email", reloaded.getPreferredContactMethod());
+        assertEquals("email", reloaded.getContactMethod().orElseThrow().toString());
         assertEquals("91234567", reloaded.getPhone().value);
     }
 

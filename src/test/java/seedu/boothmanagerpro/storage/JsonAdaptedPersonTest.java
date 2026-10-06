@@ -23,6 +23,8 @@ import com.fasterxml.jackson.databind.introspect.POJOPropertiesCollector;
 import seedu.boothmanagerpro.commons.exceptions.IllegalValueException;
 import seedu.boothmanagerpro.commons.util.JsonUtil;
 import seedu.boothmanagerpro.model.person.Address;
+import seedu.boothmanagerpro.model.person.Company;
+import seedu.boothmanagerpro.model.person.ContactMethod;
 import seedu.boothmanagerpro.model.person.Email;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.Person;
@@ -30,11 +32,12 @@ import seedu.boothmanagerpro.model.person.Phone;
 import seedu.boothmanagerpro.testutil.PersonBuilder;
 
 public class JsonAdaptedPersonTest {
+
     private static final String INVALID_NAME = "R@chel";
     private static final String INVALID_PHONE = "+651234";
     private static final String INVALID_ADDRESS = " ";
     private static final String INVALID_EMAIL = "example.com";
-    private static final String INVALID_TAG = "friend/family";
+    private static final String INVALID_TAG = "friend/invalid";
 
     private static final String VALID_NAME = BENSON.getName().toString();
     private static final String VALID_PHONE = BENSON.getPhone().toString();
@@ -104,10 +107,10 @@ public class JsonAdaptedPersonTest {
     public void toModelType_invalidExhibitorFields_throwsIllegalValueException() {
         JsonAdaptedPerson company = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
                 VALID_TAGS, "A".repeat(101), "email");
-        assertThrows(IllegalValueException.class, Person.MESSAGE_COMPANY_CONSTRAINTS, company::toModelType);
+        assertThrows(IllegalValueException.class, Company.MESSAGE_CONSTRAINTS, company::toModelType);
         JsonAdaptedPerson method = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
                 VALID_TAGS, "TechNova", "fax");
-        assertThrows(IllegalValueException.class, Person.MESSAGE_METHOD_CONSTRAINTS, method::toModelType);
+        assertThrows(IllegalValueException.class, ContactMethod.MESSAGE_CONSTRAINTS, method::toModelType);
     }
 
     @Test
@@ -185,4 +188,13 @@ public class JsonAdaptedPersonTest {
         assertThrows(IllegalValueException.class, person::toModelType);
     }
 
+    @Test
+    public void toModelType_invalidCompanyOrMethod_throwsIllegalValueException() {
+        JsonAdaptedPerson invalidCompany = new JsonAdaptedPerson("Alicia Tan", "91234567",
+                "alicia@example.com", "Not provided", java.util.List.of(), " ", "email");
+        assertThrows(IllegalValueException.class, invalidCompany::toModelType);
+        JsonAdaptedPerson invalidMethod = new JsonAdaptedPerson("Alicia Tan", "91234567",
+                "alicia@example.com", "Not provided", java.util.List.of(), "TechNova", "fax");
+        assertThrows(IllegalValueException.class, invalidMethod::toModelType);
+    }
 }

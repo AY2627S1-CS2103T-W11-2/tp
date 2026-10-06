@@ -3,7 +3,7 @@ layout: page
 title: User Guide
 ---
 
-AddressBook Level 3 (AB3) is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, AB3 can help you manage contacts faster than traditional GUI applications.
+BoothManagerPro is a **desktop application for convention organisers to manage exhibitor contacts through typed commands**, with a graphical contact list and details panel.
 
 * Table of Contents
 {:toc}
@@ -15,12 +15,12 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Ensure that Java `25` or later is installed on your computer.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Download the latest `.jar` file from [here](https://github.com/se-edu/addressbook-level3/releases).
+1. Build the development JAR after following the [setup guide](SettingUp.md): run `.\gradlew.bat shadowJar` on Windows or `./gradlew shadowJar` on macOS/Linux. The JAR is generated at `build/libs/boothmanagerpro.jar`.
 
-1. Copy the file to the folder you want to use as the _home folder_ for your AddressBook.
+1. Copy the file to the folder you want to use as the _home folder_ for BoothManagerPro.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar boothmanagerpro.jar`.<br>
-   A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
+   The application opens with sample contacts on first launch. The image below is the planned UI mockup; some fields await integration.<br>
    ![Ui](images/Ui.png)
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
@@ -28,7 +28,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
    * `list` : Lists all contacts.
 
-   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
+   * `add n/John Doe c/Example Ltd e/johnd@example.com p/98765432` : Adds an exhibitor contact named `John Doe`.
 
    * `delete Alex Yeoh` : Deletes the contact named Alex Yeoh.
 
@@ -73,19 +73,71 @@ Shows a message explaining how to access the help page.
 Format: `help`
 
 
-### Adding a person: `add`
+### Adding an exhibitor contact: `add`
 
-Adds a person to the address book.
+Adds an exhibitor or representative with a required company, email, and phone number.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​`
+Format: `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [t/TAG]...`
 
-<div markdown="span" class="alert alert-primary">:bulb: **Tip:**
-A person can have any number of tags, including zero.
-</div>
+| Field | Rules |
+| --- | --- |
+| `n/NAME` | 1-80 characters; at least one letter. Allows letters, spaces, hyphens, apostrophes, and full stops. |
+| `c/COMPANY` | 1-100 characters; cannot be blank. |
+| `e/EMAIL` | Valid email format, such as `alicia@example.com`; stored in lowercase. |
+| `p/PHONE` | 7-15 digits, optionally starting with `+`. Spaces and hyphens are removed. |
+| `m/METHOD` | Optional: `email`, `phone`, or `other`, ignoring case. Omitted method is `Not specified`. |
+| `t/TAG` | Optional and repeatable: 1-30 characters, nonblank, without `/`. Identical tags are ignored; comparisons are case-sensitive. |
 
-Examples:
-* `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
-* `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
+Leading and trailing spaces are removed from field values. Fields can appear in any order. Only `t/` may repeat. The old `a/ADDRESS` field is not accepted by `add`.
+
+Examples (enter each command on one line):
+
+```text
+add n/Alicia Tan c/TechNova Pte Ltd e/alicia@technova.com p/91234567 m/email t/technology t/high-priority
+add n/Ben Lim c/GreenWorks e/BEN@example.com p/+65 8765-4321
+```
+
+The first command displays:
+
+```text
+New exhibitor contact added:
+Alicia Tan at TechNova Pte Ltd
+Email: alicia@technova.com
+Phone: 91234567
+Contact method: email
+Tags: technology, high-priority
+```
+
+The second stores `ben@example.com` and `+6587654321`, with method `Not specified` and tags `None` in the feedback. Company and contact method are saved and included in command feedback; their dedicated details-panel display is pending UI integration.
+
+**Duplicate handling**
+
+A contact is rejected if any stored contact has the same normalised email, or the same name and company ignoring case. This includes contacts hidden by the current search. Sharing only a name or company is allowed if the email is different. Legacy contacts without a company are compared by email only.
+
+For a match against Alicia's record above:
+
+```text
+This contact may already exist: Alicia Tan at TechNova Pte Ltd.
+Use the edit command if you want to update the existing contact.
+```
+
+The current `edit` command can update name, email, phone, address, and tags; it cannot yet change company or contact method.
+
+**Input errors**
+
+| Problem | Feedback |
+| --- | --- |
+| Missing `n/`, `c/`, `e/`, or `p/` | `Missing required field: NAME, COMPANY, EMAIL, or PHONE.` |
+| Repeated field other than `t/` | `Each field can only be specified once.` |
+| Unknown prefix or text before the first prefix | `Unknown field prefix. Use n/, c/, e/, p/, m/, or t/.` |
+| Invalid name | `Names must be 1 to 80 characters and contain a letter. Use only letters, spaces, hyphens, apostrophes or full stops.` |
+| Invalid company | `Company name must contain 1 to 100 characters.` |
+| Invalid email | `Email address is invalid.` |
+| Invalid phone | `Phone number must contain 7 to 15 digits.` |
+| Invalid method | `Contact method must be email, phone, or other.` |
+| Invalid tag | `Tag must be 1 to 30 characters and cannot contain '/'.` |
+
+A present but empty field produces its value-validation error. Words between prefixes belong to the preceding field; prefix-like tokens are reserved. If several errors occur, unknown prefixes/preamble are checked first, then repeated fields, then missing prefixes, then values. Invalid input and duplicates do not add a contact.
 
 ### Listing all persons: `list`
 
@@ -137,7 +189,8 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
 
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
 * At least one of the optional fields must be provided.
-* Existing values will be updated to the input values.
+* Existing values will be updated to the input values. Name, email, phone, and tags follow the validation rules described under `add`.
+* Company and contact method are preserved; `edit` does not yet support `c/` or `m/`. Changes that create a duplicate are rejected.
 * When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
 * To remove all of a person's tags, enter `t/` without a tag after it.
 
@@ -219,18 +272,15 @@ Format: `exit`
 
 ### Saving the data
 
-AddressBook automatically saves changes to contact data. You do not need to save manually.
-The `view` command and its numbered selection replies only read data and do not write to the data file.
+BoothManagerPro automatically saves data after each successfully executed command. You do not need to save manually.
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+By default, BoothManagerPro saves data as `data/addressbook.json`, relative to the folder from which you launch the app. Advanced users are welcome to update data directly by editing that data file.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, AddressBook starts with an empty address book at the next run.
-The invalid file remains on disk until you run a command other than `view` or its numbered selection reply.
-Still, we recommend backing up the file before editing it.<br>
-Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
+If your changes make the data file invalid, BoothManagerPro starts with an empty address book at the next run. The invalid file remains on disk until a command executes successfully and saves data. Still, we recommend backing up the file before editing it.<br>
+Furthermore, certain edits can cause BoothManagerPro to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 
 ### Archiving data files `[coming in v2.0]`
@@ -242,14 +292,13 @@ _Details coming soon ..._
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous AddressBook home folder.
+**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous BoothManagerPro home folder.
 
 --------------------------------------------------------------------------------------------------------------------
 
 ## Known issues
 
-1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
+1. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -257,7 +306,7 @@ _Details coming soon ..._
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Add** | `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [t/TAG]...` <br> e.g., `add n/James Ho c/Example Ltd e/jamesho@example.com p/22224444 m/phone t/technology`
 **Clear** | `clear`
 **Delete** | `delete NAME` or `delete INDEX`<br> e.g., `delete Alex Yeoh`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`

@@ -1,9 +1,12 @@
 package seedu.boothmanagerpro.testutil;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.boothmanagerpro.model.person.Address;
+import seedu.boothmanagerpro.model.person.Company;
+import seedu.boothmanagerpro.model.person.ContactMethod;
 import seedu.boothmanagerpro.model.person.Email;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.Person;
@@ -21,13 +24,13 @@ public class PersonBuilder {
     public static final String DEFAULT_EMAIL = "amy@gmail.com";
     public static final String DEFAULT_ADDRESS = "123, Jurong West Ave 6, #08-111";
 
-    private String company = "";
-    private String preferredContactMethod = "";
     private Name name;
     private Phone phone;
     private Email email;
     private Address address;
     private Set<Tag> tags;
+    private Optional<Company> company = Optional.empty();
+    private Optional<ContactMethod> contactMethod = Optional.empty();
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -44,13 +47,13 @@ public class PersonBuilder {
      * Initializes the PersonBuilder with the data of {@code personToCopy}.
      */
     public PersonBuilder(Person personToCopy) {
-        company = personToCopy.getCompany();
-        preferredContactMethod = personToCopy.getPreferredContactMethod();
         name = personToCopy.getName();
         phone = personToCopy.getPhone();
         email = personToCopy.getEmail();
         address = personToCopy.getAddress();
         tags = new HashSet<>(personToCopy.getTags());
+        company = personToCopy.getCompany();
+        contactMethod = personToCopy.getContactMethod();
     }
 
     /**
@@ -93,24 +96,20 @@ public class PersonBuilder {
         return this;
     }
 
-    /**
-     * Sets the company of the contact being built.
-     */
-    public PersonBuilder withCompany(String company) {
-        this.company = company;
-        return this;
-    }
-
-    /**
-     * Sets the optional preferred contact method of the contact being built.
-     */
-    public PersonBuilder withContactMethod(String method) {
-        preferredContactMethod = method;
-        return this;
-    }
-
     public Person build() {
-        return new Person(name, phone, email, address, tags, company, preferredContactMethod);
+        return new Person(name, phone, email, address, tags, company, contactMethod);
+    }
+
+    /** Sets the exhibitor organisation. */
+    public PersonBuilder withCompany(String company) {
+        this.company = Optional.of(new Company(company));
+        return this;
+    }
+
+    /** Sets the representative's preferred contact method. */
+    public PersonBuilder withContactMethod(String method) {
+        contactMethod = Optional.of(ContactMethod.fromString(method));
+        return this;
     }
 
 }

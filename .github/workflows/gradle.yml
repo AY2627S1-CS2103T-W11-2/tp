@@ -28,15 +28,6 @@ jobs:
           java-version: '25'
           java-package: jdk+fx
 
-      - name: Build and check with Gradle
-        run: ./gradlew check coverage
-
-      - name: Upload coverage reports to Codecov
-        if: runner.os == 'Linux'
-        uses: codecov/codecov-action@v7
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-
       - name: Build and check on Linux
         if: runner.os == 'Linux'
         run: xvfb-run -a ./gradlew check coverage
@@ -44,3 +35,10 @@ jobs:
       - name: Build and check on Windows and macOS
         if: runner.os != 'Linux'
         run: ./gradlew check coverage
+
+      - name: Upload coverage reports to Codecov
+        if: runner.os == 'Linux'
+        uses: codecov/codecov-action@v7
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: build/reports/jacoco/coverage/coverage.xml

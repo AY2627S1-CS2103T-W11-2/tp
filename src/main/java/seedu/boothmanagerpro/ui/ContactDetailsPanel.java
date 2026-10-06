@@ -1,6 +1,7 @@
 package seedu.boothmanagerpro.ui;
 
 import java.util.Comparator;
+import java.util.Optional;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -49,8 +50,8 @@ public class ContactDetailsPanel extends UiPart<Region> {
     /**
      * Returns the field value or a placeholder for an omitted legacy field.
      */
-    private String displayOptional(String value) {
-        return value.isBlank() ? "Not specified" : value;
+    private String displayOptional(Optional<?> value) {
+        return value.map(Object::toString).orElse("Not specified");
     }
 
     /**
@@ -59,7 +60,7 @@ public class ContactDetailsPanel extends UiPart<Region> {
     public void showPerson(Person person) {
         contactName.setText(person == null ? "Select a contact" : person.getName().fullName);
         company.setText(person == null ? "—" : displayOptional(person.getCompany()));
-        contactMethod.setText(person == null ? "—" : displayOptional(person.getPreferredContactMethod()));
+        contactMethod.setText(person == null ? "—" : displayOptional(person.getContactMethod()));
         email.setText(person == null ? "No contact selected" : person.getEmail().value);
         phone.setText(person == null ? "—" : person.getPhone().value);
         address.setText(person == null ? "—" : person.getAddress().value);

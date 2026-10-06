@@ -61,6 +61,7 @@ public class UniquePersonList implements Iterable<Person> {
             throw new PersonNotFoundException();
         }
 
+        // Duplicate matching is not transitive; compare against every record except the target itself.
         if (internalList.stream().anyMatch(person -> !person.equals(target) && person.isSamePerson(editedPerson))) {
             throw new DuplicatePersonException();
         }

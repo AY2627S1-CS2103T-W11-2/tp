@@ -1,8 +1,9 @@
 package seedu.boothmanagerpro.storage;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -11,6 +12,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.boothmanagerpro.commons.exceptions.IllegalValueException;
 import seedu.boothmanagerpro.model.person.Address;
+import seedu.boothmanagerpro.model.person.Company;
+import seedu.boothmanagerpro.model.person.ContactMethod;
 import seedu.boothmanagerpro.model.person.Email;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.Person;
@@ -18,7 +21,8 @@ import seedu.boothmanagerpro.model.person.Phone;
 import seedu.boothmanagerpro.model.tag.Tag;
 
 /**
- * Jackson-friendly version of {@link Person}.
+ * JSON representation of {@link Person}, storing exhibitor fields as nullable strings rather than Optional objects.
+ * Missing company and contact method fields remain absent when loading legacy records; present values are validated.
  */
 class JsonAdaptedPerson {
 
@@ -29,31 +33,31 @@ class JsonAdaptedPerson {
     private final String email;
     private final String address;
     private final String company;
-    private final String preferredContactMethod;
+    private final String contactMethod;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
     /**
-     * Constructs a {@code JsonAdaptedPerson} with the given person details.
-     * Keeps this convenience constructor unannotated so Jackson uses only the full JSON creator.
+     * Creates a stored contact, accepting absent exhibitor fields in older data files.
      */
     public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
-        this(name, phone, email, address, tags, "", "");
+        this(name, phone, email, address, tags, null, null);
     }
 
     /**
-     * Creates a stored contact, accepting absent exhibitor fields in older data files.
+     * Captures raw JSON fields; validation is deferred to {@link #toModelType()}.
+     * Null company/method values represent absent fields. Blank or unsupported values are not silently discarded.
      */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
             @JsonProperty("tags") List<JsonAdaptedTag> tags, @JsonProperty("company") String company,
-            @JsonProperty("preferredContactMethod") String preferredContactMethod) {
-        this.company = company == null ? "" : company;
-        this.preferredContactMethod = preferredContactMethod == null ? "" : preferredContactMethod;
+            @JsonProperty("contactMethod") String contactMethod) {
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
+        this.company = company;
+        this.contactMethod = contactMethod;
         if (tags != null) {
             this.tags.addAll(tags);
         }
@@ -63,19 +67,20 @@ class JsonAdaptedPerson {
      * Converts a given {@code Person} into this class for Jackson use.
      */
     public JsonAdaptedPerson(Person source) {
-        company = source.getCompany();
-        preferredContactMethod = source.getPreferredContactMethod();
         name = source.getName().fullName;
         phone = source.getPhone().value;
         email = source.getEmail().value;
         address = source.getAddress().value;
+        company = source.getCompany().map(value -> value.value).orElse(null);
+        contactMethod = source.getContactMethod().map(Object::toString).orElse(null);
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
     }
 
     /**
-     * Converts this Jackson-friendly adapted person object into the model's {@code Person} object.
+     * Validates all supplied values and reconstructs an immutable contact using current model constraints.
+     * Tag order is retained, duplicates collapse, and legacy contacts may have no company or method.
      *
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
@@ -117,14 +122,14 @@ class JsonAdaptedPerson {
         }
         final Address modelAddress = new Address(address);
 
-        if (!Person.isValidCompany(company)) {
-            throw new IllegalValueException(Person.MESSAGE_COMPANY_CONSTRAINTS);
+        final Set<Tag> modelTags = new LinkedHashSet<>(personTags);
+        try {
+            Optional<Company> modelCompany = Optional.ofNullable(company).map(Company::new);
+            Optional<ContactMethod> modelMethod = Optional.ofNullable(contactMethod).map(ContactMethod::fromString);
+            return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelCompany, modelMethod);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalValueException(e.getMessage());
         }
-        if (!Person.isValidContactMethod(preferredContactMethod)) {
-            throw new IllegalValueException(Person.MESSAGE_METHOD_CONSTRAINTS);
-        }
-        final Set<Tag> modelTags = new HashSet<>(personTags);
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, company, preferredContactMethod);
     }
 
 }
