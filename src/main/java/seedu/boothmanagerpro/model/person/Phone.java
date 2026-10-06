@@ -11,26 +11,31 @@ public class Phone {
 
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Phone numbers should only contain digits, and should be at least 3 digits long";
-    public static final String VALIDATION_REGEX = "\\d{3,}";
+            "Phone number must contain 7 to 15 digits.";
+    public static final String VALIDATION_REGEX = "\\+?[0-9]{7,15}";
     public final String value;
 
     /**
-     * Constructs a {@code Phone}.
+     * Validates 7-15 digits with an optional leading plus and stores the value without spaces or hyphens.
      *
      * @param phone A valid phone number.
      */
     public Phone(String phone) {
         requireNonNull(phone);
         checkArgument(isValidPhone(phone), MESSAGE_CONSTRAINTS);
-        value = phone;
+        value = normalize(phone);
     }
 
     /**
      * Returns true if a given string is a valid phone number.
      */
     public static boolean isValidPhone(String test) {
-        return test.matches(VALIDATION_REGEX);
+        return normalize(test).matches(VALIDATION_REGEX);
+    }
+
+    /** Removes accepted spaces and hyphens, preserving an optional leading plus. */
+    private static String normalize(String phone) {
+        return phone.trim().replace(" ", "").replace("-", "");
     }
 
     @Override

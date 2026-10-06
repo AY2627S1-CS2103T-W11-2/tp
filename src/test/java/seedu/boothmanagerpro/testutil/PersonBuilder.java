@@ -1,9 +1,12 @@
 package seedu.boothmanagerpro.testutil;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.boothmanagerpro.model.person.Address;
+import seedu.boothmanagerpro.model.person.Company;
+import seedu.boothmanagerpro.model.person.ContactMethod;
 import seedu.boothmanagerpro.model.person.Email;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.Person;
@@ -26,6 +29,8 @@ public class PersonBuilder {
     private Email email;
     private Address address;
     private Set<Tag> tags;
+    private Optional<Company> company = Optional.empty();
+    private Optional<ContactMethod> contactMethod = Optional.empty();
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -47,6 +52,8 @@ public class PersonBuilder {
         email = personToCopy.getEmail();
         address = personToCopy.getAddress();
         tags = new HashSet<>(personToCopy.getTags());
+        company = personToCopy.getCompany();
+        contactMethod = personToCopy.getContactMethod();
     }
 
     /**
@@ -90,7 +97,19 @@ public class PersonBuilder {
     }
 
     public Person build() {
-        return new Person(name, phone, email, address, tags);
+        return new Person(name, phone, email, address, tags, company, contactMethod);
+    }
+
+    /** Sets the exhibitor organisation. */
+    public PersonBuilder withCompany(String company) {
+        this.company = Optional.of(new Company(company));
+        return this;
+    }
+
+    /** Sets the representative's preferred contact method. */
+    public PersonBuilder withContactMethod(String method) {
+        contactMethod = Optional.of(ContactMethod.fromString(method));
+        return this;
     }
 
 }

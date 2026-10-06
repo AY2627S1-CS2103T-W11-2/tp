@@ -9,27 +9,28 @@ import static seedu.boothmanagerpro.commons.util.AppUtil.checkArgument;
  */
 public class Tag {
 
-    public static final String MESSAGE_CONSTRAINTS = "Tag names should be alphanumeric";
-    public static final String VALIDATION_REGEX = "\\p{Alnum}+";
+    public static final String MESSAGE_CONSTRAINTS = "Tag must be 1 to 30 characters and cannot contain '/'.";
+    public static final String VALIDATION_REGEX = "[^/]{1,30}";
 
     public final String tagName;
 
     /**
-     * Constructs a {@code Tag}.
+     * Creates a trimmed, non-blank tag of at most 30 characters without the reserved slash character.
+     * Equality is case-sensitive, so only identical trimmed tags collapse in a set.
      *
      * @param tagName A valid tag name.
      */
     public Tag(String tagName) {
         requireNonNull(tagName);
         checkArgument(isValidTagName(tagName), MESSAGE_CONSTRAINTS);
-        this.tagName = tagName;
+        this.tagName = tagName.trim();
     }
 
     /**
      * Returns true if a given string is a valid tag name.
      */
     public static boolean isValidTagName(String test) {
-        return test.matches(VALIDATION_REGEX);
+        return !test.trim().isBlank() && test.trim().matches(VALIDATION_REGEX);
     }
 
     @Override

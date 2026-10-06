@@ -1,6 +1,8 @@
 package seedu.boothmanagerpro.ui;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import javafx.application.Platform;
@@ -8,12 +10,14 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import seedu.boothmanagerpro.commons.core.GuiSettings;
 import seedu.boothmanagerpro.commons.core.LogsCenter;
@@ -159,15 +163,21 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     /**
-     * Sets the default size based on {@code guiSettings}.
+     * Restores saved bounds against the current monitors, recovering inaccessible or oversized windows.
      */
     private void setWindowDefaultSize(GuiSettings guiSettings) {
-        primaryStage.setHeight(Math.max(primaryStage.getMinHeight(), guiSettings.getWindowHeight()));
-        primaryStage.setWidth(Math.max(primaryStage.getMinWidth(), guiSettings.getWindowWidth()));
-        if (guiSettings.getWindowCoordinates() != null) {
-            primaryStage.setX(guiSettings.getWindowCoordinates().getX());
-            primaryStage.setY(guiSettings.getWindowCoordinates().getY());
-        }
+        List<Screen> screens = new ArrayList<>(Screen.getScreens());
+        screens.remove(Screen.getPrimary());
+        screens.addFirst(Screen.getPrimary());
+        Rectangle2D bounds = WindowPlacement.fit(guiSettings,
+                screens.stream().map(Screen::getVisualBounds).toList(),
+                primaryStage.getMinWidth(), primaryStage.getMinHeight());
+        primaryStage.setMinWidth(Math.min(primaryStage.getMinWidth(), bounds.getWidth()));
+        primaryStage.setMinHeight(Math.min(primaryStage.getMinHeight(), bounds.getHeight()));
+        primaryStage.setWidth(bounds.getWidth());
+        primaryStage.setHeight(bounds.getHeight());
+        primaryStage.setX(bounds.getMinX());
+        primaryStage.setY(bounds.getMinY());
     }
 
     /**

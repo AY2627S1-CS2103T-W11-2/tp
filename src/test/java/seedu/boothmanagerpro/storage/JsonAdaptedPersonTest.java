@@ -18,11 +18,12 @@ import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.Phone;
 
 public class JsonAdaptedPersonTest {
+
     private static final String INVALID_NAME = "R@chel";
     private static final String INVALID_PHONE = "+651234";
     private static final String INVALID_ADDRESS = " ";
     private static final String INVALID_EMAIL = "example.com";
-    private static final String INVALID_TAG = "#friend";
+    private static final String INVALID_TAG = "friend/invalid";
 
     private static final String VALID_NAME = BENSON.getName().toString();
     private static final String VALID_PHONE = BENSON.getPhone().toString();
@@ -107,4 +108,13 @@ public class JsonAdaptedPersonTest {
         assertThrows(IllegalValueException.class, person::toModelType);
     }
 
+    @Test
+    public void toModelType_invalidCompanyOrMethod_throwsIllegalValueException() {
+        JsonAdaptedPerson invalidCompany = new JsonAdaptedPerson("Alicia Tan", "91234567",
+                "alicia@example.com", "Not provided", java.util.List.of(), " ", "email");
+        assertThrows(IllegalValueException.class, invalidCompany::toModelType);
+        JsonAdaptedPerson invalidMethod = new JsonAdaptedPerson("Alicia Tan", "91234567",
+                "alicia@example.com", "Not provided", java.util.List.of(), "TechNova", "fax");
+        assertThrows(IllegalValueException.class, invalidMethod::toModelType);
+    }
 }

@@ -170,6 +170,28 @@ Classes used by multiple components are in the `seedu.boothmanagerpro.commons` p
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Adding an exhibitor contact
+
+`add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [t/TAG]...`
+
+1. `AddressBookParser` routes `add` to `AddCommandParser`.
+2. The parser rejects unknown prefixes, preambles, repeated non-tag fields, and missing required prefixes.
+3. Value objects validate fields, trim names/company, lowercase email, and remove phone spaces/hyphens. Repeated tags are ignored.
+4. `AddCommand` checks the complete address book for matching email or name/company, then adds the contact or reports the existing match.
+5. `LogicManager` saves through `JsonAddressBookStorage` and returns the formatted command result.
+
+The parser coordinates three steps: tokenisation, structural validation, and value conversion. Value objects own their validation rules; `Person.createExhibitor()` owns the legacy address default. `AddCommand` performs duplicate lookup and addition, while the model independently enforces uniqueness and storage handles JSON conversion.
+
+Integration notes:
+
+- `Person.getCompany()` and `getContactMethod()` return optional values. New additions require company; legacy records may lack it. Omitted method displays as `Not specified`.
+- Name/company duplicate matching ignores case; contacts without a company match only by normalised email.
+- Existing edit commands preserve company/method. They do not yet accept `c/` or `m/`.
+- The legacy address field remains for compatibility, using `Not provided` for new contacts. `add` no longer accepts `a/`.
+- Prefix-like tokens are reserved. Other words between prefixes belong to that field, allowing multi-word names and companies.
+- JSON includes `company` and `contactMethod`; legacy files without them are accepted if their other values meet current validation rules.
+- UI rendering of the new fields is a separate integration task. Logic tests run without a display server.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
