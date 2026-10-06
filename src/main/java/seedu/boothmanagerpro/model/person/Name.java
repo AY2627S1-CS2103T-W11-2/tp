@@ -10,10 +10,11 @@ import static seedu.boothmanagerpro.commons.util.AppUtil.checkArgument;
 public class Name {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Names may contain letters, numbers, spaces, hyphens, apostrophes, and full stops, and must not be blank";
+            "Names must be 1 to 80 characters and contain a letter. "
+            + "Use only letters, spaces, hyphens, apostrophes or full stops.";
 
-    // Preserve legacy numeric names while also accepting the punctuation used in exhibitor names.
-    public static final String VALIDATION_REGEX = "(?=.*[\\p{L}\\p{N}])[\\p{L}\\p{M}\\p{N} .’'\\-]+";
+    // Length and the presence of a letter are checked separately after trimming.
+    public static final String VALIDATION_REGEX = "[\\p{L}\\p{M} .'\u2019-]+";
 
     public final String fullName;
 

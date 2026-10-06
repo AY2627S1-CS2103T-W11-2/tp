@@ -3,6 +3,7 @@ package seedu.boothmanagerpro.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import seedu.boothmanagerpro.commons.util.ToStringBuilder;
@@ -76,7 +77,7 @@ public class ViewCommand extends Command {
         String details = person.getName() + " at " + displayOptional(person.getCompany())
                 + "\nEmail: " + person.getEmail()
                 + "\nPhone: " + person.getPhone()
-                + "\nContact method: " + displayOptional(person.getPreferredContactMethod())
+                + "\nContact method: " + displayOptional(person.getContactMethod())
                 + "\nTags: " + (tags.isEmpty() ? "None" : tags);
         return new CommandResult(String.format(MESSAGE_SUCCESS, details), person);
     }
@@ -84,8 +85,8 @@ public class ViewCommand extends Command {
     /**
      * Returns the field value or a placeholder for an omitted legacy field.
      */
-    private static String displayOptional(String value) {
-        return value.isBlank() ? "Not specified" : value;
+    private static String displayOptional(Optional<?> value) {
+        return value.map(Object::toString).orElse("Not specified");
     }
 
     @Override

@@ -51,7 +51,7 @@ public class PersonCard extends UiPart<Region> {
         this.person = person;
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
-        company.setText(person.getCompany().isBlank() ? "Company not specified" : person.getCompany());
+        company.setText(person.getCompany().map(value -> value.value).orElse("Company not specified"));
         phone.setText(person.getPhone().value);
         address.setText(person.getAddress().value);
         email.setText(person.getEmail().value);

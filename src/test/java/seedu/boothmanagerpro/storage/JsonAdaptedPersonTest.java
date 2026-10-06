@@ -23,6 +23,8 @@ import com.fasterxml.jackson.databind.introspect.POJOPropertiesCollector;
 import seedu.boothmanagerpro.commons.exceptions.IllegalValueException;
 import seedu.boothmanagerpro.commons.util.JsonUtil;
 import seedu.boothmanagerpro.model.person.Address;
+import seedu.boothmanagerpro.model.person.Company;
+import seedu.boothmanagerpro.model.person.ContactMethod;
 import seedu.boothmanagerpro.model.person.Email;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.Person;
@@ -105,10 +107,10 @@ public class JsonAdaptedPersonTest {
     public void toModelType_invalidExhibitorFields_throwsIllegalValueException() {
         JsonAdaptedPerson company = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
                 VALID_TAGS, "A".repeat(101), "email");
-        assertThrows(IllegalValueException.class, Person.MESSAGE_COMPANY_CONSTRAINTS, company::toModelType);
+        assertThrows(IllegalValueException.class, Company.MESSAGE_CONSTRAINTS, company::toModelType);
         JsonAdaptedPerson method = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
                 VALID_TAGS, "TechNova", "fax");
-        assertThrows(IllegalValueException.class, Person.MESSAGE_METHOD_CONSTRAINTS, method::toModelType);
+        assertThrows(IllegalValueException.class, ContactMethod.MESSAGE_CONSTRAINTS, method::toModelType);
     }
 
     @Test

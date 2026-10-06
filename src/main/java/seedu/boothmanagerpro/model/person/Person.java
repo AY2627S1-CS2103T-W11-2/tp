@@ -1,12 +1,9 @@
 package seedu.boothmanagerpro.model.person;
 
-import static seedu.boothmanagerpro.commons.util.AppUtil.checkArgument;
 import static seedu.boothmanagerpro.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.HashSet;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -20,9 +17,6 @@ import seedu.boothmanagerpro.model.tag.Tag;
  * Duplicate matching uses {@link #isSamePerson(Person)}, while {@link #equals(Object)} compares all stored values.
  */
 public class Person {
-
-    public static final String MESSAGE_COMPANY_CONSTRAINTS = "Company must contain 1 to 100 characters.";
-    public static final String MESSAGE_METHOD_CONSTRAINTS = "Contact method must be email, phone, or other.";
 
     // Identity fields
     private final Name name;
@@ -79,28 +73,6 @@ public class Person {
             Optional<ContactMethod> contactMethod, Set<Tag> tags) {
         return new Person(name, phone, email, new Address("Not provided"), tags,
                 Optional.of(company), contactMethod);
-    }
-
-    /**
-     * Returns whether a company is valid, including an empty value for a legacy record.
-     */
-    public static boolean isValidCompany(String company) {
-        return company.isEmpty() || (!company.isBlank() && company.strip().length() <= 100);
-    }
-
-    /**
-     * Returns whether a preferred contact method is supported or omitted.
-     */
-    public static boolean isValidContactMethod(String method) {
-        return method.isEmpty() || Set.of("email", "phone", "other").contains(method.strip().toLowerCase(Locale.ROOT));
-    }
-
-    public String getCompany() {
-        return company;
-    }
-
-    public String getPreferredContactMethod() {
-        return preferredContactMethod;
     }
 
     public Name getName() {
@@ -183,7 +155,7 @@ public class Person {
                 .add("address", address)
                 .add("tags", tags)
                 .add("company", company)
-                .add("preferredContactMethod", preferredContactMethod)
+                .add("contactMethod", contactMethod)
                 .toString();
     }
 

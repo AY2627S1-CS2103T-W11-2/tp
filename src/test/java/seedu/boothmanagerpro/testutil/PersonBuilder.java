@@ -24,8 +24,6 @@ public class PersonBuilder {
     public static final String DEFAULT_EMAIL = "amy@gmail.com";
     public static final String DEFAULT_ADDRESS = "123, Jurong West Ave 6, #08-111";
 
-    private String company = "";
-    private String preferredContactMethod = "";
     private Name name;
     private Phone phone;
     private Email email;
@@ -49,8 +47,6 @@ public class PersonBuilder {
      * Initializes the PersonBuilder with the data of {@code personToCopy}.
      */
     public PersonBuilder(Person personToCopy) {
-        company = personToCopy.getCompany();
-        preferredContactMethod = personToCopy.getPreferredContactMethod();
         name = personToCopy.getName();
         phone = personToCopy.getPhone();
         email = personToCopy.getEmail();
@@ -97,22 +93,6 @@ public class PersonBuilder {
      */
     public PersonBuilder withEmail(String email) {
         this.email = new Email(email);
-        return this;
-    }
-
-    /**
-     * Sets the company of the contact being built.
-     */
-    public PersonBuilder withCompany(String company) {
-        this.company = company;
-        return this;
-    }
-
-    /**
-     * Sets the optional preferred contact method of the contact being built.
-     */
-    public PersonBuilder withContactMethod(String method) {
-        preferredContactMethod = method;
         return this;
     }
 
