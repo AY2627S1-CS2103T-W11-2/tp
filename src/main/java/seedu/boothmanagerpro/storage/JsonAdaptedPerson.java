@@ -28,15 +28,28 @@ class JsonAdaptedPerson {
     private final String phone;
     private final String email;
     private final String address;
+    private final String company;
+    private final String preferredContactMethod;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
+     * Keeps this convenience constructor unannotated so Jackson uses only the full JSON creator.
+     */
+    public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
+        this(name, phone, email, address, tags, "", "");
+    }
+
+    /**
+     * Creates a stored contact, accepting absent exhibitor fields in older data files.
      */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
-            @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+            @JsonProperty("tags") List<JsonAdaptedTag> tags, @JsonProperty("company") String company,
+            @JsonProperty("preferredContactMethod") String preferredContactMethod) {
+        this.company = company == null ? "" : company;
+        this.preferredContactMethod = preferredContactMethod == null ? "" : preferredContactMethod;
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -50,6 +63,8 @@ class JsonAdaptedPerson {
      * Converts a given {@code Person} into this class for Jackson use.
      */
     public JsonAdaptedPerson(Person source) {
+        company = source.getCompany();
+        preferredContactMethod = source.getPreferredContactMethod();
         name = source.getName().fullName;
         phone = source.getPhone().value;
         email = source.getEmail().value;
@@ -102,8 +117,14 @@ class JsonAdaptedPerson {
         }
         final Address modelAddress = new Address(address);
 
+        if (!Person.isValidCompany(company)) {
+            throw new IllegalValueException(Person.MESSAGE_COMPANY_CONSTRAINTS);
+        }
+        if (!Person.isValidContactMethod(preferredContactMethod)) {
+            throw new IllegalValueException(Person.MESSAGE_METHOD_CONSTRAINTS);
+        }
         final Set<Tag> modelTags = new HashSet<>(personTags);
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags);
+        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, company, preferredContactMethod);
     }
 
 }

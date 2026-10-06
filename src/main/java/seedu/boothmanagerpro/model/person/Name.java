@@ -10,13 +10,10 @@ import static seedu.boothmanagerpro.commons.util.AppUtil.checkArgument;
 public class Name {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Names should only contain alphanumeric characters and spaces, and should not be blank";
+            "Names may contain letters, numbers, spaces, hyphens, apostrophes, and full stops, and must not be blank";
 
-    /*
-     * The first character of the name must not be a whitespace,
-     * otherwise " " (a blank string) becomes a valid input.
-     */
-    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} ]*";
+    // Preserve legacy numeric names while also accepting the punctuation used in exhibitor names.
+    public static final String VALIDATION_REGEX = "(?=.*[\\p{L}\\p{N}])[\\p{L}\\p{M}\\p{N} .’'\\-]+";
 
     public final String fullName;
 

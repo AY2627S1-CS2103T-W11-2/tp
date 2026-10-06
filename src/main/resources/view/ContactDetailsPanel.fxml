@@ -5,19 +5,21 @@
             xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
   <VBox styleClass="details-card" spacing="14">
     <Label fx:id="contactName" styleClass="detail-name" wrapText="true" />
-    <Label text="Company details coming soon" styleClass="muted" wrapText="true" />
+    <Label fx:id="company" styleClass="muted" wrapText="true" />
     <Separator />
     <Label text="EMAIL" styleClass="field-label" />
     <Label fx:id="email" wrapText="true" styleClass="detail-value" />
     <Label text="PHONE" styleClass="field-label" />
     <Label fx:id="phone" wrapText="true" styleClass="detail-value" />
+    <Label text="CONTACT METHOD" styleClass="field-label" />
+    <Label fx:id="contactMethod" wrapText="true" styleClass="detail-value" />
     <Label text="ADDRESS" styleClass="field-label" />
     <Label fx:id="address" wrapText="true" styleClass="detail-value" />
     <Label text="TAGS" styleClass="field-label" />
     <FlowPane fx:id="tags" hgap="6" vgap="6" styleClass="tags" />
     <Separator />
     <Label text="ENQUIRIES &amp; FOLLOW-UPS" styleClass="field-label" />
-    <Label text="Enquiry status, preferred contact method and follow-up dates are coming soon."
+    <Label text="Enquiry status and follow-up dates are coming soon."
            wrapText="true" styleClass="muted" />
   </VBox>
 </ScrollPane>
