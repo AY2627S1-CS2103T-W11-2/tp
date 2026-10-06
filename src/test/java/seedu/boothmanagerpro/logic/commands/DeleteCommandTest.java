@@ -115,6 +115,13 @@ public class DeleteCommandTest {
     }
 
     @Test
+    public void execute_partialName_throwsCommandException() {
+        Name partialName = new Name("Alice");
+        assertCommandFailure(new DeleteCommand(partialName), model,
+                String.format(DeleteCommand.MESSAGE_PERSON_NOT_FOUND, partialName));
+    }
+
+    @Test
     public void execute_ambiguousName_throwsCommandException() {
         Name targetName = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()).getName();
         Person caseVariant = new PersonBuilder().withName(targetName.fullName.toLowerCase()).build();

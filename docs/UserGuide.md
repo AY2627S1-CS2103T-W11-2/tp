@@ -133,6 +133,10 @@ Deletes the specified person from the address book.
 Format: `delete NAME` or `delete INDEX`
 
 * `NAME` must be the contact's full name (matching is case-insensitive).
+* A partial name does not match. For example, `delete Alex` does not match `Alex Yeoh`.
+* If no contact has the supplied name, no contact is deleted and an error is shown.
+* If multiple contacts match the supplied name ignoring letter case, no contact is deleted. Use `list` or `find`,
+  then delete the intended contact by its displayed index.
 * Alternatively, deletes the person at the specified `INDEX`.
 * The index refers to the index number shown in the displayed person list.
 * The index **must be a positive integer** 1, 2, 3, …​
