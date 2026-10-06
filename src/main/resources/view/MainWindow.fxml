@@ -25,21 +25,25 @@
             <Label text="Enter to run  |  Ctrl+L to focus  |  F1 for help" styleClass="muted" />
           </HBox>
           <StackPane fx:id="commandBoxPlaceholder" />
-          <Label text="RESULT" styleClass="section-label" />
-          <StackPane fx:id="resultDisplayPlaceholder" minHeight="76" prefHeight="90" maxHeight="110" />
-          <SplitPane dividerPositions="0.45" VBox.vgrow="ALWAYS" styleClass="contact-split">
-            <VBox minWidth="290" spacing="10">
-              <HBox alignment="CENTER_LEFT" spacing="8">
-                <Label text="EXHIBITOR CONTACTS" styleClass="section-label" />
-                <Region HBox.hgrow="ALWAYS" />
-                <Label fx:id="recordCount" styleClass="muted" />
-              </HBox>
-              <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS" />
+          <SplitPane orientation="VERTICAL" dividerPositions="0.5" VBox.vgrow="ALWAYS" styleClass="result-split">
+            <VBox minHeight="76" spacing="10">
+              <Label text="RESULT" styleClass="section-label" />
+              <StackPane fx:id="resultDisplayPlaceholder" VBox.vgrow="ALWAYS" />
             </VBox>
-            <VBox minWidth="330" spacing="10">
-              <Label text="CONTACT DETAILS" styleClass="section-label" />
-              <StackPane fx:id="contactDetailsPlaceholder" VBox.vgrow="ALWAYS" />
-            </VBox>
+            <SplitPane dividerPositions="0.45" minHeight="120" styleClass="contact-split">
+              <VBox minWidth="290" spacing="10">
+                <HBox alignment="CENTER_LEFT" spacing="8">
+                  <Label text="EXHIBITOR CONTACTS" styleClass="section-label" />
+                  <Region HBox.hgrow="ALWAYS" />
+                  <Label fx:id="recordCount" styleClass="muted" />
+                </HBox>
+                <StackPane fx:id="personListPanelPlaceholder" VBox.vgrow="ALWAYS" />
+              </VBox>
+              <VBox minWidth="330" spacing="10">
+                <Label text="CONTACT DETAILS" styleClass="section-label" />
+                <StackPane fx:id="contactDetailsPlaceholder" VBox.vgrow="ALWAYS" />
+              </VBox>
+            </SplitPane>
           </SplitPane>
         </VBox>
         <StackPane fx:id="statusbarPlaceholder" />

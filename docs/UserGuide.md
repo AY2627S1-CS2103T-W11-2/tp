@@ -58,8 +58,8 @@ BoothManagerPro is a **desktop application for convention organisers to manage e
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`.
+* Extraneous parameters for commands that take no parameters, such as `help`, `exit`, and `clear`, are ignored.<br>
+  For example, `help 123` is interpreted as `help`. The exception is `list`, which rejects any parameters.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
@@ -139,11 +139,46 @@ The current `edit` command can update name, email, phone, address, and tags; it 
 
 A present but empty field produces its value-validation error. Words between prefixes belong to the preceding field; prefix-like tokens are reserved. If several errors occur, unknown prefixes/preamble are checked first, then repeated fields, then missing prefixes, then values. Invalid input and duplicates do not add a contact.
 
-### Listing all persons: `list`
+### Listing all exhibitor contacts: `list`
 
-Shows a list of all persons in the address book.
+Shows every stored exhibitor contact with its name, company, email, phone, preferred contact method, and tags,
+followed by the total number of contacts.
 
 Format: `list`
+
+* `list` does not accept parameters. For example, `list 3` is rejected.
+* Any filter left by a previous `find` or `view` command is cleared, so all contacts are shown again.
+* Tags are shown in the order they are stored. An omitted contact method or a company missing from an older
+  record is shown as `Not specified`. Contacts without tags show `None`.
+
+Example: `list`
+
+```text
+Exhibitor Contact List
+──────────────────────────────────────
+
+Alicia Tan at TechNova Pte Ltd
+Email: alicia@technova.com
+Phone: 91234567
+Contact method: email
+Tags: technology, high-priority
+
+John Smith at GlobalTech Inc
+Email: john@globaltech.com
+Phone: +6562345678
+Contact method: phone
+Tags: hardware
+
+──────────────────────────────────────
+Total contacts: 2
+```
+
+If there are no stored contacts:
+
+```text
+No contacts found.
+Use the 'add' command to add a new exhibitor contact.
+```
 
 ### Viewing an exhibitor contact: `view`
 

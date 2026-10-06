@@ -35,7 +35,9 @@
 .result-display.error { -fx-text-fill: #8d292f; -fx-background-color: #fff0ef; }
 .result-display.error .content { -fx-background-color: #fff0ef; }
 .contact-split { -fx-background-color: transparent; -fx-padding: 8 0 0 0; }
+.result-split { -fx-background-color: transparent; -fx-padding: 0; }
 .split-pane-divider { -fx-background-color: transparent; -fx-padding: 0 9; }
+.split-pane:vertical > .split-pane-divider { -fx-padding: 5 0; }
 .list-view { -fx-background-color: transparent; -fx-padding: 0; }
 .list-cell { -fx-background-color: transparent; -fx-padding: 0 0 8 0; }
 .contact-card {
