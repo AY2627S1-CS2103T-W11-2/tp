@@ -4,10 +4,29 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.boothmanagerpro.testutil.Assert.assertThrows;
+import static seedu.boothmanagerpro.testutil.TypicalPersons.ALICE;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.boothmanagerpro.model.person.Person;
+
 public class CommandResultTest {
+    @Test
+    public void viewChoices_areImmutableSnapshots() {
+        List<Person> choices = new ArrayList<>(List.of(ALICE));
+        CommandResult result = new CommandResult("Choose a contact", choices);
+        choices.clear();
+        assertEquals(List.of(ALICE), result.getViewChoices());
+        assertThrows(UnsupportedOperationException.class, () -> result.getViewChoices().clear());
+        assertEquals(result, new CommandResult("Choose a contact", List.of(ALICE)));
+        assertEquals(result.hashCode(), new CommandResult("Choose a contact", List.of(ALICE)).hashCode());
+        assertNotEquals(result, new CommandResult("Choose a contact"));
+    }
+
     @Test
     public void equals() {
         CommandResult commandResult = new CommandResult("feedback");
@@ -57,7 +76,7 @@ public class CommandResultTest {
         CommandResult commandResult = new CommandResult("feedback");
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser() + ", showHelp=" + commandResult.isShowHelp()
-                + ", exit=" + commandResult.isExit() + "}";
+                + ", exit=" + commandResult.isExit() + ", viewChoices=[], personToView=null}";
         assertEquals(expected, commandResult.toString());
     }
 }
