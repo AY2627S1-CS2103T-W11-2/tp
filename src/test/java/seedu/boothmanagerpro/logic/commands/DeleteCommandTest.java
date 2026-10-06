@@ -17,7 +17,9 @@ import seedu.boothmanagerpro.logic.Messages;
 import seedu.boothmanagerpro.model.Model;
 import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.UserPrefs;
+import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.Person;
+import seedu.boothmanagerpro.testutil.PersonBuilder;
 
 /**
  * Contains integration tests (interaction with the Model) and unit tests for
@@ -80,9 +82,53 @@ public class DeleteCommandTest {
     }
 
     @Test
+    public void execute_validName_success() {
+        Person personToDelete = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        DeleteCommand deleteCommand = new DeleteCommand(personToDelete.getName());
+
+        String expectedMessage = String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS,
+                Messages.format(personToDelete));
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.deletePerson(personToDelete);
+
+        assertCommandSuccess(deleteCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_nameMatchingIsCaseInsensitive_success() {
+        Person personToDelete = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        DeleteCommand deleteCommand = new DeleteCommand(new Name(personToDelete.getName().fullName.toLowerCase()));
+
+        String expectedMessage = String.format(DeleteCommand.MESSAGE_DELETE_PERSON_SUCCESS,
+                Messages.format(personToDelete));
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.deletePerson(personToDelete);
+
+        assertCommandSuccess(deleteCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_nameNotFound_throwsCommandException() {
+        Name missingName = new Name("Missing Person");
+        assertCommandFailure(new DeleteCommand(missingName), model,
+                String.format(DeleteCommand.MESSAGE_PERSON_NOT_FOUND, missingName));
+    }
+
+    @Test
+    public void execute_ambiguousName_throwsCommandException() {
+        Name targetName = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()).getName();
+        Person caseVariant = new PersonBuilder().withName(targetName.fullName.toLowerCase()).build();
+        model.addPerson(caseVariant);
+
+        assertCommandFailure(new DeleteCommand(targetName), model,
+                String.format(DeleteCommand.MESSAGE_MULTIPLE_PERSONS_FOUND, targetName));
+    }
+
+    @Test
     public void equals() {
         DeleteCommand deleteFirstCommand = new DeleteCommand(INDEX_FIRST_PERSON);
         DeleteCommand deleteSecondCommand = new DeleteCommand(INDEX_SECOND_PERSON);
+        DeleteCommand deleteByNameCommand = new DeleteCommand(new Name("Alice Pauline"));
 
         // same object -> returns true
         assertTrue(deleteFirstCommand.equals(deleteFirstCommand));
@@ -99,6 +145,9 @@ public class DeleteCommandTest {
 
         // different person -> returns false
         assertFalse(deleteFirstCommand.equals(deleteSecondCommand));
+
+        // different target type -> returns false
+        assertFalse(deleteFirstCommand.equals(deleteByNameCommand));
     }
 
     @Test
@@ -107,6 +156,11 @@ public class DeleteCommandTest {
         DeleteCommand deleteCommand = new DeleteCommand(targetIndex);
         String expected = DeleteCommand.class.getCanonicalName() + "{targetIndex=" + targetIndex + "}";
         assertEquals(expected, deleteCommand.toString());
+
+        Name targetName = new Name("Alice Pauline");
+        DeleteCommand deleteByNameCommand = new DeleteCommand(targetName);
+        String expectedByName = DeleteCommand.class.getCanonicalName() + "{targetName=" + targetName + "}";
+        assertEquals(expectedByName, deleteByNameCommand.toString());
     }
 
     /**

@@ -22,6 +22,7 @@ import seedu.boothmanagerpro.logic.commands.FindCommand;
 import seedu.boothmanagerpro.logic.commands.HelpCommand;
 import seedu.boothmanagerpro.logic.commands.ListCommand;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
+import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.NameContainsKeywordsPredicate;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.testutil.EditPersonDescriptorBuilder;
@@ -50,6 +51,10 @@ public class AddressBookParserTest {
         DeleteCommand command = (DeleteCommand) parser.parseCommand(
                 DeleteCommand.COMMAND_WORD + " " + INDEX_FIRST_PERSON.getOneBased());
         assertEquals(new DeleteCommand(INDEX_FIRST_PERSON), command);
+
+        DeleteCommand commandByName = (DeleteCommand) parser.parseCommand(
+                DeleteCommand.COMMAND_WORD + " Alice Pauline");
+        assertEquals(new DeleteCommand(new Name("Alice Pauline")), commandByName);
     }
 
     @Test
