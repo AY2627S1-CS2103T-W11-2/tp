@@ -12,13 +12,14 @@ import java.util.regex.Pattern;
 
 import seedu.boothmanagerpro.logic.commands.FindCommand;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
+import seedu.boothmanagerpro.model.person.Company;
 import seedu.boothmanagerpro.model.person.ContactMatchesFieldsPredicate;
 import seedu.boothmanagerpro.model.person.NameContainsKeywordsPredicate;
 
 /** Parses legacy name keywords or prefixed exact-match contact criteria. */
 public class FindCommandParser implements Parser<FindCommand> {
     public static final String MESSAGE_UNSUPPORTED_FIELD =
-            "Unsupported search field. Use n/, e/, p/, or t/. Company and status searches are not available yet.";
+            "Unsupported search field. Use n/, c/, e/, p/, or t/. Status search is not available yet.";
     public static final String MESSAGE_EMPTY_VALUE = "Search values cannot be empty.";
     public static final String MESSAGE_UNPREFIXED_VALUE =
             "Every exact-match search value must use a supported field prefix.";
@@ -59,11 +60,16 @@ public class FindCommandParser implements Parser<FindCommand> {
             case "n/":
                 ParserUtil.parseName(value);
                 break;
+            case "c/":
+                if (!Company.isValidCompany(value)) {
+                    throw new ParseException(Company.MESSAGE_CONSTRAINTS);
+                }
+                break;
             case "e/":
                 ParserUtil.parseEmail(value);
                 break;
             case "p/":
-                ParserUtil.parsePhone(normalised);
+                ParserUtil.parsePhone(value);
                 break;
             case "t/":
                 ParserUtil.parseTag(value);

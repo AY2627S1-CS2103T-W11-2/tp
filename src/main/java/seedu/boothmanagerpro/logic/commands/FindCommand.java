@@ -18,7 +18,7 @@ public class FindCommand extends Command {
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds contacts by name keywords or exact fields "
             + "and displays matching contacts with index numbers.\n"
-            + "Parameters: KEYWORD [MORE_KEYWORDS]... or [n/NAME] [e/EMAIL] [p/PHONE] [t/TAG]...\n"
+            + "Parameters: KEYWORD [MORE_KEYWORDS]... or [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG]...\n"
             + "Prefixed values match complete fields. Repeat a prefix for alternatives (OR); "
             + "different fields use AND.\n"
             + "Example: " + COMMAND_WORD + " n/Alice Pauline t/friends";

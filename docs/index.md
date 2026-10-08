@@ -10,7 +10,7 @@ title: BoothManagerPro
 
 **BoothManagerPro helps convention organisers manage exhibitor contacts through typed commands.** Add contacts with company, email, phone, optional contact method, and tags, with validation and duplicate detection. See the [add command reference](UserGuide.html#adding-an-exhibitor-contact-add).
 
-The image above is the planned UI mockup. Company and contact-method display awaits UI integration; enquiry status and follow-up features remain planned.
+The image above is the planned UI mockup. Company and contact method are displayed in the application; enquiry status and follow-up features remain planned.
 
 * If you are interested in using BoothManagerPro, head over to the [_Quick Start_ section of the **User Guide**](UserGuide.html#quick-start).
 * If you are interested in developing BoothManagerPro, the [**Developer Guide**](DeveloperGuide.html) is a good place to start.

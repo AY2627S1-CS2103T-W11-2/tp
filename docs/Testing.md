@@ -63,3 +63,17 @@ On macOS use `./gradlew check coverage`. On Linux with no display, use `xvfb-run
 Inspect `build/reports/jacoco/coverage/html/index.html` locally. CI generates `build/reports/jacoco/coverage/coverage.xml` before uploading it to Codecov. Check changed-line coverage as well as overall coverage.
 
 For interactive checks, use the [manual add scenarios](DeveloperGuide.md#testing-exhibitor-additions).
+
+## Cross-feature regression checks
+
+`ExhibitorAddIntegrationTest` runs add, company/tag filtering, view selection, list, ambiguous-name deletion, and indexed deletion together. It checks shared attributes and the saved records. It also verifies that legacy contacts without company data do not match company searches.
+
+`FindFieldsTest` covers empty/overlong company criteria and rejects internal phone tabs consistently with add. `ViewCommandParserTest` checks the shared name validator, including the 80-code-point Unicode boundary.
+
+Manual check in a separate test folder:
+
+1. Add two contacts with the same name, different companies and emails, and an optional method/tag on one.
+2. Run `find c/COMPANY t/TAG` using that record's complete values; expect one match.
+3. Run `view n/NAME`, then select each record in turn; check company, email, phone, method, and tags.
+4. Run `list`; expect both records and a total of two (plus any pre-existing contacts).
+5. Run `delete NAME`; expect ambiguity and no deletion. Filter by company, then `delete 1`; check the deleted record's company/method in feedback and confirm only that record is removed after restart.

@@ -15,6 +15,14 @@ public class ViewCommandParserTest {
     private final ViewCommandParser parser = new ViewCommandParser();
 
     @Test
+    public void parse_nameRules_matchSharedModel() {
+        String unicodeName = "\uD801\uDC00".repeat(80);
+        assertParseSuccess(parser, "n/" + unicodeName, new ViewCommand(new Name(unicodeName)));
+        assertParseFailure(parser, "n/" + unicodeName + "A", Name.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "n/Alicia2", Name.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
     public void parse_validName_success() {
         for (String name : new String[]{"Alicia Tan", "Anne-Marie O'Neil", "Dr. Lee", "O’Neil", "Élodie", "'Ali",
             "A".repeat(80)}) {

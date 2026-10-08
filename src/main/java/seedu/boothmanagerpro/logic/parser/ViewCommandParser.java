@@ -17,12 +17,9 @@ public class ViewCommandParser implements Parser<ViewCommand> {
     public static final String MESSAGE_REQUIRED_NAME = "Use required field: n/NAME.";
     public static final String MESSAGE_DUPLICATE_FIELD = "Each field can only be specified once.";
     public static final String MESSAGE_UNKNOWN_FIELD = "Unknown field prefix. Use n/.";
-    public static final String MESSAGE_INVALID_NAME = "Names must be 1 to 80 characters "
-            + "and contain at least one letter. "
-            + "Names may include letters, spaces, hyphens, apostrophes, or full stops.";
+    public static final String MESSAGE_INVALID_NAME = Name.MESSAGE_CONSTRAINTS;
 
     private static final Pattern FIELD = Pattern.compile("(?:^|\\s)([^\\s/]+/)");
-    private static final Pattern VALID_NAME = Pattern.compile("(?=.*\\p{L})[\\p{L}\\p{M} .’'\\-]{1,80}");
 
     /**
      * Parses exactly one {@code n/} field containing a name query.
@@ -58,7 +55,7 @@ public class ViewCommandParser implements Parser<ViewCommand> {
         if (name.contains("/")) {
             throw new ParseException(MESSAGE_UNKNOWN_FIELD);
         }
-        if (!VALID_NAME.matcher(name).matches()) {
+        if (!Name.isValidName(name)) {
             throw new ParseException(MESSAGE_INVALID_NAME);
         }
         return new ViewCommand(new Name(name));

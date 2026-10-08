@@ -44,6 +44,44 @@ public class ExhibitorAddIntegrationTest {
     }
 
     @Test
+    public void addFindViewListDelete_preserveSharedContactAttributes() throws Exception {
+        logic.execute(ADD + " m/EMAIL t/high-priority");
+        logic.execute("add n/Alicia Tan c/Other Ltd e/other@example.com p/87654321");
+        logic.execute("find c/ TECHNOVA PTE LTD c/technova pte ltd t/HIGH-PRIORITY");
+        assertEquals(1, model.getFilteredPersonList().size());
+        Person contact = model.getFilteredPersonList().getFirst();
+        assertEquals("TechNova Pte Ltd", contact.getCompany().orElseThrow().value);
+        assertEquals(ContactMethod.EMAIL, contact.getContactMethod().orElseThrow());
+        logic.execute("find c/TechNova");
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        logic.execute("find c/TechNova Pte Ltd c/Other Ltd");
+        assertEquals(2, model.getFilteredPersonList().size());
+        String view = logic.execute("view n/Alicia Tan").getFeedbackToUser();
+        assertTrue(view.contains("TechNova Pte Ltd"));
+        assertTrue(view.contains("Other Ltd"));
+        assertTrue(logic.execute("1").getFeedbackToUser().contains("Contact method: email"));
+        String list = logic.execute("list").getFeedbackToUser();
+        assertTrue(list.contains("Total contacts: 2"));
+        assertTrue(list.contains("Contact method: Not specified"));
+        assertThrows(CommandException.class, () -> logic.execute("delete Alicia Tan"));
+        logic.execute("find c/TechNova Pte Ltd");
+        String deleted = logic.execute("delete 1").getFeedbackToUser();
+        assertTrue(deleted.contains("Company: TechNova Pte Ltd"));
+        assertTrue(deleted.contains("Contact method: email"));
+        assertEquals(1, storage.readAddressBook().orElseThrow().getPersonList().size());
+        assertEquals("Other Ltd", model.getAddressBook().getPersonList().getFirst()
+                .getCompany().orElseThrow().value);
+    }
+
+    @Test
+    public void findCompany_legacyContactDoesNotMatch() throws Exception {
+        model.addPerson(new PersonBuilder().build());
+        logic.execute("find c/TechNova");
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+    }
+
+    @Test
     public void add_saveReloadAndEdit_preservesExhibitorFields() throws Exception {
         logic.execute(ADD + " m/email t/high-priority t/technology");
         ModelManager reloaded = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());

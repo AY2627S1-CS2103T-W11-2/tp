@@ -37,6 +37,10 @@ public class Messages {
     public static String format(Person person) {
         final StringBuilder builder = new StringBuilder();
         builder.append(person.getName())
+                .append("; Company: ")
+                .append(person.getCompany().map(Object::toString).orElse("Not specified"))
+                .append("; Contact method: ")
+                .append(person.getContactMethod().map(Object::toString).orElse("Not specified"))
                 .append("; Phone: ")
                 .append(person.getPhone())
                 .append("; Email: ")

@@ -41,10 +41,10 @@ public class FindFieldsTest {
 
     @Test
     public void parse_invalidFields_rejectsInput() {
-        for (String input : List.of("c/Acme", "s/new", "x/foo", "n/Alice Pauline x/foo")) {
+        for (String input : List.of("s/new", "x/foo", "n/Alice Pauline x/foo")) {
             assertParseFailure(parser, input, FindCommandParser.MESSAGE_UNSUPPORTED_FIELD);
         }
-        for (String input : List.of("n/", "e/ ", "p/ ", "t/", "n/Alice Pauline t/")) {
+        for (String input : List.of("c/", "n/", "e/ ", "p/ ", "t/", "n/Alice Pauline t/")) {
             assertParseFailure(parser, input, FindCommandParser.MESSAGE_EMPTY_VALUE);
         }
         assertParseFailure(parser, "Alice n/Alice Pauline", FindCommandParser.MESSAGE_UNPREFIXED_VALUE);
@@ -52,7 +52,8 @@ public class FindFieldsTest {
 
     @Test
     public void parse_invalidValues_rejectsInput() throws Exception {
-        for (String input : List.of("p/12", "p/abc", "e/not-an-email", "n/@", "t/tag/with/slash")) {
+        for (String input : List.of("c/" + "A".repeat(101), "p/1234\t567", "p/12", "p/abc",
+                "e/not-an-email", "n/@", "t/tag/with/slash")) {
             assertThrows(ParseException.class, () -> parser.parse(input));
         }
     }

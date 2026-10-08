@@ -46,17 +46,15 @@ Used to track contact details, it is best suited to organisers who:
 
 ## Core features
 
-BoothManagerPro is under development, building on AddressBook-Level3. The following features describe the planned product scope;
+BoothManagerPro currently supports five contact-management workflows:
 
-1. Add exhibitor contact (implemented)
-    * Save name, company, email, phone, optional contact method, and tags, with validation and duplicate detection.
-    * See the [add command](docs/UserGuide.md#adding-an-exhibitor-contact-add). Company and contact-method display in the details panel is pending UI integration.
-1. Delete exhibitor contact
-    * For organiser to delete unwanted contact records
-1. List exhibitor contacts
-    * For organiser to view all stored contacts
-1. View specific contact details
-    * For organiser to inspect one exhibitor’s contact
+1. **Add:** Save name, company, email, phone, optional contact method, and tags, with validation and duplicate detection.
+1. **Delete:** Remove a contact by full name or displayed index; ambiguous names require an index.
+1. **List:** Display all contacts and their details, with a total count.
+1. **View:** Search by name keywords and select a contact to see its full details.
+1. **Find and filter:** Match complete name, company, email, phone, or tag values; combine alternatives and criteria.
+
+See the [User Guide](docs/UserGuide.md) for syntax and examples. Company and contact method are displayed in the contact details panel. Enquiry status and follow-up tracking remain planned.
 
 ### Future enhancements
 
@@ -65,7 +63,7 @@ BoothManagerPro is under development, building on AddressBook-Level3. The follow
 
 ## Getting started
 
-To build and run the current development version, see the [development setup guide](docs/SettingUp.md). The [User Guide](docs/UserGuide.md) covers the exhibitor add command and the remaining inherited contact-management commands.
+To build and run the current development version, see the [development setup guide](docs/SettingUp.md). The [User Guide](docs/UserGuide.md) covers all five workflows and the remaining inherited commands.
 
 ## Documentation
 
