@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TitledPane;
 import javafx.scene.layout.Region;
 
 /**
@@ -15,6 +16,9 @@ public class ResultDisplay extends UiPart<Region> {
 
     @FXML
     private TextArea resultDisplay;
+
+    @FXML
+    private TitledPane feedbackPane;
 
     public ResultDisplay() {
         super(FXML);
@@ -32,7 +36,20 @@ public class ResultDisplay extends UiPart<Region> {
             resultDisplay.getStyleClass().add("error");
         }
         resultDisplay.setText(feedbackToUser);
+        resizeForFeedback(feedbackToUser);
+        String summary = feedbackToUser.lines().findFirst().orElse("Command result");
+        if (summary.length() > 90) {
+            summary = summary.substring(0, 87) + "...";
+        }
+        feedbackPane.setText((isError ? "Needs attention: " : "Result: ") + summary);
+        feedbackPane.setExpanded(true);
         resultDisplay.positionCaret(0);
+    }
+
+    /** Keeps short replies compact and caps long output so contacts remain visible; the text area scrolls. */
+    private void resizeForFeedback(String feedback) {
+        int rows = (int) Math.min(6, Math.max(1, feedback.lines().count()));
+        resultDisplay.setPrefRowCount(rows);
     }
 
 }

@@ -10,12 +10,12 @@
 }
 .app-shell { -fx-background-color: #f3f6fa; }
 .label { -fx-text-fill: #20344d; }
-.brand-bar { -fx-background-color: #1b3752; -fx-padding: 20 26; }
+.brand-bar { -fx-background-color: #1b3752; -fx-padding: 15 24; }
 .brand-title { -fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: white; }
 .brand-caption { -fx-text-fill: #cfdeec; }
 .menu-bar { -fx-background-color: white; -fx-padding: 4 18; }
 .menu-item:focused .label { -fx-text-fill: white; }
-.workspace { -fx-padding: 18 24 20 24; }
+.workspace { -fx-padding: 14 20 16 20; }
 .section-label { -fx-font-weight: bold; -fx-font-size: 12px; -fx-text-fill: #49617a; }
 .muted, .contact-summary { -fx-text-fill: #536c84; -fx-font-size: 13px; }
 .command-input {
@@ -30,13 +30,14 @@
 }
 .command-input:focused { -fx-border-color: #287ab5; }
 .command-input.error { -fx-border-color: #b43e42; }
-.result-display { -fx-background-color: #e5f1ea; -fx-background-radius: 5; -fx-text-fill: #24573f; }
-.result-display .content { -fx-background-color: #e5f1ea; -fx-padding: 12; }
+.result-display { -fx-background-color: #f0f6fa; -fx-background-radius: 6; -fx-text-fill: #20344d; }
+.result-display .content { -fx-background-color: #f0f6fa; -fx-padding: 10 12; }
 .result-display.error { -fx-text-fill: #8d292f; -fx-background-color: #fff0ef; }
 .result-display.error .content { -fx-background-color: #fff0ef; }
 .contact-split { -fx-background-color: transparent; -fx-padding: 8 0 0 0; }
-.result-split { -fx-background-color: transparent; -fx-padding: 0; }
-.split-pane-divider { -fx-background-color: transparent; -fx-padding: 0 9; }
+.split-pane-divider { -fx-background-color: #dce5ee; -fx-background-insets: 12 5;
+    -fx-background-radius: 4; -fx-padding: 0 7; -fx-cursor: h-resize; }
+.split-pane-divider:hover { -fx-background-color: #91aec7; }
 .split-pane:vertical > .split-pane-divider { -fx-padding: 5 0; }
 .list-view { -fx-background-color: transparent; -fx-padding: 0; }
 .list-cell { -fx-background-color: transparent; -fx-padding: 0 0 8 0; }
@@ -64,3 +65,20 @@
 .scroll-bar { -fx-background-color: transparent; }
 .scroll-bar .thumb { -fx-background-color: #bdccda; -fx-background-radius: 6; }
 .empty-state { -fx-padding: 24; -fx-text-alignment: center; -fx-text-fill: #536c84; }
+
+.feedback-pane > .title, .details-disclosure > .title {
+    -fx-background-color: #e8eff6;
+    -fx-background-radius: 6;
+    -fx-padding: 8 12;
+    -fx-cursor: hand;
+}
+.feedback-pane > .title:hover, .details-disclosure > .title:hover { -fx-background-color: #dce8f3; }
+.feedback-pane > .title .text { -fx-fill: #36556e; }
+.feedback-pane > .content, .details-disclosure > .content {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 4 0 0 0;
+}
+.details-disclosure > .title { -fx-background-color: #f3f6fa; }
+.details-disclosure > .content { -fx-padding: 10 0; }
+.scroll-bar .thumb:hover { -fx-background-color: #8da7be; }
