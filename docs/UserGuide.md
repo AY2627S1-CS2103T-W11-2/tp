@@ -108,7 +108,7 @@ Contact method: email
 Tags: technology, high-priority
 ```
 
-The second stores `ben@example.com` and `+6587654321`, with method `Not specified` and tags `None` in the feedback. Company and contact method are saved and included in command feedback; their dedicated details-panel display is pending UI integration.
+The second stores `ben@example.com` and `+6587654321`, with method `Not specified` and tags `None` in the feedback. Company and contact method are saved and included in command feedback; both also appear in the selected contact's details panel.
 
 **Duplicate handling**
 
@@ -186,7 +186,7 @@ Shows matching contacts in the left panel and the chosen contact's details in th
 
 Format: `view n/NAME`
 
-* Matching follows `find`: case-insensitive whole-name keywords, matching **any** supplied keyword.
+* Matching follows unprefixed `find KEYWORD`: case-insensitive whole-name keywords, matching **any** supplied keyword.
   For example, `view n/rhineson` matches both `rhineson` and `rhineson kok`; `rhin` does not match `rhineson`.
 * Names must contain 1 to 80 characters and at least one letter. Letters, spaces, hyphens, apostrophes,
   and full stops are supported, for example `Anne-Marie O'Neil`.
@@ -213,8 +213,7 @@ Contact method: email
 Tags: high-priority, technology
 ```
 
-Company and preferred contact method are supported in stored records. The inherited `add` command's syntax
-remains unchanged in this increment; entering these fields through `add` depends on the separate add-feature work.
+Create these records with `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [t/TAG]...`.
 
 ### Editing a person: `edit`
 
@@ -237,16 +236,17 @@ Examples:
 
 Use prefixed criteria to match complete field values:
 
-Format: `find [n/NAME] [e/EMAIL] [p/PHONE] [t/TAG]...`
+Format: `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG]...`
 
 * Supply at least one non-empty criterion. Each value must follow the same format as when adding a contact;
-  phone search values may additionally contain spaces or hyphens.
-* Names, emails, and tags ignore case and surrounding whitespace. Phone comparisons ignore spaces and hyphens.
+  phone values accept spaces and hyphens, just as `add` does. Internal tabs are not accepted.
+* Names, companies, emails, and tags ignore case and surrounding whitespace. Phone comparisons ignore spaces and hyphens.
 * Repeat a prefix for alternatives (OR). Different fields must all match (AND).
 * Tags match complete tag names; any matching tag satisfies that field.
 * Duplicate criteria have no effect. Results always search all stored contacts, not just the current displayed list.
 * Unknown prefixes and empty/invalid values are rejected without changing the displayed list or stored contacts.
-* Company (`c/`) and enquiry status (`s/`) are not available yet: the current contact model does not store these fields.
+* Company (`c/`) matches the complete stored company name. Legacy contacts without a company do not match this field.
+* Enquiry status (`s/`) and contact method (`m/`) are not searchable. Status tracking remains planned.
 * `list` restores all contacts. A result count of zero means no contacts matched.
 
 Examples:
@@ -254,6 +254,7 @@ Examples:
 * `find n/Alice Pauline` matches the complete name, not just `Alice`.
 * `find n/Alice Pauline n/Benson Meier t/friends` returns either named contact if they also have the `friends` tag.
 * `find e/alice@example.com p/9435-1253` requires both email and phone to match.
+* `find c/TechNova Pte Ltd t/high-priority` requires both company and tag to match.
 * `find t/technology t/food` returns contacts tagged with either label.
 
 #### Legacy name-keyword search
@@ -279,7 +280,8 @@ Deletes the specified person from the address book.
 
 Format: `delete NAME` or `delete INDEX`
 
-* `NAME` must be the contact's full name (matching is case-insensitive).
+* `NAME` must be the contact's full name (matching is case-insensitive); do not include `n/`.
+* Name deletion searches all stored contacts, including contacts hidden by a filter. Success feedback includes company and contact method.
 * A partial name does not match. For example, `delete Alex` does not match `Alex Yeoh`.
 * If no contact has the supplied name, no contact is deleted and an error is shown.
 * If multiple contacts match the supplied name ignoring letter case, no contact is deleted. Use `list` or `find`,
@@ -307,7 +309,7 @@ Format: `exit`
 
 ### Saving the data
 
-BoothManagerPro automatically saves data after each successfully executed command. You do not need to save manually.
+BoothManagerPro automatically saves data after successful commands, except `view` and its numbered selection replies, which do not write the data file. You do not need to save manually.
 
 ### Editing the data file
 
@@ -345,7 +347,7 @@ Action | Format, Examples
 **Clear** | `clear`
 **Delete** | `delete NAME` or `delete INDEX`<br> e.g., `delete Alex Yeoh`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
-**Find** | `find [n/NAME] [e/EMAIL] [p/PHONE] [t/TAG]...` or `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find n/Alice Pauline t/friends`
+**Find** | `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG]...` or `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find n/Alice Pauline t/friends`
 **List** | `list`
 **View** | `view n/NAME`<br> e.g., `view n/Alicia Tan`; reply `2` if prompted to choose between matches
 **Help** | `help`

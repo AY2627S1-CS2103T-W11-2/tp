@@ -22,7 +22,7 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
     /** Normalises values for exact matching, including spaces and hyphens in phone numbers. */
     public static String normalise(String field, String value) {
         String result = value.trim().toLowerCase(Locale.ROOT);
-        return field.equals("p/") ? result.replaceAll("[\\s-]", "") : result;
+        return field.equals("p/") ? result.replace(" ", "").replace("-", "") : result;
     }
 
     @Override
@@ -33,6 +33,8 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
     private boolean matches(Person person, String field, Set<String> values) {
         return switch (field) {
             case "n/" -> values.contains(normalise(field, person.getName().fullName));
+            case "c/" -> person.getCompany()
+                    .map(company -> values.contains(normalise(field, company.value))).orElse(false);
             case "e/" -> values.contains(normalise(field, person.getEmail().value));
             case "p/" -> values.contains(normalise(field, person.getPhone().value));
             case "t/" -> person.getTags().stream()

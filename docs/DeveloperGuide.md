@@ -89,7 +89,7 @@ The `UI` component,
 | --- | --- |
 | `MainWindow.fxml` / `BoothManagerPro.css` | Shared layout, colours, spacing, and responsive split view. |
 | `PersonListPanel` / `PersonCard` | Contact list and summary cards; exposes `selectedPersonProperty()`. |
-| `ContactDetailsPanel` | Selected contact details; company and contact method are available in the model and await UI integration. Status and follow-up fields remain planned. |
+| `ContactDetailsPanel` | Selected contact details; company and contact method are displayed from the model. Status and follow-up fields remain planned. |
 | `CommandBox` / `ResultDisplay` | Command entry and success/error feedback. Commands continue through `Logic.execute()`. |
 
 - Selection drives the details panel; the filtered list drives the record count.
@@ -191,26 +191,28 @@ selection state. Viewing and numbered replies bypass storage writes, because nei
 `Logic.isAwaitingViewSelection()` is true, including queued list updates, so the first match is not mistaken for
 a user choice. Contact cards show company names; the details panel displays stored company and contact method.
 
-#### Data contract for the separate add feature
+#### Shared contact attributes
 
-The synced code did not yet implement exhibitor fields. Minimal support has been added so view can work with
-the documented records while the separate add command is developed:
+All five features use `Person` and its validated value objects.
 
-* `Person.getCompany()` and `Person.getPreferredContactMethod()` return strings. The extended constructor adds
-  these two fields after the existing parameters. The original constructor remains available for legacy records.
-* JSON stores `company` and `preferredContactMethod`. Absent fields load as empty strings and are displayed as
-  `Not specified`. Company values are trimmed and limited to 100 characters; new contacts should require a company
-  in the add parser. Contact methods are optional, normalised to lowercase, and restricted to email, phone, or other.
-* The existing address field remains for compatibility. Viewing uses the fields in the MVP output specification.
-* Name storage accepts realistic punctuation while retaining legacy numeric names. The view parser applies the
-  stricter MVP rules. Tags support 1–30 nonblank characters, including hyphens, and reject `/` and line breaks.
-* Duplicate detection uses case-insensitive email or name-and-company matches, allowing same-name contacts at
-  different companies with different emails. Edit checks exclude only the edited record, so changing one identity
-  field cannot introduce a duplicate of another record. Existing edits preserve the new fields.
+| Attribute | Shared contract |
+| --- | --- |
+| Name | `Name` owns validation: 1-80 Unicode code points, at least one letter, supported punctuation. View uses the same validator as add and prefixed find. |
+| Company | `Optional<Company>`; required by add, absent in legacy records. `find c/` matches the complete value ignoring case. |
+| Email / phone | Stored lowercase email and normalised phone; search validates through the same value objects as add. |
+| Contact method | `Optional<ContactMethod>`; email, phone, or other. An absent method is shown as `Not specified`. Not a search criterion. |
+| Tags | Exact duplicates collapse on add. Search ignores case and matches whole tags. Add/list preserve stored order; view sorts tags for display. |
+| Storage | JSON uses `company` and `contactMethod`; absent fields become empty optionals. The legacy address remains for compatibility. |
 
-The add parser and its command syntax are unchanged. Its owner should populate the new fields and implement the
-remaining add-specific validation/normalisation rules. The Google Doc specifies field behaviour, not Java class names;
-these accessors and JSON keys are the local integration contract to coordinate with that implementation.
+| Feature | Selection / result |
+| --- | --- |
+| Add | Rejects normalised-email or case-insensitive name/company duplicates across all records. |
+| Delete | Full-name match across all records, or index in the displayed list. Ambiguous names require an index; feedback includes company and method. |
+| View | Whole-name keywords with OR; multiple matches require a numbered selection. |
+| List | Restores every contact and displays all exhibitor attributes plus total; rejects arguments. |
+| Find | Complete prefixed values, OR within each field and AND across fields; unprefixed keywords retain name-word matching. |
+
+Edit preserves company and method. Enquiry status and follow-up fields remain planned.
 
 Tests cover actual persisted exhibitor records, numbered selection and retries, cancelled/stale choices,
 invalid syntax, matching parity with `find`, legacy records, data preservation, and both GUI panels.
@@ -238,7 +240,7 @@ Integration notes:
 - The legacy address field remains for compatibility, using `Not provided` for new contacts. `add` no longer accepts `a/`.
 - Prefix-like tokens are reserved. Other words between prefixes belong to that field, allowing multi-word names and companies.
 - JSON includes `company` and `contactMethod`; legacy files without them are accepted if their other values meet current validation rules.
-- UI rendering of the new fields is a separate integration task. Logic tests run without a display server.
+- Contact cards show company; the details panel shows company and contact method. Logic tests run without a display server.
 
 Verification: see [automated add tests](Testing.md#testing-exhibitor-additions) and [manual add checks](#testing-exhibitor-additions). These cover US-01, US-05, US-07, US-16, and US-18 for the add workflow.
 
@@ -547,12 +549,11 @@ Use case ends.
 
 #### UC05: Find and filter contacts
 
-**Current implementation (v1.2 development):** `find` supports exact name (`n/`), email (`e/`),
+**Current implementation (v1.2 development):** `find` supports exact name (`n/`), company (`c/`), email (`e/`),
 phone (`p/`), and tag (`t/`) criteria, with OR within a field and AND between fields.
 `ContactMatchesFieldsPredicate` applies these criteria to the full address book through the existing model filter.
 Unprefixed name keywords retain AB3's original word-matching behaviour for compatibility.
-Company and enquiry-status criteria below remain planned until those fields are added to the contact model;
-the parser currently rejects their prefixes explicitly. The following use case describes the intended full scope.
+Enquiry-status criteria remain planned; the parser rejects `s/` and `m/`. The following use case describes the intended full scope.
 
 **MSS**
 
@@ -682,7 +683,7 @@ Use a separate test data folder with no Alicia Tan or Ben Lim records. Run each 
 | Invalid phone | `add n/Chris Tan c/Example Ltd e/chris@example.com p/123` | Phone-length error; no contact added. |
 | Persistence | Exit and relaunch from the same folder; run `list`, then repeat the first add command. | Both added contacts remain; repeated add is rejected. The saved `data/addressbook.json` retains company and contact method. |
 
-Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibitor-contact-add). Company and method are currently verified through command feedback and JSON; dedicated UI display is pending.
+Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibitor-contact-add). Verify company and method in command feedback, saved JSON, and the selected contact's details panel.
 
 ### Viewing an exhibitor contact
 
