@@ -25,12 +25,12 @@ public class AddCommandParserTest {
         String result = parser.parse(valid.replace("alicia@technova.com", "ALICIA@TechNova.COM")
                 .replace("91234567", "+65 9123-4567")
                 + " m/EMAIL t/technology t/high-priority t/technology").execute(model).getFeedbackToUser();
-        assertEquals("New exhibitor contact added:\nAlicia Tan at TechNova Pte Ltd\n"
-                + "Email: alicia@technova.com\nPhone: +6591234567\nContact method: email\n"
-                + "Tags: technology, high-priority", result);
+        assertEquals("Added Alicia Tan at TechNova Pte Ltd.", result);
         Person person = model.getFilteredPersonList().getFirst();
         assertEquals("TechNova Pte Ltd", person.getCompany().orElseThrow().value);
         assertEquals(ContactMethod.EMAIL, person.getContactMethod().orElseThrow());
+        assertEquals("alicia@technova.com", person.getEmail().value);
+        assertEquals("+6591234567", person.getPhone().value);
         assertEquals(2, person.getTags().size());
     }
 

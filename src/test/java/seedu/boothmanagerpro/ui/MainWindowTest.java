@@ -251,6 +251,78 @@ public class MainWindowTest {
         command.fireEvent(new ActionEvent());
     }
 
+    @Test
+    public void add_afterFilter_selectsSavedContactAndKeepsInputReady() throws Exception {
+        String add = "add n/Alicia Tan c/TechNova e/alicia@example.com p/+65 9123-4567 m/email t/priority";
+        MainWindow window = runOnFxThread(() -> {
+            ModelManager model = new ModelManager(SampleDataUtil.getSampleAddressBook(), new UserPrefs());
+            StorageManager storage = new StorageManager(new JsonAddressBookStorage(testFolder.resolve("add.json")),
+                    new JsonUserPrefsStorage(testFolder.resolve("add-prefs.json")));
+            Stage stage = new Stage();
+            stage.setOpacity(0);
+            MainWindow created = new MainWindow(stage, new LogicManager(model, storage),
+                    testFolder.resolve("add.json"));
+            created.show();
+            created.fillInnerParts();
+            Parent root = stage.getScene().getRoot();
+            root.applyCss();
+            root.layout();
+            enterCommand(root, "find Nobody");
+            enterCommand(root, add);
+            return created;
+        });
+        try {
+            // Let deferred list listeners run: they must not replace the new contact with the first record.
+            runOnFxThread(() -> {
+                Parent root = window.getRoot().getScene().getRoot();
+                @SuppressWarnings("unchecked")
+                ListView<Person> list = (ListView<Person>) root.lookup("#personListView");
+                Person selected = list.getSelectionModel().getSelectedItem();
+                assertEquals("Alicia Tan", selected.getName().fullName);
+                assertEquals(7, list.getItems().size());
+                TextField input = (TextField) root.lookup("#commandTextField");
+                TextArea feedback = (TextArea) root.lookup("#resultDisplay");
+                assertEquals("", input.getText());
+                assertEquals(input, root.getScene().getFocusOwner());
+                assertEquals("Added Alicia Tan at TechNova.", feedback.getText());
+                assertEquals(1, feedback.getPrefRowCount());
+                Parent details = (Parent) root.lookup("#contactDetailsPlaceholder");
+                assertEquals("TechNova", ((Label) details.lookup("#company")).getText());
+                assertEquals("alicia@example.com", ((Label) details.lookup("#email")).getText());
+                assertEquals("+6591234567", ((Label) details.lookup("#phone")).getText());
+                assertEquals("email", ((Label) details.lookup("#contactMethod")).getText());
+                assertTrue(new JsonAddressBookStorage(testFolder.resolve("add.json"))
+                        .readAddressBook().orElseThrow().getPersonList().contains(selected));
+                enterCommand(root, add);
+                assertEquals(add, input.getText());
+                assertTrue(feedback.getStyleClass().contains("error"));
+                assertEquals(selected, list.getSelectionModel().getSelectedItem());
+                enterCommand(root, "add n/Ben Lim");
+                assertEquals("add n/Ben Lim", input.getText());
+                assertEquals(selected, list.getSelectionModel().getSelectedItem());
+                enterCommand(root, "add n/Ben Lim c/GreenWorks e/ben@example.com p/87654321");
+                assertEquals("Ben Lim", list.getSelectionModel().getSelectedItem().getName().fullName);
+                assertFalse(feedback.getStyleClass().contains("error"));
+                assertEquals("", input.getText());
+                assertEquals("Not specified", ((Label) details.lookup("#contactMethod")).getText());
+
+                return null;
+            });
+            runOnFxThread(() -> {
+                Parent root = window.getRoot().getScene().getRoot();
+                root.applyCss();
+                root.layout();
+                savePreview(root, 1180, 820, "add-success.png");
+                return null;
+            });
+        } finally {
+            runOnFxThread(() -> {
+                window.getRoot().close();
+                return null;
+            });
+        }
+    }
+
     private static <T> T runOnFxThread(Callable<T> action) throws Exception {
         FutureTask<T> task = new FutureTask<>(action);
         Platform.runLater(task);

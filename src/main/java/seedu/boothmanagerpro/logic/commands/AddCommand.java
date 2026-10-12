@@ -40,7 +40,7 @@ public class AddCommand extends Command {
             + PREFIX_TAG + "technology "
             + PREFIX_TAG + "high-priority";
 
-    public static final String MESSAGE_SUCCESS = "New exhibitor contact added:\n%1$s";
+    public static final String MESSAGE_SUCCESS = "Added %1$s.";
     public static final String MESSAGE_DUPLICATE_PERSON = "This contact may already exist: %s.\n"
             + "Use the edit command if you want to update the existing contact.";
 
@@ -57,7 +57,8 @@ public class AddCommand extends Command {
     /**
      * Checks all stored contacts, including those hidden by a filter, before adding the contact.
      * A duplicate error identifies the existing record and leaves the model unchanged.
-     * Persistence is performed by LogicManager after successful execution.
+     * Requests selection of the added contact so the UI can show full details beside a concise confirmation.
+     * Persistence is performed by LogicManager before the result reaches the UI.
      *
      * @throws CommandException If an existing contact matches the duplicate rule.
      */
@@ -78,7 +79,7 @@ public class AddCommand extends Command {
         }
 
         model.addPerson(toAdd);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, formatContact(toAdd)));
+        return new CommandResult(String.format(MESSAGE_SUCCESS, formatIdentity(toAdd)), toAdd);
     }
 
     /** Finds every existing match in one pass over the full collection, independently of the UI filter. */
@@ -89,14 +90,6 @@ public class AddCommand extends Command {
     /** Formats contact identity for successful additions and duplicate warnings. */
     public static String formatIdentity(Person person) {
         return person.getName() + person.getCompany().map(company -> " at " + company.value).orElse("");
-    }
-
-    /** Formats the new exhibitor fields without changing other commands' output. */
-    public static String formatContact(Person person) {
-        String tags = person.getTags().stream().map(tag -> tag.tagName).collect(Collectors.joining(", "));
-        return formatIdentity(person) + "\nEmail: " + person.getEmail() + "\nPhone: " + person.getPhone()
-                + "\nContact method: " + person.getContactMethod().map(Object::toString).orElse("Not specified")
-                + "\nTags: " + (tags.isEmpty() ? "None" : tags);
     }
 
     @Override

@@ -133,7 +133,7 @@ public class ExhibitorAddIntegrationTest {
         Person reloaded = storage.readAddressBook().orElseThrow().getPersonList().getFirst();
         assertTrue(reloaded.getContactMethod().isEmpty());
         assertTrue(reloaded.getTags().isEmpty());
-        assertTrue(feedback.contains("Contact method: Not specified\nTags: None"));
+        assertEquals("Added Alicia Tan at TechNova Pte Ltd.", feedback);
     }
 
     @Test

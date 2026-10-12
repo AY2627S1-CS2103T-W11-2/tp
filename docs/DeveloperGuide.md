@@ -228,7 +228,8 @@ This section describes some noteworthy details on how certain features are imple
 2. The parser rejects unknown prefixes, preambles, repeated non-tag fields, and missing required prefixes.
 3. Value objects validate fields, trim names/company, lowercase email, and remove phone spaces/hyphens. Repeated tags are ignored.
 4. `AddCommand` checks the complete address book for matching email or name/company, then adds the contact or reports the existing match.
-5. `LogicManager` saves through `JsonAddressBookStorage` and returns the formatted command result.
+5. `LogicManager` saves through `JsonAddressBookStorage` before returning the success result.
+6. The result carries the added `Person` via the existing `personToView` field. `MainWindow` selects and scrolls to it, updates the details panel, and focuses command input. `CommandBox` clears successful input and retains failed input.
 
 Error-handling responsibilities:
 
@@ -680,8 +681,8 @@ Use a separate test data folder with no Alicia Tan or Ben Lim records. Run each 
 
 | Check | Command / action | Expected result |
 | --- | --- | --- |
-| Full record and normalisation | `add n/Alicia Tan c/TechNova Pte Ltd e/ALICIA@example.com p/+65 9123-4567 m/EMAIL t/technology t/technology t/high-priority` | Contact added; feedback shows `alicia@example.com`, `+6591234567`, `email`, and each tag once. |
-| Optional fields omitted | `add n/Ben Lim c/GreenWorks e/ben@example.com p/87654321` | Contact added; feedback shows method `Not specified` and tags `None`. |
+| Full record and normalisation | `add n/Alicia Tan c/TechNova Pte Ltd e/ALICIA@example.com p/+65 9123-4567 m/EMAIL t/technology t/technology t/high-priority` | Contact added; the selected details show `alicia@example.com`, `+6591234567`, `email`, and each tag once. |
+| Optional fields omitted | `add n/Ben Lim c/GreenWorks e/ben@example.com p/87654321` | Contact added; the selected details show method `Not specified` and `No tags`. |
 | Duplicate email, even when hidden | Run `find Ben`, then `add n/Another Person c/Another Company e/ALICIA@example.com p/98765432` | Rejected; identifies Alicia Tan at TechNova Pte Ltd. |
 | Duplicate name and company | `add n/alicia tan c/technova pte ltd e/different@example.com p/98765432` | Rejected despite different email and letter case. |
 | Missing field | `add n/Chris Tan e/chris@example.com p/98765432` | Missing-required-field error; no contact added. |
@@ -690,7 +691,7 @@ Use a separate test data folder with no Alicia Tan or Ben Lim records. Run each 
 | Invalid phone | `add n/Chris Tan c/Example Ltd e/chris@example.com p/123` | Phone-length error; no contact added. |
 | Persistence | Exit and relaunch from the same folder; run `list`, then repeat the first add command. | Both added contacts remain; repeated add is rejected. The saved `data/addressbook.json` retains company and contact method. |
 
-Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibitor-contact-add). Verify company and method in command feedback, saved JSON, and the selected contact's details panel.
+Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibitor-contact-add). Verify the brief identity confirmation, saved JSON, and full details in the selected contact's panel. Repeat an add after `find Nobody`; the new record should be selected, with all contacts visible and command input focused.
 
 ### Viewing an exhibitor contact
 

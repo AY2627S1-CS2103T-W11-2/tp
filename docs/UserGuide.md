@@ -106,15 +106,18 @@ add n/Ben Lim c/GreenWorks e/BEN@example.com p/+65 8765-4321
 The first command displays:
 
 ```text
-New exhibitor contact added:
-Alicia Tan at TechNova Pte Ltd
-Email: alicia@technova.com
-Phone: 91234567
-Contact method: email
-Tags: technology, high-priority
+Added Alicia Tan at TechNova Pte Ltd.
 ```
 
-The second stores `ben@example.com` and `+6587654321`, with method `Not specified` and tags `None` in the feedback. Company and contact method are saved and included in command feedback; both also appear in the selected contact's details panel.
+After a successful add:
+
+* The list shows all contacts again, with the new contact selected and scrolled into view.
+* The details panel shows the saved email, phone, company, contact method, and tags.
+* The command box clears and keeps keyboard focus, ready for the next command.
+
+The second example stores `ben@example.com` and `+6587654321`. Its details show `Not specified` for the omitted method and `No tags` for an empty tag set.
+
+If validation or duplicate detection fails, the typed command remains available for correction and the existing selection is retained. No contact is added.
 
 **Duplicate handling**
 
