@@ -48,6 +48,16 @@ public class JsonAdaptedPersonTest {
             .collect(Collectors.toList());
 
     @Test
+    public void toModelType_normalisesValuesLikeAdd() throws Exception {
+        Person expected = new PersonBuilder(BENSON).withPhone("+6598765432")
+                .withCompany("TechNova").withContactMethod("email").build();
+        JsonAdaptedPerson stored = new JsonAdaptedPerson("  " + VALID_NAME + "  ", "+65 9876-5432",
+                "  " + VALID_EMAIL.toUpperCase(java.util.Locale.ROOT) + "  ", VALID_ADDRESS,
+                VALID_TAGS, "  TechNova  ", " EMAIL ");
+        assertEquals(expected, stored.toModelType());
+    }
+
+    @Test
     public void fromJsonString_constructorOrderChanges_preservesContact() throws Exception {
         Person expected = new PersonBuilder(BENSON).withCompany("TechNova").withContactMethod("phone").build();
         String json = JsonUtil.toJsonString(new JsonAdaptedPerson(expected));

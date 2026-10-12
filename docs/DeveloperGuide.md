@@ -230,7 +230,14 @@ This section describes some noteworthy details on how certain features are imple
 4. `AddCommand` checks the complete address book for matching email or name/company, then adds the contact or reports the existing match.
 5. `LogicManager` saves through `JsonAddressBookStorage` and returns the formatted command result.
 
-The parser coordinates three steps: tokenisation, structural validation, and value conversion. Value objects own their validation rules; `Person.createExhibitor()` owns the legacy address default. `AddCommand` performs duplicate lookup and addition, while the model independently enforces uniqueness and storage handles JSON conversion.
+Error-handling responsibilities:
+
+- **Parser:** tokenises, checks structure, then converts values. Missing/repeated prefixes are grouped by error type in a stable order; empty and invalid values identify their prefix.
+- **Value objects:** own validation and normalisation. `parseValue` invokes the same constructors used by storage and adds field context to constraint messages.
+- **Model:** `Person.createExhibitor()` owns the legacy address default; the collection independently enforces uniqueness.
+- **Command:** collects every duplicate before addition. One match retains the existing warning; multiple matches list each identity/email. Parse and duplicate rejection preserve contacts, the filter, and saved JSON.
+- **Storage:** converts validated contacts to and from JSON.
+
 
 Integration notes:
 

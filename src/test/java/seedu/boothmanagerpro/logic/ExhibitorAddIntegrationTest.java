@@ -44,6 +44,39 @@ public class ExhibitorAddIntegrationTest {
     }
 
     @Test
+    public void add_twoDifferentDuplicateMatches_reportsBothWithoutMutation() throws Exception {
+        logic.execute(ADD);
+        logic.execute("add n/Ben Lim c/Other e/ben@example.com p/98765432");
+        logic.execute("find Nobody");
+        String before = Files.readString(storage.getAddressBookFilePath());
+        var contacts = java.util.List.copyOf(model.getAddressBook().getPersonList());
+        CommandException error = assertThrows(CommandException.class, () ->
+                logic.execute(ADD.replace("alicia@technova.com", "BEN@example.com")));
+        assertEquals("This contact conflicts with multiple existing contacts:\n"
+                + "Alicia Tan at TechNova Pte Ltd (alicia@technova.com)\n"
+                + "Ben Lim at Other (ben@example.com)\n"
+                + "Check the email and name/company fields. No contact was added.", error.getMessage());
+        assertEquals(contacts, model.getAddressBook().getPersonList());
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertEquals(before, Files.readString(storage.getAddressBookFilePath()));
+    }
+
+    @Test
+    public void add_rejectedInputs_preserveExistingDataAndFilter() throws Exception {
+        logic.execute(ADD);
+        logic.execute("find Nobody");
+        String before = Files.readString(storage.getAddressBookFilePath());
+        var contacts = java.util.List.copyOf(model.getAddressBook().getPersonList());
+        for (String input : new String[]{"add", ADD + " n/Other", ADD + " x/value",
+            ADD + " m/", ADD + " m/fax", ADD.replace("91234567", "1234\t567")}) {
+            assertThrows(ParseException.class, () -> logic.execute(input));
+            assertEquals(contacts, model.getAddressBook().getPersonList());
+            assertTrue(model.getFilteredPersonList().isEmpty());
+            assertEquals(before, Files.readString(storage.getAddressBookFilePath()));
+        }
+    }
+
+    @Test
     public void addFindViewListDelete_preserveSharedContactAttributes() throws Exception {
         logic.execute(ADD + " m/EMAIL t/high-priority");
         logic.execute("add n/Alicia Tan c/Other Ltd e/other@example.com p/87654321");

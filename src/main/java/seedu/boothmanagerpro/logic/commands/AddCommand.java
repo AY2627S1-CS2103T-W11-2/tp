@@ -8,7 +8,7 @@ import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_TAG;
 
-import java.util.Optional;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import seedu.boothmanagerpro.commons.util.ToStringBuilder;
@@ -65,18 +65,25 @@ public class AddCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        Optional<Person> duplicate = findDuplicate(model);
-        if (duplicate.isPresent()) {
-            throw new CommandException(String.format(MESSAGE_DUPLICATE_PERSON, formatIdentity(duplicate.get())));
+        List<Person> duplicates = findDuplicates(model);
+        if (duplicates.size() == 1) {
+            throw new CommandException(String.format(MESSAGE_DUPLICATE_PERSON, formatIdentity(duplicates.getFirst())));
+        }
+        if (!duplicates.isEmpty()) {
+            String matches = duplicates.stream()
+                    .map(person -> formatIdentity(person) + " (" + person.getEmail() + ")")
+                    .collect(Collectors.joining("\n"));
+            throw new CommandException("This contact conflicts with multiple existing contacts:\n" + matches
+                    + "\nCheck the email and name/company fields. No contact was added.");
         }
 
         model.addPerson(toAdd);
         return new CommandResult(String.format(MESSAGE_SUCCESS, formatContact(toAdd)));
     }
 
-    /** Finds the existing match in one pass over the full collection, independently of the UI filter. */
-    private Optional<Person> findDuplicate(Model model) {
-        return model.getAddressBook().getPersonList().stream().filter(toAdd::isSamePerson).findFirst();
+    /** Finds every existing match in one pass over the full collection, independently of the UI filter. */
+    private List<Person> findDuplicates(Model model) {
+        return model.getAddressBook().getPersonList().stream().filter(toAdd::isSamePerson).toList();
     }
 
     /** Formats contact identity for successful additions and duplicate warnings. */

@@ -127,23 +127,27 @@ This contact may already exist: Alicia Tan at TechNova Pte Ltd.
 Use the edit command if you want to update the existing contact.
 ```
 
+If the email matches one record and the name/company matches another, both conflicting contacts are listed with their emails. No contact is added; correct the input before retrying.
+
 The current `edit` command can update name, email, phone, address, and tags; it cannot yet change company or contact method.
 
 **Input errors**
 
 | Problem | Feedback |
 | --- | --- |
-| Missing `n/`, `c/`, `e/`, or `p/` | `Missing required field: NAME, COMPANY, EMAIL, or PHONE.` |
-| Repeated field other than `t/` | `Each field can only be specified once.` |
-| Unknown prefix or text before the first prefix | `Unknown field prefix. Use n/, c/, e/, p/, m/, or t/.` |
-| Invalid name | `Names must be 1 to 80 characters and contain a letter. Use only letters, spaces, hyphens, apostrophes or full stops.` |
-| Invalid company | `Company name must contain 1 to 100 characters.` |
-| Invalid email | `Email address is invalid.` |
-| Invalid phone | `Phone number must contain 7 to 15 digits.` |
-| Invalid method | `Contact method must be email, phone, or other.` |
-| Invalid tag | `Tag must be 1 to 30 characters and cannot contain '/'.` |
+| Missing required prefixes (example: company and email) | `Missing required fields: c/, e/. Supply a value after each prefix.` |
+| Repeated fields (example: name and phone) | `Repeated fields: n/, p/. Keep one value per field; only t/ may repeat.` |
+| Unknown prefix (example: `x/`) | `Unknown field prefix: x/. Use n/, c/, e/, p/, m/, or t/.` |
+| Text before the first prefix | `Unexpected text before the first field.` followed by a complete example command. |
+| Empty field (example: `c/`) | `Empty field: c/. Supply a value after this prefix.` |
+| Invalid name | `Invalid value for n/: Names must be 1 to 80 characters and contain a letter. Use only letters, spaces, hyphens, apostrophes or full stops.` |
+| Invalid company | `Invalid value for c/: Company name must contain 1 to 100 characters.` |
+| Invalid email | `Invalid value for e/: Email address is invalid.` |
+| Invalid phone | `Invalid value for p/: Phone number must contain 7 to 15 digits.` |
+| Invalid method | `Invalid value for m/: Contact method must be email, phone, or other.` |
+| Invalid tag | `Invalid value for t/: Tag must be 1 to 30 characters and cannot contain '/'.` |
 
-A present but empty field produces its value-validation error. Words between prefixes belong to the preceding field; prefix-like tokens are reserved. If several errors occur, unknown prefixes/preamble are checked first, then repeated fields, then missing prefixes, then values. Invalid input and duplicates do not add a contact.
+Each missing-field or repeated-field error lists all affected prefixes in n/, c/, e/, p/, m/ order. A present but empty field is reported separately from a missing prefix. Words between prefixes belong to the preceding field; prefix-like tokens are reserved. If several errors occur, unknown prefixes/preamble are checked first, then repeated fields, then missing prefixes, then values in n/, c/, e/, p/, m/, t/ order. Invalid input and duplicates do not add a contact.
 
 ### Listing all exhibitor contacts: `list`
 
