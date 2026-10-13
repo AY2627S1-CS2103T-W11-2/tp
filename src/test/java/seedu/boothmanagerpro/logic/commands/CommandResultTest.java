@@ -16,6 +16,36 @@ import seedu.boothmanagerpro.model.person.Person;
 
 public class CommandResultTest {
     @Test
+    public void contactListRequest_isExplicitAndPartOfResultIdentity() {
+        CommandResult result = CommandResult.forContactList("Listed contacts");
+        CommandResult sameResult = CommandResult.forContactList("Listed contacts");
+        CommandResult normalResult = new CommandResult("Listed contacts");
+        assertTrue(result.isShowContactList());
+        assertFalse(normalResult.isShowContactList());
+        assertEquals(result, sameResult);
+        assertEquals(result.hashCode(), sameResult.hashCode());
+        assertNotEquals(result, normalResult);
+        assertNotEquals(result.hashCode(), normalResult.hashCode());
+        assertTrue(result.getPersonToView().isEmpty());
+        assertTrue(result.getViewChoices().isEmpty());
+        assertFalse(result.isShowHelp());
+        assertFalse(result.isExit());
+        assertThrows(NullPointerException.class, () -> CommandResult.forContactList(null));
+    }
+
+    @Test
+    public void contactListRequest_canSelectContactWithoutMakingAddRevealList() {
+        CommandResult viewResult = CommandResult.forContactList("Contact found", ALICE);
+        CommandResult addResult = new CommandResult("Contact added", ALICE);
+        assertTrue(viewResult.isShowContactList());
+        assertEquals(ALICE, viewResult.getPersonToView().orElseThrow());
+        assertEquals(viewResult, CommandResult.forContactList("Contact found", ALICE));
+        assertFalse(addResult.isShowContactList());
+        assertNotEquals(viewResult, new CommandResult("Contact found", ALICE));
+        assertThrows(NullPointerException.class, () -> CommandResult.forContactList("Contact found", null));
+    }
+
+    @Test
     public void viewChoices_areImmutableSnapshots() {
         List<Person> choices = new ArrayList<>(List.of(ALICE));
         CommandResult result = new CommandResult("Choose a contact", choices);
@@ -76,7 +106,7 @@ public class CommandResultTest {
         CommandResult commandResult = new CommandResult("feedback");
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser() + ", showHelp=" + commandResult.isShowHelp()
-                + ", exit=" + commandResult.isExit() + ", viewChoices=[], personToView=null}";
+                + ", exit=" + commandResult.isExit() + ", showContactList=false, viewChoices=[], personToView=null}";
         assertEquals(expected, commandResult.toString());
     }
 }

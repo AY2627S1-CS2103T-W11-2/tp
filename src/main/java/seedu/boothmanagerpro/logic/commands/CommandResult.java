@@ -22,6 +22,9 @@ public class CommandResult {
     /** The application should exit. */
     private final boolean exit;
 
+    /** The contact list should be revealed after this explicit display request. */
+    private final boolean showContactList;
+
     /** Contacts awaiting a numbered reply to a view request. */
     private final List<Person> viewChoices;
 
@@ -32,19 +35,20 @@ public class CommandResult {
      * Constructs a {@code CommandResult} with the specified fields.
      */
     public CommandResult(String feedbackToUser, boolean showHelp, boolean exit) {
-        this(feedbackToUser, showHelp, exit, List.of(), null);
+        this(feedbackToUser, showHelp, exit, List.of(), null, false);
     }
 
     /**
      * Constructs a result with an immutable snapshot of the choices and an optional selected contact.
      */
     private CommandResult(String feedbackToUser, boolean showHelp, boolean exit,
-            List<Person> viewChoices, Person personToView) {
+            List<Person> viewChoices, Person personToView, boolean showContactList) {
         this.personToView = personToView;
         this.viewChoices = List.copyOf(viewChoices);
         this.feedbackToUser = requireNonNull(feedbackToUser);
         this.showHelp = showHelp;
         this.exit = exit;
+        this.showContactList = showContactList;
     }
 
     /**
@@ -59,14 +63,35 @@ public class CommandResult {
      * Creates a result prompting for a numbered choice among matching contacts.
      */
     public CommandResult(String feedbackToUser, List<Person> viewChoices) {
-        this(feedbackToUser, false, false, viewChoices, null);
+        this(feedbackToUser, false, false, viewChoices, null, false);
     }
 
     /**
      * Creates a result requesting that the selected contact be displayed in the GUI.
      */
     public CommandResult(String feedbackToUser, Person personToView) {
-        this(feedbackToUser, false, false, List.of(), requireNonNull(personToView));
+        this(feedbackToUser, false, false, List.of(), requireNonNull(personToView), false);
+    }
+
+    /**
+     * Creates feedback for a command that explicitly requests the contact list, including empty results.
+     */
+    public static CommandResult forContactList(String feedbackToUser) {
+        return new CommandResult(feedbackToUser, false, false, List.of(), null, true);
+    }
+
+    /**
+     * Creates feedback for an explicit view request that also selects a contact in the list.
+     */
+    public static CommandResult forContactList(String feedbackToUser, Person personToView) {
+        return new CommandResult(feedbackToUser, false, false, List.of(), requireNonNull(personToView), true);
+    }
+
+    /**
+     * Returns whether this command explicitly requests that the contact list be shown.
+     */
+    public boolean isShowContactList() {
+        return showContactList;
     }
 
     public Optional<Person> getPersonToView() {
@@ -103,13 +128,14 @@ public class CommandResult {
         return feedbackToUser.equals(otherCommandResult.feedbackToUser)
                 && showHelp == otherCommandResult.showHelp
                 && exit == otherCommandResult.exit
+                && showContactList == otherCommandResult.showContactList
                 && viewChoices.equals(otherCommandResult.viewChoices)
                 && Objects.equals(personToView, otherCommandResult.personToView);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(feedbackToUser, showHelp, exit, viewChoices, personToView);
+        return Objects.hash(feedbackToUser, showHelp, exit, viewChoices, personToView, showContactList);
     }
 
     @Override
@@ -118,6 +144,7 @@ public class CommandResult {
                 .add("feedbackToUser", feedbackToUser)
                 .add("showHelp", showHelp)
                 .add("exit", exit)
+                .add("showContactList", showContactList)
                 .add("viewChoices", viewChoices)
                 .add("personToView", personToView)
                 .toString();
