@@ -82,7 +82,7 @@ public class MainWindowTest {
                 root.layout();
                 TextField command = (TextField) root.lookup("#commandTextField");
                 assertEquals(command, stage.getScene().getFocusOwner());
-                assertEquals("0 records", ((Label) root.lookup("#recordCount")).getText());
+                assertEquals("List hidden", ((Label) root.lookup("#recordCount")).getText());
                 assertEquals("Select a contact", ((Label) root.lookup("#contactName")).getText());
                 root.lookup("#resultDisplay").requestFocus();
                 boolean isMac = System.getProperty("os.name").toLowerCase().contains("mac");
@@ -243,6 +243,180 @@ public class MainWindowTest {
                 return null;
             });
         }
+    }
+
+    @Test
+    public void contactList_startupAndRestart_hideContactsWithoutRemovingData() throws Exception {
+        runOnFxThread(() -> {
+            ModelManager model = new ModelManager(SampleDataUtil.getSampleAddressBook(), new UserPrefs());
+            Path dataPath = testFolder.resolve("on-demand.json");
+            StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath),
+                    new JsonUserPrefsStorage(testFolder.resolve("on-demand-prefs.json")));
+            MainWindow window = new MainWindow(new Stage(), new LogicManager(model, storage), dataPath);
+            window.fillInnerParts();
+            try {
+                Parent root = window.getRoot().getScene().getRoot();
+                root.applyCss();
+                root.layout();
+                assertFalse(window.getPersonListPanel().getRoot().isVisible());
+                assertFalse(window.getPersonListPanel().getRoot().isManaged());
+                assertEquals("List hidden", ((Label) root.lookup("#recordCount")).getText());
+                assertEquals("Select a contact", ((Label) root.lookup("#contactName")).getText());
+                assertEquals(6, model.getAddressBook().getPersonList().size());
+                assertEquals(6, model.getFilteredPersonList().size());
+                savePreview(root, 1180, 820, "contact-list-hidden.png");
+                enterCommand(root, "list");
+                assertTrue(window.getPersonListPanel().getRoot().isVisible());
+                savePreview(root, 1180, 820, "contact-list-requested.png");
+            } finally {
+                window.getRoot().close();
+            }
+            ModelManager reloaded = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
+            assertEquals(model.getAddressBook(), reloaded.getAddressBook());
+            MainWindow restarted = new MainWindow(new Stage(), new LogicManager(reloaded, storage), dataPath);
+            restarted.fillInnerParts();
+            try {
+                assertFalse(restarted.getPersonListPanel().getRoot().isVisible());
+                Parent root = restarted.getRoot().getScene().getRoot();
+                root.applyCss();
+                root.layout();
+                enterCommand(root, "view n/alex yeoh");
+                assertTrue(restarted.getPersonListPanel().getRoot().isVisible());
+                assertEquals("Alex Yeoh", ((Label) root.lookup("#contactName")).getText());
+                assertEquals(6, reloaded.getAddressBook().getPersonList().size());
+                assertEquals(1, reloaded.getFilteredPersonList().size());
+            } finally {
+                restarted.getRoot().close();
+            }
+            return null;
+        });
+    }
+
+    @Test
+    public void contactList_nonDisplayCommandsAndErrors_doNotRevealList() throws Exception {
+        MainWindow window = runOnFxThread(() -> {
+            ModelManager model = new ModelManager(SampleDataUtil.getSampleAddressBook(), new UserPrefs());
+            Path dataPath = testFolder.resolve("hidden-mutations.json");
+            StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath),
+                    new JsonUserPrefsStorage(testFolder.resolve("hidden-mutations-prefs.json")));
+            MainWindow created = new MainWindow(new Stage(), new LogicManager(model, storage), dataPath);
+            created.fillInnerParts();
+            Parent root = created.getRoot().getScene().getRoot();
+            root.applyCss();
+            root.layout();
+            return created;
+        });
+        try {
+            runOnFxThread(() -> {
+                Parent root = window.getRoot().getScene().getRoot();
+                TextArea result = (TextArea) root.lookup("#resultDisplay");
+                for (String invalid : List.of("list extra", "find", "not-a-command", "view n/Nobody")) {
+                    enterCommand(root, invalid);
+                    assertTrue(result.getStyleClass().contains("error"));
+                    assertFalse(window.getPersonListPanel().getRoot().isVisible());
+                }
+                for (String command : List.of("edit 1 n/Updated Representative",
+                        "add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567",
+                        "delete 1", "clear")) {
+                    enterCommand(root, command);
+                    assertFalse(result.getStyleClass().contains("error"));
+                    assertFalse(window.getPersonListPanel().getRoot().isVisible());
+                    assertEquals("List hidden", ((Label) root.lookup("#recordCount")).getText());
+                }
+                assertTrue(new JsonAddressBookStorage(testFolder.resolve("hidden-mutations.json"))
+                        .readAddressBook().orElseThrow().getPersonList().isEmpty());
+                return null;
+            });
+            // Deferred model listeners must not reveal the list or choose an unrelated contact.
+            runOnFxThread(() -> {
+                assertFalse(window.getPersonListPanel().getRoot().isVisible());
+                return null;
+            });
+        } finally {
+            runOnFxThread(() -> {
+                window.getRoot().close();
+                return null;
+            });
+        }
+    }
+
+    @Test
+    public void contactList_hiddenAdd_keepsDetailsAndSelectionAfterDeferredUpdates() throws Exception {
+        MainWindow window = runOnFxThread(() -> {
+            ModelManager model = new ModelManager(SampleDataUtil.getSampleAddressBook(), new UserPrefs());
+            Path dataPath = testFolder.resolve("hidden-add.json");
+            StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath),
+                    new JsonUserPrefsStorage(testFolder.resolve("hidden-add-prefs.json")));
+            MainWindow created = new MainWindow(new Stage(), new LogicManager(model, storage), dataPath);
+            created.fillInnerParts();
+            Parent root = created.getRoot().getScene().getRoot();
+            root.applyCss();
+            root.layout();
+            enterCommand(root, "add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567");
+            return created;
+        });
+        try {
+            runOnFxThread(() -> {
+                Parent root = window.getRoot().getScene().getRoot();
+                assertFalse(window.getPersonListPanel().getRoot().isVisible());
+                assertEquals("List hidden", ((Label) root.lookup("#recordCount")).getText());
+                assertEquals("Alicia Tan", ((Label) root.lookup("#contactName")).getText());
+                assertEquals("TechNova", ((Label) root.lookup("#company")).getText());
+                assertEquals("", ((TextField) root.lookup("#commandTextField")).getText());
+                assertEquals(7, new JsonAddressBookStorage(testFolder.resolve("hidden-add.json"))
+                        .readAddressBook().orElseThrow().getPersonList().size());
+                enterCommand(root, "list");
+                assertTrue(window.getPersonListPanel().getRoot().isVisible());
+                assertEquals("7 records", ((Label) root.lookup("#recordCount")).getText());
+                assertEquals("Alicia Tan", ((Label) root.lookup("#contactName")).getText());
+                return null;
+            });
+        } finally {
+            runOnFxThread(() -> {
+                window.getRoot().close();
+                return null;
+            });
+        }
+    }
+
+    @Test
+    public void contactList_findAndList_revealCurrentResultsIncludingEmptyMatches() throws Exception {
+        runOnFxThread(() -> {
+            ModelManager model = new ModelManager(SampleDataUtil.getSampleAddressBook(), new UserPrefs());
+            Path dataPath = testFolder.resolve("search-display.json");
+            StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath),
+                    new JsonUserPrefsStorage(testFolder.resolve("search-display-prefs.json")));
+            MainWindow window = new MainWindow(new Stage(), new LogicManager(model, storage), dataPath);
+            window.fillInnerParts();
+            try {
+                Parent root = window.getRoot().getScene().getRoot();
+                root.applyCss();
+                root.layout();
+                Label count = (Label) root.lookup("#recordCount");
+                enterCommand(root, "find Alex");
+                assertTrue(window.getPersonListPanel().getRoot().isVisible());
+                assertTrue(window.getPersonListPanel().getRoot().isManaged());
+                assertEquals("1 record", count.getText());
+                assertEquals(1, model.getFilteredPersonList().size());
+                enterCommand(root, "find Nobody");
+                assertTrue(window.getPersonListPanel().getRoot().isVisible());
+                assertEquals("0 records", count.getText());
+                assertEquals("Select a contact", ((Label) root.lookup("#contactName")).getText());
+                enterCommand(root, "list");
+                assertEquals("6 records", count.getText());
+                enterCommand(root, "list extra");
+                assertTrue(window.getPersonListPanel().getRoot().isVisible());
+                assertEquals("6 records", count.getText());
+                enterCommand(root, "clear");
+                enterCommand(root, "list");
+                assertTrue(window.getPersonListPanel().getRoot().isVisible());
+                assertEquals("0 records", count.getText());
+                assertTrue(((TextArea) root.lookup("#resultDisplay")).getText().contains("No contacts found"));
+            } finally {
+                window.getRoot().close();
+            }
+            return null;
+        });
     }
 
     private static void enterCommand(Parent root, String text) {
