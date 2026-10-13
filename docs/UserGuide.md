@@ -42,7 +42,8 @@ BoothManagerPro is a **desktop application for convention organisers to manage e
 
 ### Workspace controls
 
-* Click the result heading to collapse or expand command feedback. New feedback reopens it automatically; long results scroll within a compact area.
+* Click the result heading to collapse or expand command feedback. New feedback reopens it automatically; the feedback area grows to fit the result, up to half of the window, and longer results scroll within it.
+* The contact list is display-only: contacts cannot be clicked or scrolled. Use `view` to select a contact and `find` to narrow the list.
 * Drag the divider between the contact list and details to adjust their widths. Both panels use the space freed when feedback is collapsed.
 * Expand **Enquiries & follow-ups** in contact details to see the planned-feature note.
 

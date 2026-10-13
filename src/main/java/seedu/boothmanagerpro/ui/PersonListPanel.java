@@ -34,7 +34,10 @@ public class PersonListPanel extends UiPart<Region> {
         emptyState.setWrapText(true);
         emptyState.getStyleClass().add("empty-state");
         personListView.setPlaceholder(emptyState);
-        personListView.setAccessibleText("Exhibitor contacts. Use arrow keys to select a contact.");
+        personListView.setAccessibleText("Exhibitor contacts. Use the view command to select a contact.");
+        // Read-only display: contacts are selected and scrolled through commands, not the mouse or keyboard.
+        personListView.setMouseTransparent(true);
+        personListView.setFocusTraversable(false);
     }
 
     /**

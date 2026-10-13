@@ -26,7 +26,7 @@
           </HBox>
           <StackPane fx:id="commandBoxPlaceholder" />
           <StackPane fx:id="resultDisplayPlaceholder" />
-          <SplitPane dividerPositions="0.45" minHeight="120" VBox.vgrow="ALWAYS" styleClass="contact-split">
+          <SplitPane dividerPositions="0.45" minHeight="120" prefHeight="120" VBox.vgrow="ALWAYS" styleClass="contact-split">
             <VBox minWidth="290" spacing="10">
               <HBox alignment="CENTER_LEFT" spacing="8">
                 <Label text="EXHIBITOR CONTACTS" styleClass="section-label" />

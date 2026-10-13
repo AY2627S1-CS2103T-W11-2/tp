@@ -48,9 +48,8 @@
     -fx-border-width: 0 0 0 4;
     -fx-padding: 15 16;
 }
-.list-cell:filled:hover .contact-card { -fx-background-color: #edf3f9; }
+#personListView .scroll-bar { -fx-pref-width: 0; -fx-pref-height: 0; -fx-padding: 0; -fx-opacity: 0; }
 .list-cell:filled:selected .contact-card { -fx-background-color: #e3eef8; -fx-border-color: #287ab5; }
-.list-view:focused .list-cell:filled:selected .contact-card { -fx-border-color: #185b91; }
 .card-name { -fx-font-size: 18px; -fx-font-weight: bold; }
 .tags .label { -fx-background-color: #e5eef9; -fx-padding: 4 10; -fx-text-fill: #285487;
     -fx-background-radius: 3; -fx-font-size: 12px; }
