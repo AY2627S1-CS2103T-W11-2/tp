@@ -2,6 +2,7 @@ package seedu.boothmanagerpro.ui;
 
 import java.util.logging.Logger;
 
+import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -57,7 +58,14 @@ public class PersonListPanel extends UiPart<Region> {
      */
     public void selectPerson(Person person) {
         personListView.getSelectionModel().select(person);
-        personListView.scrollTo(person);
+        // Defer until list-change listeners and the virtualised cells have caught up.
+        Platform.runLater(() -> {
+            if (person.equals(personListView.getSelectionModel().getSelectedItem())) {
+                personListView.applyCss();
+                personListView.layout();
+                personListView.scrollTo(person);
+            }
+        });
     }
 
     /**

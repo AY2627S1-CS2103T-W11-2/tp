@@ -8,7 +8,7 @@ import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_TAG;
 
-import java.util.Optional;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import seedu.boothmanagerpro.commons.util.ToStringBuilder;
@@ -40,7 +40,7 @@ public class AddCommand extends Command {
             + PREFIX_TAG + "technology "
             + PREFIX_TAG + "high-priority";
 
-    public static final String MESSAGE_SUCCESS = "New exhibitor contact added:\n%1$s";
+    public static final String MESSAGE_SUCCESS = "Added %1$s.";
     public static final String MESSAGE_DUPLICATE_PERSON = "This contact may already exist: %s.\n"
             + "Use the edit command if you want to update the existing contact.";
 
@@ -57,7 +57,8 @@ public class AddCommand extends Command {
     /**
      * Checks all stored contacts, including those hidden by a filter, before adding the contact.
      * A duplicate error identifies the existing record and leaves the model unchanged.
-     * Persistence is performed by LogicManager after successful execution.
+     * Requests selection of the added contact so the UI can show full details beside a concise confirmation.
+     * Persistence is performed by LogicManager before the result reaches the UI.
      *
      * @throws CommandException If an existing contact matches the duplicate rule.
      */
@@ -65,31 +66,30 @@ public class AddCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
 
-        Optional<Person> duplicate = findDuplicate(model);
-        if (duplicate.isPresent()) {
-            throw new CommandException(String.format(MESSAGE_DUPLICATE_PERSON, formatIdentity(duplicate.get())));
+        List<Person> duplicates = findDuplicates(model);
+        if (duplicates.size() == 1) {
+            throw new CommandException(String.format(MESSAGE_DUPLICATE_PERSON, formatIdentity(duplicates.getFirst())));
+        }
+        if (!duplicates.isEmpty()) {
+            String matches = duplicates.stream()
+                    .map(person -> formatIdentity(person) + " (" + person.getEmail() + ")")
+                    .collect(Collectors.joining("\n"));
+            throw new CommandException("This contact conflicts with multiple existing contacts:\n" + matches
+                    + "\nCheck the email and name/company fields. No contact was added.");
         }
 
         model.addPerson(toAdd);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, formatContact(toAdd)));
+        return new CommandResult(String.format(MESSAGE_SUCCESS, formatIdentity(toAdd)), toAdd);
     }
 
-    /** Finds the existing match in one pass over the full collection, independently of the UI filter. */
-    private Optional<Person> findDuplicate(Model model) {
-        return model.getAddressBook().getPersonList().stream().filter(toAdd::isSamePerson).findFirst();
+    /** Finds every existing match in one pass over the full collection, independently of the UI filter. */
+    private List<Person> findDuplicates(Model model) {
+        return model.getAddressBook().getPersonList().stream().filter(toAdd::isSamePerson).toList();
     }
 
     /** Formats contact identity for successful additions and duplicate warnings. */
     public static String formatIdentity(Person person) {
         return person.getName() + person.getCompany().map(company -> " at " + company.value).orElse("");
-    }
-
-    /** Formats the new exhibitor fields without changing other commands' output. */
-    public static String formatContact(Person person) {
-        String tags = person.getTags().stream().map(tag -> tag.tagName).collect(Collectors.joining(", "));
-        return formatIdentity(person) + "\nEmail: " + person.getEmail() + "\nPhone: " + person.getPhone()
-                + "\nContact method: " + person.getContactMethod().map(Object::toString).orElse("Not specified")
-                + "\nTags: " + (tags.isEmpty() ? "None" : tags);
     }
 
     @Override

@@ -77,3 +77,7 @@ Manual check in a separate test folder:
 3. Run `view n/NAME`, then select each record in turn; check company, email, phone, method, and tags.
 4. Run `list`; expect both records and a total of two (plus any pre-existing contacts).
 5. Run `delete NAME`; expect ambiguity and no deletion. Filter by company, then `delete 1`; check the deleted record's company/method in feedback and confirm only that record is removed after restart.
+
+Add-error regression coverage also checks grouped missing/repeated prefixes, unknown-prefix identification, empty fields, field-specific validation messages, and error precedence. `ExhibitorAddIntegrationTest` verifies that invalid input and a contact conflicting with two existing records preserve the complete contact list, current filter, and saved JSON.
+
+`MainWindowTest.add_afterFilter_selectsSavedContactAndKeepsInputReady` exercises the post-add flow through real FXML and command entry. It checks selection after queued list updates, displayed attributes, persistence, input focus/clearing, retained input and selection after rejection, and recovery on a corrected add. The post-add preview is written to `build/reports/ui/add-success.png`.

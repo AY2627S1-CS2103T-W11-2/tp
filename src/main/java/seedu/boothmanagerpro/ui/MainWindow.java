@@ -238,6 +238,7 @@ public class MainWindow extends UiPart<Stage> {
                 detailsPanel.showSelectionPrompt();
             } else if (commandResult.getPersonToView().isPresent()) {
                 personListPanel.selectPerson(commandResult.getPersonToView().orElseThrow());
+                commandBox.focus();
             } else {
                 ensureSelectionIfReady();
             }

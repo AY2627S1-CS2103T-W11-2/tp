@@ -25,12 +25,12 @@ public class AddCommandParserTest {
         String result = parser.parse(valid.replace("alicia@technova.com", "ALICIA@TechNova.COM")
                 .replace("91234567", "+65 9123-4567")
                 + " m/EMAIL t/technology t/high-priority t/technology").execute(model).getFeedbackToUser();
-        assertEquals("New exhibitor contact added:\nAlicia Tan at TechNova Pte Ltd\n"
-                + "Email: alicia@technova.com\nPhone: +6591234567\nContact method: email\n"
-                + "Tags: technology, high-priority", result);
+        assertEquals("Added Alicia Tan at TechNova Pte Ltd.", result);
         Person person = model.getFilteredPersonList().getFirst();
         assertEquals("TechNova Pte Ltd", person.getCompany().orElseThrow().value);
         assertEquals(ContactMethod.EMAIL, person.getContactMethod().orElseThrow());
+        assertEquals("alicia@technova.com", person.getEmail().value);
+        assertEquals("+6591234567", person.getPhone().value);
         assertEquals(2, person.getTags().size());
     }
 
@@ -46,47 +46,75 @@ public class AddCommandParserTest {
     }
 
     @Test
-    public void parse_requiredFieldsMissing_failure() {
-        assertParseFailure(parser, "", AddCommandParser.MESSAGE_MISSING_FIELD);
+    public void parse_requiredFieldsMissing_listsOnlyMissingPrefixes() {
+        assertParseFailure(parser, "", String.format(AddCommandParser.MESSAGE_MISSING_FIELD, "n/, c/, e/, p/"));
+        assertParseFailure(parser, " n/Alicia Tan p/91234567",
+                String.format(AddCommandParser.MESSAGE_MISSING_FIELD, "c/, e/"));
         for (String field : new String[]{" n/Alicia Tan", " c/TechNova Pte Ltd", " e/alicia@technova.com",
             " p/91234567"}) {
-            assertParseFailure(parser, valid.replace(field, ""), AddCommandParser.MESSAGE_MISSING_FIELD);
+            assertParseFailure(parser, valid.replace(field, ""),
+                    String.format(AddCommandParser.MESSAGE_MISSING_FIELD, field.trim().substring(0, 2)));
         }
     }
 
     @Test
-    public void parse_repeatedFields_failure() {
+    public void parse_repeatedFields_listsAllRepeatedPrefixes() {
         for (String field : new String[]{" n/Other", " c/Other", " e/other@example.com", " p/98765432"}) {
-            assertParseFailure(parser, valid + field, AddCommandParser.MESSAGE_REPEATED_FIELD);
+            assertParseFailure(parser, valid + field,
+                    String.format(AddCommandParser.MESSAGE_REPEATED_FIELD, field.trim().substring(0, 2)));
         }
-        assertParseFailure(parser, valid + " m/email m/phone", AddCommandParser.MESSAGE_REPEATED_FIELD);
+        assertParseFailure(parser, valid + " m/email m/phone",
+                String.format(AddCommandParser.MESSAGE_REPEATED_FIELD, "m/"));
+        assertParseFailure(parser, "n/A n/B c/C c/D",
+                String.format(AddCommandParser.MESSAGE_REPEATED_FIELD, "n/, c/"));
     }
 
     @Test
-    public void parse_unknownPrefixOrPreamble_failure() {
-        for (String field : new String[]{" a/Old address", " x/value", " company/Other", " m/phone x/invalid"}) {
-            assertParseFailure(parser, valid + field, AddCommandParser.MESSAGE_UNKNOWN_FIELD);
+    public void parse_unknownPrefixOrPreamble_identifiesProblem() {
+        for (String prefix : new String[]{"a/", "x/", "company/"}) {
+            assertParseFailure(parser, valid + " " + prefix + "value",
+                    String.format(AddCommandParser.MESSAGE_UNKNOWN_FIELD, prefix));
         }
-        assertParseFailure(parser, "unprefixed" + valid, AddCommandParser.MESSAGE_UNKNOWN_FIELD);
-        assertParseFailure(parser, "Alicia Tan", AddCommandParser.MESSAGE_UNKNOWN_FIELD);
+        assertParseFailure(parser, "n/A n/B x/value",
+                String.format(AddCommandParser.MESSAGE_UNKNOWN_FIELD, "x/"));
+        assertParseFailure(parser, "unprefixed" + valid, AddCommandParser.MESSAGE_PREAMBLE);
+        assertParseFailure(parser, "Alicia Tan", AddCommandParser.MESSAGE_PREAMBLE);
+    }
+
+    @Test
+    public void parse_emptyValues_identifiesField() {
+        for (String field : new String[]{"n/Alicia Tan", "c/TechNova Pte Ltd", "e/alicia@technova.com", "p/91234567"}) {
+            String prefix = field.substring(0, 2);
+            assertParseFailure(parser, valid.replace(field, prefix),
+                    "Empty field: " + prefix + ". Supply a value after this prefix.");
+        }
+        for (String prefix : new String[]{"m/", "t/"}) {
+            assertParseFailure(parser, valid + " " + prefix,
+                    "Empty field: " + prefix + ". Supply a value after this prefix.");
+        }
     }
 
     @Test
     public void parse_invalidFields_failure() {
-        for (String name : new String[]{"", "123", "A1", "---", "A".repeat(81)}) {
-            assertParseFailure(parser, valid.replace("Alicia Tan", name), Name.MESSAGE_CONSTRAINTS);
+        for (String name : new String[]{"123", "A1", "---", "A".repeat(81)}) {
+            assertParseFailure(parser, valid.replace("Alicia Tan", name),
+                    "Invalid value for n/: " + Name.MESSAGE_CONSTRAINTS);
         }
-        for (String company : new String[]{"", "A".repeat(101)}) {
-            assertParseFailure(parser, valid.replace("TechNova Pte Ltd", company), Company.MESSAGE_CONSTRAINTS);
+        for (String company : new String[]{"A".repeat(101)}) {
+            assertParseFailure(parser, valid.replace("TechNova Pte Ltd", company),
+                    "Invalid value for c/: " + Company.MESSAGE_CONSTRAINTS);
         }
         for (String phone : new String[]{"123456", "1".repeat(16), "1234567+", "abc1234567"}) {
-            assertParseFailure(parser, valid.replace("91234567", phone), Phone.MESSAGE_CONSTRAINTS);
+            assertParseFailure(parser, valid.replace("91234567", phone),
+                    "Invalid value for p/: " + Phone.MESSAGE_CONSTRAINTS);
         }
-        assertParseFailure(parser, valid.replace("alicia@technova.com", "a@@example.com"), Email.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, valid + " m/", ContactMethod.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, valid + " m/fax", ContactMethod.MESSAGE_CONSTRAINTS);
-        for (String tag : new String[]{"", "a/b", "a".repeat(31)}) {
-            assertParseFailure(parser, valid + " t/" + tag, Tag.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, valid.replace("alicia@technova.com", "a@@example.com"),
+                    "Invalid value for e/: " + Email.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, valid + " m/fax",
+                    "Invalid value for m/: " + ContactMethod.MESSAGE_CONSTRAINTS);
+        for (String tag : new String[]{"a/b", "a".repeat(31)}) {
+            assertParseFailure(parser, valid + " t/" + tag,
+                    "Invalid value for t/: " + Tag.MESSAGE_CONSTRAINTS);
         }
     }
 

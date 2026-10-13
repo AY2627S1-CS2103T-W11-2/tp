@@ -25,7 +25,7 @@ public class CommandResult {
     /** Contacts awaiting a numbered reply to a view request. */
     private final List<Person> viewChoices;
 
-    /** Contact whose details should be shown, when a view selection has been resolved. */
+    /** Contact to select and display after a successful add or resolved view request. */
     private final Person personToView;
 
     /**

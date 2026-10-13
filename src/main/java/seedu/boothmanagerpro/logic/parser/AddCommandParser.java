@@ -7,11 +7,14 @@ import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_TAG;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import seedu.boothmanagerpro.logic.commands.AddCommand;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
@@ -29,9 +32,12 @@ import seedu.boothmanagerpro.model.tag.Tag;
  * Other commands retain their existing syntax.
  */
 public class AddCommandParser implements Parser<AddCommand> {
-    public static final String MESSAGE_MISSING_FIELD = "Missing required field: NAME, COMPANY, EMAIL, or PHONE.";
-    public static final String MESSAGE_REPEATED_FIELD = "Each field can only be specified once.";
-    public static final String MESSAGE_UNKNOWN_FIELD = "Unknown field prefix. Use n/, c/, e/, p/, m/, or t/.";
+    public static final String MESSAGE_MISSING_FIELD = "Missing required fields: %s. Supply a value after each prefix.";
+    public static final String MESSAGE_REPEATED_FIELD =
+            "Repeated fields: %s. Keep one value per field; only t/ may repeat.";
+    public static final String MESSAGE_UNKNOWN_FIELD = "Unknown field prefix: %s. Use n/, c/, e/, p/, m/, or t/.";
+    public static final String MESSAGE_PREAMBLE = "Unexpected text before the first field. "
+            + "Start with a prefix, for example: add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567";
     private static final Pattern FIELD_PREFIX = Pattern.compile("(?<!\\S)([^\\s/]+/)");
     private static final Set<Prefix> ALLOWED_PREFIXES = Set.of(PREFIX_NAME, PREFIX_COMPANY, PREFIX_EMAIL,
             PREFIX_PHONE, PREFIX_METHOD, PREFIX_TAG);
@@ -58,30 +64,50 @@ public class AddCommandParser implements Parser<AddCommand> {
 
     /** Checks field cardinality before attempting value conversion, preserving error precedence. */
     private void validateStructure(ArgumentMultimap fields) throws ParseException {
-        for (Prefix prefix : SINGLE_VALUE_PREFIXES) {
-            if (fields.getAllValues(prefix).size() > 1) {
-                throw new ParseException(MESSAGE_REPEATED_FIELD);
-            }
+        List<Prefix> repeated = SINGLE_VALUE_PREFIXES.stream()
+                .filter(prefix -> fields.getAllValues(prefix).size() > 1).toList();
+        if (!repeated.isEmpty()) {
+            throw new ParseException(String.format(MESSAGE_REPEATED_FIELD, formatPrefixes(repeated)));
         }
-        for (Prefix prefix : REQUIRED_PREFIXES) {
-            if (fields.getValue(prefix).isEmpty()) {
-                throw new ParseException(MESSAGE_MISSING_FIELD);
-            }
+        List<Prefix> missing = REQUIRED_PREFIXES.stream()
+                .filter(prefix -> fields.getValue(prefix).isEmpty()).toList();
+        if (!missing.isEmpty()) {
+            throw new ParseException(String.format(MESSAGE_MISSING_FIELD, formatPrefixes(missing)));
         }
     }
 
-    /** Converts validated field structure into model values; value objects own their constraints. */
+    /** Formats every affected prefix in the stable order defined by the command specification. */
+    private String formatPrefixes(List<Prefix> prefixes) {
+        return prefixes.stream().map(Prefix::toString).collect(Collectors.joining(", "));
+    }
+
+    /** Converts fields in command-help order using the same value objects as JSON loading. */
     private Person parseContact(ArgumentMultimap fields) throws ParseException {
-        Name name = ParserUtil.parseName(fields.getValue(PREFIX_NAME).orElseThrow());
-        Email email = ParserUtil.parseEmail(fields.getValue(PREFIX_EMAIL).orElseThrow());
-        Phone phone = ParserUtil.parsePhone(fields.getValue(PREFIX_PHONE).orElseThrow());
-        Set<Tag> tags = ParserUtil.parseTags(fields.getAllValues(PREFIX_TAG));
+        Name name = parseValue(PREFIX_NAME, fields.getValue(PREFIX_NAME).orElseThrow(), Name::new);
+        Company company = parseValue(PREFIX_COMPANY, fields.getValue(PREFIX_COMPANY).orElseThrow(), Company::new);
+        Email email = parseValue(PREFIX_EMAIL, fields.getValue(PREFIX_EMAIL).orElseThrow(), Email::new);
+        Phone phone = parseValue(PREFIX_PHONE, fields.getValue(PREFIX_PHONE).orElseThrow(), Phone::new);
+        Optional<ContactMethod> method = Optional.empty();
+        if (fields.getValue(PREFIX_METHOD).isPresent()) {
+            method = Optional.of(parseValue(PREFIX_METHOD, fields.getValue(PREFIX_METHOD).orElseThrow(),
+                    ContactMethod::fromString));
+        }
+        Set<Tag> tags = new LinkedHashSet<>();
+        for (String value : fields.getAllValues(PREFIX_TAG)) {
+            tags.add(parseValue(PREFIX_TAG, value, Tag::new));
+        }
+        return Person.createExhibitor(name, company, email, phone, method, tags);
+    }
+
+    /** Adds field context without duplicating validation or normalisation rules from the model. */
+    private <T> T parseValue(Prefix prefix, String value, Function<String, T> constructor) throws ParseException {
+        if (value.isBlank()) {
+            throw new ParseException("Empty field: " + prefix + ". Supply a value after this prefix.");
+        }
         try {
-            Company company = new Company(fields.getValue(PREFIX_COMPANY).orElseThrow());
-            Optional<ContactMethod> method = fields.getValue(PREFIX_METHOD).map(ContactMethod::fromString);
-            return Person.createExhibitor(name, company, email, phone, method, tags);
+            return constructor.apply(value);
         } catch (IllegalArgumentException e) {
-            throw new ParseException(e.getMessage(), e);
+            throw new ParseException("Invalid value for " + prefix + ": " + e.getMessage(), e);
         }
     }
 
@@ -95,19 +121,19 @@ public class AddCommandParser implements Parser<AddCommand> {
         List<MatchResult> matches = FIELD_PREFIX.matcher(args).results().toList();
         if (matches.isEmpty()) {
             if (!args.isBlank()) {
-                throw new ParseException(MESSAGE_UNKNOWN_FIELD);
+                throw new ParseException(MESSAGE_PREAMBLE);
             }
             return new ArgumentMultimap();
         }
         if (!args.substring(0, matches.getFirst().start()).isBlank()) {
-            throw new ParseException(MESSAGE_UNKNOWN_FIELD);
+            throw new ParseException(MESSAGE_PREAMBLE);
         }
         ArgumentMultimap fields = new ArgumentMultimap();
         for (int i = 0; i < matches.size(); i++) {
             MatchResult match = matches.get(i);
             Prefix prefix = new Prefix(match.group(1));
             if (!ALLOWED_PREFIXES.contains(prefix)) {
-                throw new ParseException(MESSAGE_UNKNOWN_FIELD);
+                throw new ParseException(String.format(MESSAGE_UNKNOWN_FIELD, prefix));
             }
             int end = i + 1 < matches.size() ? matches.get(i + 1).start() : args.length();
             fields.put(prefix, args.substring(match.end(), end).trim());
