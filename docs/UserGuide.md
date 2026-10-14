@@ -44,6 +44,8 @@ BoothManagerPro is a **desktop application for convention organisers to manage e
 
 ### Workspace controls
 
+* Click the result heading to collapse or expand command feedback. New feedback reopens it automatically; the feedback area grows to fit the result, up to half of the window, and longer results scroll within it.
+* The contact list is display-only: contacts cannot be clicked or scrolled. Use `view` to select a contact and `find` to narrow the list.
 * Each launch starts with the contact list hidden and a prompt explaining how to display it. Stored contacts are not removed.
 * Successful `list`, `find`, and `view` requests reveal the contact list. Empty searches show an empty list, not hidden data.
 * Once requested, the list stays visible for the rest of the session and follows subsequent command results.

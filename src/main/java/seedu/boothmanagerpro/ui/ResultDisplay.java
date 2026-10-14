@@ -2,6 +2,8 @@ package seedu.boothmanagerpro.ui;
 
 import static java.util.Objects.requireNonNull;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.value.ObservableDoubleValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TitledPane;
@@ -13,6 +15,7 @@ import javafx.scene.layout.Region;
 public class ResultDisplay extends UiPart<Region> {
 
     private static final String FXML = "ResultDisplay.fxml";
+    private static final double MAX_WINDOW_HEIGHT_SHARE = 0.5;
 
     @FXML
     private TextArea resultDisplay;
@@ -46,10 +49,17 @@ public class ResultDisplay extends UiPart<Region> {
         resultDisplay.positionCaret(0);
     }
 
-    /** Keeps short replies compact and caps long output so contacts remain visible; the text area scrolls. */
+    /**
+     * Caps the feedback at half of {@code windowHeight}; output that needs more room scrolls.
+     */
+    public void bindMaxHeightTo(ObservableDoubleValue windowHeight) {
+        requireNonNull(windowHeight);
+        feedbackPane.maxHeightProperty().bind(Bindings.multiply(windowHeight, MAX_WINDOW_HEIGHT_SHARE));
+    }
+
+    /** Fits the text area to the feedback's line count; the pane's height cap keeps contacts visible. */
     private void resizeForFeedback(String feedback) {
-        int rows = (int) Math.min(6, Math.max(1, feedback.lines().count()));
-        resultDisplay.setPrefRowCount(rows);
+        resultDisplay.setPrefRowCount((int) Math.max(1, feedback.lines().count()));
     }
 
 }
