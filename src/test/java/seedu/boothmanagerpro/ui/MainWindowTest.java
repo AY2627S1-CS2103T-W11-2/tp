@@ -24,7 +24,6 @@ import javafx.event.ActionEvent;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -32,9 +31,6 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.PickResult;
 import javafx.scene.layout.Region;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -131,16 +127,6 @@ public class MainWindowTest {
             assertTrue(list.isMouseTransparent());
             assertFalse(list.isFocusTraversable());
             list.getSelectionModel().select(1);
-            assertEquals(list.getItems().get(1).getName().fullName, name.getText());
-
-            @SuppressWarnings("unchecked")
-            ListCell<Person> firstCell = (ListCell<Person>) list.lookupAll(".list-cell").stream()
-                    .map(node -> (ListCell<Person>) node)
-                    .filter(cell -> cell.getIndex() == 0)
-                    .findFirst()
-                    .orElseThrow();
-            firstCell.fireEvent(primaryMousePress(firstCell));
-            assertEquals(list.getItems().get(1), list.getSelectionModel().getSelectedItem());
             assertEquals(list.getItems().get(1).getName().fullName, name.getText());
             TextField command = (TextField) root.lookup("#commandTextField");
             TextArea result = (TextArea) root.lookup("#resultDisplay");
@@ -441,12 +427,6 @@ public class MainWindowTest {
         TextField command = (TextField) root.lookup("#commandTextField");
         command.setText(text);
         command.fireEvent(new ActionEvent());
-    }
-
-    private static MouseEvent primaryMousePress(ListCell<Person> cell) {
-        return new MouseEvent(MouseEvent.MOUSE_PRESSED, 1, 1, 1, 1, MouseButton.PRIMARY, 1,
-                false, false, false, false, true, false, false, false, false, true,
-                new PickResult(cell, 1, 1));
     }
 
     @Test

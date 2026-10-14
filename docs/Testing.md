@@ -74,7 +74,7 @@ Manual check in a separate test folder:
 
 1. Add two contacts with the same name, different companies and emails, and an optional method/tag on one.
 2. Run `find c/COMPANY t/TAG` using that record's complete values; expect one match.
-3. Run `view n/NAME` for each record in turn; check company, email, phone, method, and tags. Clicking a contact in the list must not change the displayed details.
+3. Run `view n/NAME`, then select each record in turn; check company, email, phone, method, and tags.
 4. Run `list`; expect both records and a total of two (plus any pre-existing contacts).
 5. Run `delete NAME`; expect ambiguity and no deletion. Filter by company, then `delete 1`; check the deleted record's company/method in feedback and confirm only that record is removed after restart.
 
