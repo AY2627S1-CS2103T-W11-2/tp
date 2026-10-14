@@ -44,21 +44,24 @@ public class ListCommandTest {
     @Test
     public void execute_listIsNotFiltered_showsSameList() {
         assertCommandSuccess(new ListCommand(), model,
-                ListCommand.formatContactList(expectedModel.getFilteredPersonList()), expectedModel);
+                CommandResult.forContactList(ListCommand.formatContactList(expectedModel.getFilteredPersonList())),
+                expectedModel);
     }
 
     @Test
     public void execute_listIsFiltered_showsEverything() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
         assertCommandSuccess(new ListCommand(), model,
-                ListCommand.formatContactList(expectedModel.getFilteredPersonList()), expectedModel);
+                CommandResult.forContactList(ListCommand.formatContactList(expectedModel.getFilteredPersonList())),
+                expectedModel);
     }
 
     @Test
     public void execute_emptyAddressBook_showsNoContactsMessage() {
         Model emptyModel = new ModelManager(new AddressBook(), new UserPrefs());
         assertCommandSuccess(new ListCommand(), emptyModel,
-                "No contacts found.\nUse the 'add' command to add a new exhibitor contact.",
+                CommandResult.forContactList("No contacts found.\n"
+                        + "Use the 'add' command to add a new exhibitor contact."),
                 new ModelManager(new AddressBook(), new UserPrefs()));
     }
 

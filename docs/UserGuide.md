@@ -20,7 +20,9 @@ BoothManagerPro is a **desktop application for convention organisers to manage e
 1. Copy the file to the folder you want to use as the _home folder_ for BoothManagerPro.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar boothmanagerpro.jar`.<br>
-   The application opens with sample contacts on first launch. The image below is the planned UI mockup; some fields await integration.<br>
+   Sample contacts are loaded on first launch, but the contact list is hidden until requested.
+   Type `list` to show all contacts, or `find Alex` to show matching contacts.
+   The image below is the planned UI mockup; some fields await integration.<br>
    ![Ui](images/Ui.png)
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
@@ -44,6 +46,12 @@ BoothManagerPro is a **desktop application for convention organisers to manage e
 
 * Click the result heading to collapse or expand command feedback. New feedback reopens it automatically; the feedback area grows to fit the result, up to half of the window, and longer results scroll within it.
 * The contact list is display-only: contacts cannot be clicked or scrolled. Use `view` to select a contact and `find` to narrow the list.
+* Each launch starts with the contact list hidden and a prompt explaining how to display it. Stored contacts are not removed.
+* Successful `list`, `find`, and `view` requests reveal the contact list. Empty searches show an empty list, not hidden data.
+* Once requested, the list stays visible for the rest of the session and follows subsequent command results.
+  Adding, editing, deleting, clearing, or an invalid command does not reveal a previously hidden list.
+  A successful `add` still shows the new contact's details. Run `list` or `find` before using a displayed index.
+* Click the result heading to collapse or expand command feedback. New feedback reopens it automatically; long results scroll within a compact area.
 * Drag the divider between the contact list and details to adjust their widths. Both panels use the space freed when feedback is collapsed.
 * Expand **Enquiries & follow-ups** in contact details to see the planned-feature note.
 
@@ -161,6 +169,7 @@ followed by the total number of contacts.
 Format: `list`
 
 * `list` does not accept parameters. For example, `list 3` is rejected.
+* A successful `list` reveals the contact list, even when there are no contacts. Invalid requests leave its visibility unchanged.
 * Any filter left by a previous `find` or `view` command is cleared, so all contacts are shown again.
 * Tags are shown in the order they are stored. An omitted contact method or a company missing from an older
   record is shown as `Not specified`. Contacts without tags show `None`.

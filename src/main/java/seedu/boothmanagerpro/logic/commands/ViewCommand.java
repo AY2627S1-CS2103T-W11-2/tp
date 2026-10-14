@@ -79,7 +79,7 @@ public class ViewCommand extends Command {
                 + "\nPhone: " + person.getPhone()
                 + "\nContact method: " + displayOptional(person.getContactMethod())
                 + "\nTags: " + (tags.isEmpty() ? "None" : tags);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, details), person);
+        return CommandResult.forContactList(String.format(MESSAGE_SUCCESS, details), person);
     }
 
     /**
