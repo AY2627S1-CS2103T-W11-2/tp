@@ -45,7 +45,7 @@ BoothManagerPro helps **convention organisers manage exhibitor contacts through 
 * Type a command and press **Enter**. Command words and prefixes are case-sensitive: use `list`, not `List`.
 * The command box starts with keyboard focus. Press **Ctrl+L** on Windows/Linux or **Command+L** on macOS to return to it. Use `help` or **F1** for the guide, and `exit` to close the app.
 * Each launch starts with a ready prompt. Saved contacts remain available but are not automatically printed.
-* Results appear only as text in the output area below the command box. There are no contact cards, contact-list panel, or details panel.
+* Results appear in the output area below the command box. `list`, `find`, and `view` show matching contacts as separate cards; other commands and errors show text. Cards are display-only and cannot be clicked or selected; scroll the output area to see more. There is no separate contact-list or details panel.
 * `list` prints every contact with a number and details. `find` prints the match count and numbered matching contacts; it works without running `list` first.
 * `view` prints a matching contact's details or numbered choices. Reply with a number only when `view` asks you to choose.
 * Each command replaces the previous output. The output fills the available space and scrolls for longer results. Use **Tab** to focus it and the arrow keys to read it; **Ctrl+L** or **Command+L** returns to command entry.
@@ -166,7 +166,7 @@ followed by the total number of contacts.
 Format: `list`
 
 * `list` does not accept parameters. For example, `list 3` is rejected.
-* `list` prints numbered contacts in the output area. With no contacts, it prints the no-contacts message below.
+* `list` shows numbered contact cards in the output area, followed by the total. With no contacts, it prints the no-contacts message below.
 * Any filter left by a previous `find` or `view` command is cleared, so all contacts are shown again.
 * Tags are shown in the order they are stored. An omitted contact method or a company missing from an older
   record is shown as `Not specified`. Contacts without tags show `None`.
@@ -202,7 +202,7 @@ Use the 'add' command to add a new exhibitor contact.
 
 ### Viewing an exhibitor contact: `view`
 
-Prints the chosen contact's details in the command output area.
+Shows the chosen contact's details as a card in the command output area.
 
 Format: `view n/NAME`
 
@@ -298,7 +298,7 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 Examples:
 
 * `find John` returns `john` and `John Doe`
-* `find alex david` returns `Alex Yeoh` and `David Li` from the sample contacts. Both matches and their details are printed directly in the output area.
+* `find alex david` returns `Alex Yeoh` and `David Li` from the sample contacts. Both matches are shown as numbered cards in the output area.
 
 ### Deleting an exhibitor contact: `delete`
 

@@ -87,7 +87,8 @@ The `UI` component,
 
 | Component | Responsibility |
 | --- | --- |
-| `MainWindow.fxml` / `BoothManagerPro.css` | Command-only layout, colours, spacing, and a text output area that fills available space. |
+| `MainWindow.fxml` / `BoothManagerPro.css` | Command-only layout, colours, spacing, and an output area that fills available space. |
+| `ContactCard.fxml` / `ContactCard` | A static card for one contact, shown by `ResultDisplay` when a `CommandResult` carries contacts to show. |
 | `CommandBox` | Typed input through `Logic.execute()`; successful input clears, failed input remains editable. |
 | `ResultDisplay` | Read-only text output, summary heading, and error styling. Each result replaces the previous output. |
 
@@ -460,7 +461,7 @@ A contact represents an exhibitor or an exhibitor representative.
 **MSS** means **Main Success Scenario**; **extensions** describe alternative or unsuccessful interactions.
 
 UC01–UC04 describe implemented workflows. UC05 distinguishes current search behavior from planned status filtering. Refer to the [User Guide](UserGuide.md) for supported commands.
-**Interaction rule:** All contact actions use typed commands. List, find, and view print results in one text output area. There are no graphical contact panels and no automatic startup listing.
+**Interaction rule:** All contact actions use typed commands. List, find, and view show their contacts as static, non-interactive cards in the one output area; other results are text. There are no separate contact panels and no automatic startup listing.
 **Guarantee:** Input-validation and duplicate rejections leave contacts unchanged. A storage-write failure is reported, but an already executed change may remain in memory; it is not guaranteed to have been saved.
 
 #### UC01: Add an exhibitor contact
