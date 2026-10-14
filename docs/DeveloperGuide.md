@@ -96,7 +96,7 @@ The `UI` component,
 - Before an explicit display request, the list is hidden and the count reads `List hidden`, rather than implying the address book is empty.
 - Future fields show a coming-soon message; no placeholder data is persisted.
 - Keep new commands in the logic layer and expose new data through the model.
-- Keyboard controls: Enter executes, Ctrl+L (Command+L on macOS) focuses command input, F1 opens help, and arrow keys navigate the focused contact list.
+- Keyboard controls: Enter executes, Ctrl+L (Command+L on macOS) focuses command input, and F1 opens help. Contacts are selected only through typed commands; the contact list is display-only.
 - `MainWindowTest` checks FXML loading, selection, command feedback, and empty states. It also writes UI previews to `build/reports/ui/`; Linux needs a display (for example, Xvfb).
 
 ### Logic component
