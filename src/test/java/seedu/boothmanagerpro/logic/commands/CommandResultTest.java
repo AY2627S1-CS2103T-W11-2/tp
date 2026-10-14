@@ -28,6 +28,31 @@ public class CommandResultTest {
     }
 
     @Test
+    public void contactsToShow_areImmutableSnapshotsComparedWithNumbering() {
+        List<Person> contacts = new ArrayList<>(List.of(ALICE));
+        CommandResult numbered = CommandResult.showingContacts("Contacts", contacts);
+        contacts.clear();
+        assertEquals(List.of(ALICE), numbered.getContactsToShow());
+        assertTrue(numbered.isNumberedContacts());
+        assertThrows(UnsupportedOperationException.class, () -> numbered.getContactsToShow().clear());
+
+        CommandResult unnumbered = CommandResult.showingContact("Contacts", ALICE);
+        assertEquals(List.of(ALICE), unnumbered.getContactsToShow());
+        assertFalse(unnumbered.isNumberedContacts());
+
+        // same contacts and numbering -> returns true
+        assertEquals(numbered, CommandResult.showingContacts("Contacts", List.of(ALICE)));
+        assertEquals(numbered.hashCode(), CommandResult.showingContacts("Contacts", List.of(ALICE)).hashCode());
+
+        // same contacts, different numbering -> returns false
+        assertNotEquals(numbered, unnumbered);
+
+        // different contacts -> returns false
+        assertNotEquals(numbered, CommandResult.showingContacts("Contacts", List.of()));
+        assertNotEquals(numbered, new CommandResult("Contacts"));
+    }
+
+    @Test
     public void equals() {
         CommandResult commandResult = new CommandResult("feedback");
 
