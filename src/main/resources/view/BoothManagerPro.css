@@ -28,10 +28,27 @@
 }
 .command-input:focused { -fx-border-color: #287ab5; }
 .command-input.error { -fx-border-color: #b43e42; }
-.result-display { -fx-font-family: monospace; -fx-background-color: #f0f6fa; -fx-background-radius: 6; -fx-text-fill: #20344d; }
+.result-display { -fx-background-color: #f0f6fa; -fx-background-radius: 6; -fx-text-fill: #20344d; }
 .result-display .content { -fx-background-color: #f0f6fa; -fx-padding: 10 12; }
 .result-display.error { -fx-text-fill: #8d292f; -fx-background-color: #fff0ef; }
 .result-display.error .content { -fx-background-color: #fff0ef; }
+.contact-scroll, .contact-scroll > .viewport { -fx-background-color: transparent; }
+.contact-scroll { -fx-padding: 0; -fx-background-insets: 0; }
+.contact-cards { -fx-padding: 2 4 8 0; }
+.contact-card {
+    -fx-background-color: white;
+    -fx-background-radius: 6;
+    -fx-border-color: #287ab5;
+    -fx-border-width: 0 0 0 4;
+    -fx-padding: 14 18;
+}
+.card-name { -fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1b3752; }
+.card-company { -fx-font-size: 15px; -fx-text-fill: #36556e; }
+.card-detail { -fx-font-size: 14px; -fx-text-fill: #536c84; }
+.card-tags { -fx-padding: 6 0 0 0; }
+.card-tags .label { -fx-background-color: #e5eef9; -fx-padding: 3 10; -fx-text-fill: #285487;
+    -fx-background-radius: 3; -fx-font-size: 12px; }
+.card-tags .label.card-detail { -fx-background-color: transparent; -fx-padding: 0; -fx-text-fill: #536c84; }
 .status-bar { -fx-background-color: #e3eaf1; -fx-padding: 9 24; }
 .status-bar .label { -fx-text-fill: #536c84; -fx-font-size: 11px; }
 .scroll-bar { -fx-background-color: transparent; }

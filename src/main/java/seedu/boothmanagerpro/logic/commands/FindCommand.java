@@ -36,8 +36,8 @@ public class FindCommand extends Command {
         model.updateFilteredPersonList(predicate);
         List<Person> matches = model.getFilteredPersonList();
         String summary = String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, matches.size());
-        return new CommandResult(matches.isEmpty() ? summary
-                : summary + "\n\n" + Messages.formatNumberedContacts(matches));
+        return CommandResult.showingContacts(matches.isEmpty() ? summary
+                : summary + "\n\n" + Messages.formatNumberedContacts(matches), matches);
     }
 
     @Override

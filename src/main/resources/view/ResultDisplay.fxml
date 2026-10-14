@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <VBox spacing="8" minHeight="0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
   <Label fx:id="feedbackHeading" text="Command result" styleClass="section-label" wrapText="true" />
-  <TextArea fx:id="resultDisplay" editable="false" wrapText="true" minHeight="0" VBox.vgrow="ALWAYS"
-            styleClass="result-display" accessibleText="Command result" />
+  <StackPane minHeight="0" VBox.vgrow="ALWAYS">
+    <TextArea fx:id="resultDisplay" editable="false" wrapText="true" minHeight="0"
+              styleClass="result-display" accessibleText="Command result" />
+    <ScrollPane fx:id="contactScroll" fitToWidth="true" hbarPolicy="NEVER" visible="false" managed="false"
+                focusTraversable="false" styleClass="contact-scroll" accessibleText="Contacts in command result">
+      <VBox fx:id="contactCards" spacing="10" mouseTransparent="true" styleClass="contact-cards" />
+    </ScrollPane>
+  </StackPane>
 </VBox>

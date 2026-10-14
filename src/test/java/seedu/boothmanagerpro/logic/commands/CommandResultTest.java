@@ -70,7 +70,7 @@ public class CommandResultTest {
         CommandResult commandResult = new CommandResult("feedback");
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser()
-                + ", exit=" + commandResult.isExit() + ", viewChoices=[]}";
+                + ", exit=" + commandResult.isExit() + ", viewChoices=[], contactsToShow=[], numberedContacts=false}";
         assertEquals(expected, commandResult.toString());
     }
 }

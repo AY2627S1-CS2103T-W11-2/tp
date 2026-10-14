@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.*?>
+<VBox styleClass="contact-card" spacing="4" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+  <Label fx:id="name" styleClass="card-name" wrapText="true" />
+  <Label fx:id="company" styleClass="card-company" wrapText="true" />
+  <Label fx:id="email" styleClass="card-detail" wrapText="true" />
+  <Label fx:id="phone" styleClass="card-detail" />
+  <Label fx:id="contactMethod" styleClass="card-detail" wrapText="true" />
+  <FlowPane fx:id="tags" hgap="6" vgap="6" styleClass="card-tags" />
+</VBox>

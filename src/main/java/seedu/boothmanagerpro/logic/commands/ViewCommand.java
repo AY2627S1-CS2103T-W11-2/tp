@@ -72,8 +72,8 @@ public class ViewCommand extends Command {
      */
     public static CommandResult createDetailsResult(Person person) {
         requireNonNull(person);
-        return new CommandResult(
-                String.format(MESSAGE_SUCCESS, Messages.formatContactDetails(person)));
+        return CommandResult.showingContact(
+                String.format(MESSAGE_SUCCESS, Messages.formatContactDetails(person)), person);
     }
 
     @Override

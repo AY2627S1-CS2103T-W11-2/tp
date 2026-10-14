@@ -21,6 +21,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.TextArea;
@@ -28,6 +29,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import seedu.boothmanagerpro.logic.LogicManager;
@@ -100,7 +102,15 @@ public class MainWindowTest {
             enterCommand(root, "list");
             assertTrue(output(root).contains("Total contacts: 5"));
             assertFalse(output(root).contains("David Li"));
+            VBox cards = (VBox) root.lookup("#contactCards");
+            assertTrue(root.lookup("#contactScroll").isVisible());
+            assertFalse(root.lookup("#resultDisplay").isVisible());
+            assertTrue(cards.isMouseTransparent());
+            assertEquals(6, cards.getChildren().size(), "5 cards and the total");
             savePreview(root, 1180, 820, "cli-list.png");
+            enterCommand(root, "not-a-command");
+            assertTrue(root.lookup("#resultDisplay").isVisible());
+            assertFalse(root.lookup("#contactScroll").isVisible());
         });
     }
 
@@ -282,8 +292,9 @@ public class MainWindowTest {
         previewScene.getStylesheets().setAll(oldScene.getStylesheets());
         root.applyCss();
         root.layout();
-        TextArea result = (TextArea) root.lookup("#resultDisplay");
-        assertTrue(result.getHeight() > height * 0.6, "Text output should fill the remaining workspace");
+        Node output = root.lookup("#resultDisplay").isVisible()
+                ? root.lookup("#resultDisplay") : root.lookup("#contactScroll");
+        assertTrue(output.getLayoutBounds().getHeight() > height * 0.6, "Output should fill the remaining workspace");
         WritableImage image = root.snapshot(null, null);
         BufferedImage bufferedImage = new BufferedImage((int) image.getWidth(), (int) image.getHeight(),
                 BufferedImage.TYPE_INT_ARGB);

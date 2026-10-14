@@ -44,7 +44,8 @@ public class ListCommandTest {
     @Test
     public void execute_listIsNotFiltered_showsSameList() {
         assertCommandSuccess(new ListCommand(), model,
-                new CommandResult(ListCommand.formatContactList(expectedModel.getFilteredPersonList())),
+                CommandResult.showingContacts(ListCommand.formatContactList(expectedModel.getFilteredPersonList()),
+                        expectedModel.getFilteredPersonList()),
                 expectedModel);
     }
 
@@ -52,7 +53,8 @@ public class ListCommandTest {
     public void execute_listIsFiltered_showsEverything() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
         assertCommandSuccess(new ListCommand(), model,
-                new CommandResult(ListCommand.formatContactList(expectedModel.getFilteredPersonList())),
+                CommandResult.showingContacts(ListCommand.formatContactList(expectedModel.getFilteredPersonList()),
+                        expectedModel.getFilteredPersonList()),
                 expectedModel);
     }
 
@@ -60,8 +62,8 @@ public class ListCommandTest {
     public void execute_emptyAddressBook_showsNoContactsMessage() {
         Model emptyModel = new ModelManager(new AddressBook(), new UserPrefs());
         assertCommandSuccess(new ListCommand(), emptyModel,
-                new CommandResult("No contacts found.\n"
-                        + "Use the 'add' command to add a new exhibitor contact."),
+                CommandResult.showingContacts("No contacts found.\n"
+                        + "Use the 'add' command to add a new exhibitor contact.", List.of()),
                 new ModelManager(new AddressBook(), new UserPrefs()));
     }
 

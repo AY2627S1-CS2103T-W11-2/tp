@@ -155,6 +155,7 @@ public class MainWindow extends UiPart<Stage> {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
+            resultDisplay.showContacts(commandResult.getContactsToShow(), commandResult.isNumberedContacts());
 
             commandBox.focus();
 
