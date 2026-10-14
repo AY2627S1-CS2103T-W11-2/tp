@@ -93,6 +93,7 @@ The `UI` component,
 | `CommandBox` / `ResultDisplay` | Command entry and success/error feedback. Commands continue through `Logic.execute()`. |
 
 - Selection drives the details panel; the filtered list drives the record count.
+- Before an explicit display request, the list is hidden and the count reads `List hidden`, rather than implying the address book is empty.
 - Future fields show a coming-soon message; no placeholder data is persisted.
 - Keep new commands in the logic layer and expose new data through the model.
 - Keyboard controls: Enter executes, Ctrl+L (Command+L on macOS) focuses command input, and F1 opens help. Contacts are selected only through typed commands; the contact list is display-only.
@@ -167,6 +168,29 @@ Classes used by multiple components are in the `seedu.boothmanagerpro.commons` p
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Implementation**
+
+### On-demand contact list display
+
+`MainWindow` starts each session with `PersonListPanel` invisible and unmanaged, showing a text-command prompt
+in its place. This is presentation state only: `ModelManager` still contains all contacts and its normal filtered
+list, so hiding the list neither deletes data nor changes command indexing or persistence.
+
+`ListCommand` and `FindCommand` return `CommandResult.forContactList(...)`, carrying an explicit
+`showContactList` flag. A resolved `view` uses the same flag with `personToView`; a multiple-match `view`
+already carries `viewChoices`, which also requests that its candidates be shown. `MainWindow` reveals the list
+only after a successful command returns one of these display requests. The prompt then disappears and the
+record count follows the displayed filter. Even an empty valid result reveals the list's existing empty state.
+
+Once revealed, the list remains visible during the session. Other commands and failed requests do not change
+visibility. In particular, `add` can select the added contact and display its details without revealing every
+contact. Automatic first-item selection is disabled while the list is hidden, including deferred model listeners.
+Visibility is not persisted: restarting always returns to the command prompt, without discarding saved contacts.
+
+Regression coverage: `CommandResultTest` checks display intent, equality and null handling; list/find command
+tests check that intent accompanies their feedback. `MainWindowTest` exercises populated startup, reloading
+saved data, single and multiple `view` matches, numbered selection, invalid commands, hidden mutations,
+zero-match searches, restoring all contacts with `list`, and delayed model listeners. UI snapshots are generated
+in `build/reports/ui/contact-list-hidden.png` and `contact-list-requested.png`.
 
 ### Viewing an exhibitor contact
 
@@ -664,7 +688,8 @@ testers are expected to do more *exploratory* testing.
    1. Download the JAR file and copy it into an empty folder.
 
    1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
+      Expected: The GUI opens with the contact list hidden and a prompt to type `list` or `find`.
+      Sample contacts are still loaded; `list` displays them. The window size may not be optimal.
 
 1. Saving window preferences
 
@@ -674,6 +699,22 @@ testers are expected to do more *exploratory* testing.
        Expected: The most recent window size and location are retained when they fit an available screen. Off-screen positions are moved onto an available screen, and oversized windows are resized to fit.
 
 1. _{ more test cases …​ }_
+
+### Testing on-demand list display
+
+Use a disposable data folder. Do not run `clear` against real contact data.
+
+| Scenario | Steps | Expected |
+| --- | --- | --- |
+| Populated startup | Launch with saved contacts. | List hidden, no automatic selection, `List hidden` count; prompt explains `list` and `find`. |
+| Invalid request | Before displaying contacts, try `list extra`, `find`, or `view n/NobodyMatches`. | Error feedback; list stays hidden and stored data is unchanged. |
+| Hidden addition | Before displaying contacts, add a valid new contact. | Brief confirmation and new contact details; list remains hidden. `list` later includes the added contact. |
+| Show all | Run `list`. | All stored contacts shown with the correct count and existing list feedback. |
+| Filter before list | Restart, then run `find Alex` with sample contacts. | Matching contacts shown directly; no preliminary `list` required. |
+| Empty search | Run `find NobodyMatches`. | Visible empty list and `0 records`; stored contacts remain intact. `list` restores them. |
+| View before list | Restart; run a valid `view n/NAME`. | Matching contact(s) shown; a unique match displays details, multiple matches require a numbered reply. |
+| Empty address book | In the disposable folder, run `clear`, restart, then `list`. | Startup prompt first; `list` reveals the empty state and no-contacts feedback. |
+| Restart | Show the list, exit, and relaunch from the same folder. | List hidden again; `list` restores saved contacts, including additions made while hidden. |
 
 ### Testing exhibitor additions
 

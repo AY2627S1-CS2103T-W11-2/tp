@@ -16,6 +16,7 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -47,6 +48,7 @@ public class MainWindow extends UiPart<Stage> {
     private HelpWindow helpWindow;
     private CommandBox commandBox;
     private ContactDetailsPanel detailsPanel;
+    private Label contactListPrompt;
 
     @FXML
     private Label recordCount;
@@ -132,21 +134,31 @@ public class MainWindow extends UiPart<Stage> {
      */
     void fillInnerParts() {
         personListPanel = new PersonListPanel(logic.getFilteredPersonList());
-        personListPanelPlaceholder.getChildren().add(personListPanel.getRoot());
+        personListPanel.getRoot().setVisible(false);
+        personListPanel.getRoot().managedProperty().bind(personListPanel.getRoot().visibleProperty());
+        contactListPrompt = new Label("Contact list hidden.\nType list to show all contacts, "
+                + "or find to search for contacts.");
+        contactListPrompt.setWrapText(true);
+        contactListPrompt.getStyleClass().add("empty-state");
+        contactListPrompt.managedProperty().bind(contactListPrompt.visibleProperty());
+        personListPanelPlaceholder.getChildren().addAll(contactListPrompt, personListPanel.getRoot());
         detailsPanel = new ContactDetailsPanel();
         contactDetailsPlaceholder.getChildren().add(detailsPanel.getRoot());
         personListPanel.selectedPersonProperty().addListener((observable, previous, selected) ->
                 detailsPanel.showPerson(selected));
         recordCount.textProperty().bind(Bindings.createStringBinding(() -> {
+            if (!personListPanel.getRoot().isVisible()) {
+                return "List hidden";
+            }
             int count = logic.getFilteredPersonList().size();
             return count + (count == 1 ? " record" : " records");
-        }, logic.getFilteredPersonList()));
+        }, logic.getFilteredPersonList(), personListPanel.getRoot().visibleProperty()));
         logic.getFilteredPersonList().addListener((ListChangeListener<Person>) change ->
                 Platform.runLater(this::ensureSelectionIfReady));
-        personListPanel.ensureSelection();
 
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
+        resultDisplay.bindMaxHeightTo(((Region) primaryStage.getScene().getRoot()).heightProperty());
         resultDisplay.setFeedbackToUser("Ready. Type a command to begin, or help for usage instructions.");
 
         StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
@@ -217,7 +229,7 @@ public class MainWindow extends UiPart<Stage> {
      * Restores a default selection unless a view request is waiting for the user's numbered choice.
      */
     private void ensureSelectionIfReady() {
-        if (!logic.isAwaitingViewSelection()) {
+        if (personListPanel.getRoot().isVisible() && !logic.isAwaitingViewSelection()) {
             personListPanel.ensureSelection();
         }
     }
@@ -232,6 +244,11 @@ public class MainWindow extends UiPart<Stage> {
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
+
+            if (commandResult.isShowContactList() || !commandResult.getViewChoices().isEmpty()) {
+                personListPanel.getRoot().setVisible(true);
+                contactListPrompt.setVisible(false);
+            }
 
             if (!commandResult.getViewChoices().isEmpty()) {
                 personListPanel.clearSelection();
