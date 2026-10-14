@@ -6,11 +6,11 @@ title: BoothManagerPro
 [![CI Status](https://github.com/AY2627S1-CS2103T-W11-2/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-W11-2/tp/actions/workflows/gradle.yml)
 [![codecov](https://codecov.io/github/AY2627S1-CS2103T-W11-2/tp/graph/badge.svg?token=EXE9YQFB7G)](https://codecov.io/github/AY2627S1-CS2103T-W11-2/tp)
 
-![Ui](images/Ui.png)
+![Current startup screen](images/cli-startup.png)
 
 **BoothManagerPro helps convention organisers manage exhibitor contacts through typed commands.** Add contacts with company, email, phone, optional contact method, and tags, with validation and duplicate detection. See the [add command reference](UserGuide.html#adding-an-exhibitor-contact-add).
 
-The image above is the planned UI mockup. Company and contact method are displayed in the application; enquiry status and follow-up features remain planned.
+The image above shows the current startup screen. `list`, `find`, and `view` print their results in a single text output area. Contacts are not printed automatically on startup, and there are no graphical contact panels. Enquiry status and follow-up features remain planned.
 
 * If you are interested in using BoothManagerPro, head over to the [_Quick Start_ section of the **User Guide**](UserGuide.html#quick-start).
 * If you are interested in developing BoothManagerPro, the [**Developer Guide**](DeveloperGuide.html) is a good place to start.

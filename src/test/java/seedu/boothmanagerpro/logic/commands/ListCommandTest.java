@@ -44,7 +44,7 @@ public class ListCommandTest {
     @Test
     public void execute_listIsNotFiltered_showsSameList() {
         assertCommandSuccess(new ListCommand(), model,
-                CommandResult.forContactList(ListCommand.formatContactList(expectedModel.getFilteredPersonList())),
+                new CommandResult(ListCommand.formatContactList(expectedModel.getFilteredPersonList())),
                 expectedModel);
     }
 
@@ -52,7 +52,7 @@ public class ListCommandTest {
     public void execute_listIsFiltered_showsEverything() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
         assertCommandSuccess(new ListCommand(), model,
-                CommandResult.forContactList(ListCommand.formatContactList(expectedModel.getFilteredPersonList())),
+                new CommandResult(ListCommand.formatContactList(expectedModel.getFilteredPersonList())),
                 expectedModel);
     }
 
@@ -60,7 +60,7 @@ public class ListCommandTest {
     public void execute_emptyAddressBook_showsNoContactsMessage() {
         Model emptyModel = new ModelManager(new AddressBook(), new UserPrefs());
         assertCommandSuccess(new ListCommand(), emptyModel,
-                CommandResult.forContactList("No contacts found.\n"
+                new CommandResult("No contacts found.\n"
                         + "Use the 'add' command to add a new exhibitor contact."),
                 new ModelManager(new AddressBook(), new UserPrefs()));
     }
@@ -75,9 +75,9 @@ public class ListCommandTest {
         String divider = "──────────────────────────────────────";
         String expected = "Exhibitor Contact List\n"
                 + divider + "\n\n"
-                + "Alicia Tan at TechNova Pte Ltd\nEmail: alicia@technova.com\nPhone: 91234567\n"
+                + "1. Alicia Tan at TechNova Pte Ltd\nEmail: alicia@technova.com\nPhone: 91234567\n"
                 + "Contact method: email\nTags: technology, high-priority\n\n"
-                + "John Smith at GlobalTech Inc\nEmail: john@globaltech.com\nPhone: +6562345678\n"
+                + "2. John Smith at GlobalTech Inc\nEmail: john@globaltech.com\nPhone: +6562345678\n"
                 + "Contact method: phone\nTags: hardware\n\n"
                 + divider + "\n"
                 + "Total contacts: 2";
@@ -89,7 +89,7 @@ public class ListCommandTest {
         Person legacy = new PersonBuilder().withTags().build();
         String result = ListCommand.formatContactList(List.of(legacy));
         assertEquals("Exhibitor Contact List\n" + ListCommand.MESSAGE_DIVIDER + "\n\n"
-                + legacy.getName() + " at Not specified\nEmail: " + legacy.getEmail()
+                + "1. " + legacy.getName() + " at Not specified\nEmail: " + legacy.getEmail()
                 + "\nPhone: " + legacy.getPhone() + "\nContact method: Not specified\nTags: None\n\n"
                 + ListCommand.MESSAGE_DIVIDER + "\nTotal contacts: 1", result);
     }

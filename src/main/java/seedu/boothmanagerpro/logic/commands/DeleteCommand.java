@@ -21,11 +21,11 @@ public class DeleteCommand extends Command {
     public static final String COMMAND_WORD = "delete";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Deletes the person identified by their full name. A displayed index can also be used.\n"
+            + ": Deletes the contact identified by their full name. A displayed index can also be used.\n"
             + "Parameters: NAME or INDEX (index must be a positive integer)\n"
             + "Example: " + COMMAND_WORD + " Alex Yeoh";
 
-    public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted person: %1$s";
+    public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted contact: %1$s";
     public static final String MESSAGE_PERSON_NOT_FOUND = "No contact found with the name: %1$s";
     public static final String MESSAGE_MULTIPLE_PERSONS_FOUND =
             "More than one contact has the name %1$s. Use list or find, then delete the contact by its displayed "

@@ -35,7 +35,7 @@ public class ViewCommandTest {
         expected.updateFilteredPersonList(person -> person.equals(alicia));
         CommandResult result = new ViewCommand(new Name("alicia tan ")).execute(model);
         assertEquals("Exhibitor contact found:\nAlicia Tan at TechNova Pte Ltd\nEmail: alicia@technova.com"
-                + "\nPhone: 91234567\nContact method: email\nTags: high-priority, technology",
+                + "\nPhone: 91234567\nContact method: email\nTags: technology, high-priority",
                 result.getFeedbackToUser());
         assertTrue(result.getViewChoices().isEmpty());
         assertEquals(expected, model);

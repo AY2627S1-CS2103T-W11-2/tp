@@ -4,9 +4,8 @@ import static java.util.Objects.requireNonNull;
 import static seedu.boothmanagerpro.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
+import seedu.boothmanagerpro.logic.Messages;
 import seedu.boothmanagerpro.model.Model;
 import seedu.boothmanagerpro.model.person.Person;
 
@@ -31,7 +30,7 @@ public class ListCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        return CommandResult.forContactList(formatContactList(model.getFilteredPersonList()));
+        return new CommandResult(formatContactList(model.getFilteredPersonList()));
     }
 
     /**
@@ -42,28 +41,10 @@ public class ListCommand extends Command {
         if (persons.isEmpty()) {
             return MESSAGE_EMPTY;
         }
-        String contacts = persons.stream().map(ListCommand::formatContact).collect(Collectors.joining("\n\n"));
+        String contacts = Messages.formatNumberedContacts(persons);
         return MESSAGE_HEADER + "\n" + MESSAGE_DIVIDER + "\n\n"
                 + contacts + "\n\n"
                 + MESSAGE_DIVIDER + "\n" + String.format(MESSAGE_TOTAL, persons.size());
     }
 
-    /**
-     * Formats one contact's entry, keeping tags in their stored order.
-     */
-    private static String formatContact(Person person) {
-        String tags = person.getTags().stream().map(tag -> tag.tagName).collect(Collectors.joining(", "));
-        return person.getName() + " at " + displayOptional(person.getCompany())
-                + "\nEmail: " + person.getEmail()
-                + "\nPhone: " + person.getPhone()
-                + "\nContact method: " + displayOptional(person.getContactMethod())
-                + "\nTags: " + (tags.isEmpty() ? "None" : tags);
-    }
-
-    /**
-     * Returns the field value or a placeholder for an omitted legacy field.
-     */
-    private static String displayOptional(Optional<?> value) {
-        return value.map(Object::toString).orElse("Not specified");
-    }
 }
