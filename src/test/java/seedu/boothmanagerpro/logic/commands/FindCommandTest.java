@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.boothmanagerpro.logic.Messages;
 import seedu.boothmanagerpro.model.Model;
 import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.UserPrefs;
@@ -59,17 +60,18 @@ public class FindCommandTest {
         NameContainsKeywordsPredicate predicate = preparePredicate(" ");
         FindCommand command = new FindCommand(predicate);
         expectedModel.updateFilteredPersonList(predicate);
-        assertCommandSuccess(command, model, CommandResult.forContactList(expectedMessage), expectedModel);
+        assertCommandSuccess(command, model, new CommandResult(expectedMessage), expectedModel);
         assertEquals(List.of(), model.getFilteredPersonList());
     }
 
     @Test
     public void execute_multipleKeywords_multiplePersonsFound() {
-        String expectedMessage = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 3);
+        String expectedMessage = String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 3) + "\n\n"
+                + Messages.formatNumberedContacts(List.of(CARL, ELLE, FIONA));
         NameContainsKeywordsPredicate predicate = preparePredicate("Kurz Elle Kunz");
         FindCommand command = new FindCommand(predicate);
         expectedModel.updateFilteredPersonList(predicate);
-        assertCommandSuccess(command, model, CommandResult.forContactList(expectedMessage), expectedModel);
+        assertCommandSuccess(command, model, new CommandResult(expectedMessage), expectedModel);
         assertEquals(List.of(CARL, ELLE, FIONA), model.getFilteredPersonList());
     }
 

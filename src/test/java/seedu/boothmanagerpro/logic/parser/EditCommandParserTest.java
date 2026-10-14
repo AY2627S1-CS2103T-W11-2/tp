@@ -77,8 +77,24 @@ public class EditCommandParserTest {
         // invalid arguments being parsed as preamble
         assertParseFailure(parser, "1 some random string", MESSAGE_INVALID_FORMAT);
 
-        // invalid prefix being parsed as preamble
-        assertParseFailure(parser, "1 i/ string", MESSAGE_INVALID_FORMAT);
+        // unsupported prefix is reported before values are parsed
+        assertParseFailure(parser, "1 i/ string", String.format(EditCommandParser.MESSAGE_UNKNOWN_FIELD, "i/"));
+    }
+
+    @Test
+    public void parse_unknownFieldsAfterAddress_rejectedInsteadOfStoredAsAddress() {
+        for (String prefix : new String[]{"c/", "m/", "x/"}) {
+            assertParseFailure(parser, "1 a/123 Main Street " + prefix + "value",
+                    String.format(EditCommandParser.MESSAGE_UNKNOWN_FIELD, prefix));
+        }
+    }
+
+    @Test
+    public void parse_tabSeparatedFields_success() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder()
+                .withName("Alicia Tan").withPhone("91234567").build();
+        assertParseSuccess(parser, "1\tn/Alicia Tan\tp/91234567",
+                new EditCommand(INDEX_FIRST_PERSON, descriptor));
     }
 
     @Test

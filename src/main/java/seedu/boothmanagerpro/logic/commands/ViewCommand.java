@@ -3,10 +3,9 @@ package seedu.boothmanagerpro.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import seedu.boothmanagerpro.commons.util.ToStringBuilder;
+import seedu.boothmanagerpro.logic.Messages;
 import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.model.Model;
 import seedu.boothmanagerpro.model.person.Name;
@@ -61,7 +60,7 @@ public class ViewCommand extends Command {
         for (int i = 0; i < matches.size(); i++) {
             Person person = matches.get(i);
             choices.append(i + 1).append(". ").append(person.getName()).append(" at ")
-                    .append(displayOptional(person.getCompany())).append("\n");
+                    .append(Messages.formatOptional(person.getCompany())).append("\n");
         }
         choices.append("Please input the corresponding number (1 to ").append(matches.size())
                 .append(") for the contact you would like to view.");
@@ -73,20 +72,8 @@ public class ViewCommand extends Command {
      */
     public static CommandResult createDetailsResult(Person person) {
         requireNonNull(person);
-        String tags = person.getTags().stream().map(tag -> tag.tagName).sorted().collect(Collectors.joining(", "));
-        String details = person.getName() + " at " + displayOptional(person.getCompany())
-                + "\nEmail: " + person.getEmail()
-                + "\nPhone: " + person.getPhone()
-                + "\nContact method: " + displayOptional(person.getContactMethod())
-                + "\nTags: " + (tags.isEmpty() ? "None" : tags);
-        return CommandResult.forContactList(String.format(MESSAGE_SUCCESS, details), person);
-    }
-
-    /**
-     * Returns the field value or a placeholder for an omitted legacy field.
-     */
-    private static String displayOptional(Optional<?> value) {
-        return value.map(Object::toString).orElse("Not specified");
+        return new CommandResult(
+                String.format(MESSAGE_SUCCESS, Messages.formatContactDetails(person)));
     }
 
     @Override

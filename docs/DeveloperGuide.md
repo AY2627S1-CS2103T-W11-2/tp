@@ -70,34 +70,32 @@ The sections below give more details of each component.
 
 The **API** of this component is specified in [`Ui.java`](../src/main/java/seedu/boothmanagerpro/ui/Ui.java)
 
-![Structure of the UI Component](images/UiClassDiagram.png)
+The command interface is composed of `MainWindow`, `CommandBox`, `ResultDisplay`, and `StatusBarFooter`. Help is printed in the same output area.
 
-The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
+The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](../src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](../src/main/java/seedu/boothmanagerpro/ui/MainWindow.java).
 
 The `UI` component,
 
 * executes user commands using the `Logic` component.
-* listens for changes to `Model` data so that the UI can be updated with the modified data.
+* displays the text returned by `Logic.execute()` after each command.
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
-* depends on some classes in the `Model` component because it displays `Person` objects from the model.
+* delegates contact formatting to the logic layer; it does not render `Person` objects as cards.
 
 #### UI extension points
 
 | Component | Responsibility |
 | --- | --- |
-| `MainWindow.fxml` / `BoothManagerPro.css` | Shared layout, colours, spacing, and responsive split view. |
-| `PersonListPanel` / `PersonCard` | Contact list and summary cards; exposes `selectedPersonProperty()`. |
-| `ContactDetailsPanel` | Selected contact details; company and contact method are displayed from the model. Status and follow-up fields remain planned. |
-| `CommandBox` / `ResultDisplay` | Command entry and success/error feedback. Commands continue through `Logic.execute()`. |
+| `MainWindow.fxml` / `BoothManagerPro.css` | Command-only layout, colours, spacing, and a text output area that fills available space. |
+| `CommandBox` | Typed input through `Logic.execute()`; successful input clears, failed input remains editable. |
+| `ResultDisplay` | Read-only text output, summary heading, and error styling. Each result replaces the previous output. |
 
-- Selection drives the details panel; the filtered list drives the record count.
-- Before an explicit display request, the list is hidden and the count reads `List hidden`, rather than implying the address book is empty.
-- Future fields show a coming-soon message; no placeholder data is persisted.
-- Keep new commands in the logic layer and expose new data through the model.
-- Keyboard controls: Enter executes, Ctrl+L (Command+L on macOS) focuses command input, and F1 opens help. Contacts are selected only through typed commands; the contact list is display-only.
-- `MainWindowTest` checks FXML loading, selection, command feedback, and empty states. It also writes UI previews to `build/reports/ui/`; Linux needs a display (for example, Xvfb).
+- Startup prints only a ready prompt; contacts are loaded into the model without being printed.
+- There are no graphical contact-list or details panels, no contact selection listeners, and no visibility flag.
+- `list` and `find` print numbered contacts; `view` prints details or numbered choices.
+- Enter executes, Ctrl+L (Command+L on macOS) focuses command input, and F1 prints help.
+- `MainWindowTest` checks FXML, text output, filtered indices, keyboard controls, persistence, and the absence of contact panels. It writes previews to `build/reports/ui/`; Linux needs a display such as Xvfb.
 
 ### Logic component
 
@@ -139,7 +137,7 @@ How the parsing works:
 The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
-* stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
+* stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` used by commands for filtering, numbered output, and indexed editing/deletion.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -169,55 +167,49 @@ Classes used by multiple components are in the `seedu.boothmanagerpro.commons` p
 
 ## **Implementation**
 
-### On-demand contact list display
+### Command-only contact display
 
-`MainWindow` starts each session with `PersonListPanel` invisible and unmanaged, showing a text-command prompt
-in its place. This is presentation state only: `ModelManager` still contains all contacts and its normal filtered
-list, so hiding the list neither deletes data nor changes command indexing or persistence.
+`MainWindow` contains a command input and a text result area. Startup prints only a ready prompt. The model
+still holds all saved contacts, but there is no contact-list widget, details widget, or persistent visibility state.
 
-`ListCommand` and `FindCommand` return `CommandResult.forContactList(...)`, carrying an explicit
-`showContactList` flag. A resolved `view` uses the same flag with `personToView`; a multiple-match `view`
-already carries `viewChoices`, which also requests that its candidates be shown. `MainWindow` reveals the list
-only after a successful command returns one of these display requests. The prompt then disappears and the
-record count follows the displayed filter. Even an empty valid result reveals the list's existing empty state.
+`ListCommand` restores the full model filter and prints every contact. `FindCommand` updates the filter and prints
+the match count plus every matching contact. Both use `Messages.formatNumberedContacts()` so the numbers in
+text match the one-based indices accepted by `edit` and `delete`. Empty results print a message without records.
 
-Once revealed, the list remains visible during the session. Other commands and failed requests do not change
-visibility. In particular, `add` can select the added contact and display its details without revealing every
-contact. Automatic first-item selection is disabled while the list is hidden, including deferred model listeners.
-Visibility is not persisted: restarting always returns to the command prompt, without discarding saved contacts.
+`CommandResult` carries text, an exit flag, and an immutable `viewChoices` snapshot when a numbered view reply
+is required. It does not carry GUI contact-selection metadata. `MainWindow` sends the returned text to
+`ResultDisplay`, which fills the remaining workspace and scrolls for long output. Each command replaces the
+previous text; results are not a command-history transcript.
 
-Regression coverage: `CommandResultTest` checks display intent, equality and null handling; list/find command
-tests check that intent accompanies their feedback. `MainWindowTest` exercises populated startup, reloading
-saved data, single and multiple `view` matches, numbered selection, invalid commands, hidden mutations,
-zero-match searches, restoring all contacts with `list`, and delayed model listeners. UI snapshots are generated
-in `build/reports/ui/contact-list-hidden.png` and `contact-list-requested.png`.
+Add and edit reset the model filter, and deletion shifts later indices. Users should run list or find again before
+choosing a subsequent index. A restart keeps saved contacts and resets the output to the ready prompt.
+
+Regression tests cover text-only startup/restart, find before list, filtered edit/delete indices, view replies,
+errors, persistence, and keyboard-only operation. UI snapshots are generated as `build/reports/ui/cli-*.png`.
 
 ### Viewing an exhibitor contact
 
 This increment follows the [team MVP feature specification](https://docs.google.com/document/d/1cRh9EyPpK2RwCaOXUsMIc6ls2n8jNccG_jbO2QjzPfw/edit).
 It uses `view n/NAME` and a numbered reply for multiple matches. Matching has been refined to behave like the
-existing `find` command: case-insensitive whole-name keywords combined with OR. Feedback and the two contact panels
-now reflect the same view request.
+existing `find` command: case-insensitive whole-name keywords combined with OR. All results appear in the text output area.
 
 `ViewCommandParser` enforces the specified name length and permitted characters, one `n/` field, and no other fields.
 `ViewCommand` searches the full address book using the existing `NameContainsKeywordsPredicate` and updates the
-filtered list to those matches. It leaves stored contacts unchanged. A unique match returns the formatted details
-and the selected contact via `CommandResult.personToView`.
+filtered list to those matches. It leaves stored contacts unchanged. A unique match returns the formatted details as command feedback.
 Multiple matches return a numbered name-and-company list plus an immutable `CommandResult.viewChoices` snapshot.
 
 `LogicManager` retains those choices for the next numbered reply. Invalid replies report the valid range and keep
-the choices available. A successful selection or another recognised command clears the pending choices.
+the choices available. A successful selection or another successfully parsed command clears the pending choices,
+even if command execution fails. Invalid command syntax preserves the pending choices.
 If the selected record has changed or disappeared, the user must run `view` again. Each LogicManager has its own
 selection state. Viewing and numbered replies bypass storage writes, because neither changes contact data.
 
-`MainWindow` clears list selection and shows a choice prompt for multiple matches. It selects and scrolls to
-`personToView` for a unique match or a numbered reply. Automatic first-item selection is suspended while
-`Logic.isAwaitingViewSelection()` is true, including queued list updates, so the first match is not mistaken for
-a user choice. Contact cards show company names; the details panel displays stored company and contact method.
+The numbered choice and resulting details both use the same text output area. A new command's feedback replaces
+the old choice prompt. No UI selection state or deferred list listener is needed.
 
 #### Shared contact attributes
 
-All five features use `Person` and its validated value objects.
+The five MVP workflows and the inherited edit command use `Person` and its validated value objects.
 
 | Attribute | Shared contract |
 | --- | --- |
@@ -225,7 +217,7 @@ All five features use `Person` and its validated value objects.
 | Company | `Optional<Company>`; required by add, absent in legacy records. `find c/` matches the complete value ignoring case. |
 | Email / phone | Stored lowercase email and normalised phone; search validates through the same value objects as add. |
 | Contact method | `Optional<ContactMethod>`; email, phone, or other. An absent method is shown as `Not specified`. Not a search criterion. |
-| Tags | Exact duplicates collapse on add. Search ignores case and matches whole tags. Add/list preserve stored order; view sorts tags for display. |
+| Tags | Exact duplicates collapse on add. Search ignores case and matches whole tags. Add, edit, storage, and command feedback preserve stored order. Empty tags show `None`. |
 | Storage | JSON uses `company` and `contactMethod`; absent fields become empty optionals. The legacy address remains for compatibility. |
 
 | Feature | Selection / result |
@@ -236,11 +228,13 @@ All five features use `Person` and its validated value objects.
 | List | Restores every contact and displays all exhibitor attributes plus total; rejects arguments. |
 | Find | Complete prefixed values, OR within each field and AND across fields; unprefixed keywords retain name-word matching. |
 
-Edit preserves company and method. Enquiry status and follow-up fields remain planned.
+Edit preserves company and method, rejects unsupported prefixes, and replaces tags in input order.
+`Messages.formatContactDetails()` supplies the shared list/view format; `Messages.formatTags()` and
+`Messages.formatOptional()` keep text placeholders consistent. Enquiry status and follow-up fields remain planned.
 
 Tests cover actual persisted exhibitor records, numbered selection and retries, cancelled/stale choices,
-invalid syntax, matching parity with `find`, legacy records, data preservation, and both GUI panels.
-The JavaFX regression test covers `rhineson` and `rhineson kok`, a numbered reply, and delayed list listeners.
+invalid syntax, matching parity with `find`, legacy records, data preservation, and command-only output.
+The JavaFX regression test covers same-name contacts at different companies, numbered replies, and cancellation.
 
 This section describes some noteworthy details on how certain features are implemented.
 
@@ -253,7 +247,7 @@ This section describes some noteworthy details on how certain features are imple
 3. Value objects validate fields, trim names/company, lowercase email, and remove phone spaces/hyphens. Repeated tags are ignored.
 4. `AddCommand` checks the complete address book for matching email or name/company, then adds the contact or reports the existing match.
 5. `LogicManager` saves through `JsonAddressBookStorage` before returning the success result.
-6. The result carries the added `Person` via the existing `personToView` field. `MainWindow` selects and scrolls to it, updates the details panel, and focuses command input. `CommandBox` clears successful input and retains failed input.
+6. The result contains a concise identity confirmation. `MainWindow` prints it and focuses command input. `CommandBox` clears successful input and retains failed input. A later `view`, `find`, or `list` prints the saved details.
 
 Error-handling responsibilities:
 
@@ -272,11 +266,13 @@ Integration notes:
 - The legacy address field remains for compatibility, using `Not provided` for new contacts. `add` no longer accepts `a/`.
 - Prefix-like tokens are reserved. Other words between prefixes belong to that field, allowing multi-word names and companies.
 - JSON includes `company` and `contactMethod`; legacy files without them are accepted if their other values meet current validation rules.
-- Contact cards show company; the details panel shows company and contact method. Logic tests run without a display server.
+- List, find, and view text includes company and contact method. Logic tests run without a display server.
 
 Verification: see [automated add tests](Testing.md#testing-exhibitor-additions) and [manual add checks](#testing-exhibitor-additions). These cover US-01, US-05, US-07, US-16, and US-18 for the add workflow.
 
 ### \[Proposed\] Undo/redo feature
+
+This section is a design proposal only. `VersionedAddressBook`, `UndoCommand`, `RedoCommand`, and the history methods below do not exist in the current code.
 
 #### Proposed Implementation
 
@@ -286,7 +282,7 @@ The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It ex
 * `VersionedAddressBook#undo()` — Restores the previous address book state from its history.
 * `VersionedAddressBook#redo()` — Restores a previously undone address book state from its history.
 
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
+The proposal would expose these operations in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
 
 Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
 
@@ -382,11 +378,11 @@ _{Explain here how the data archiving feature will be implemented}_
 
 #### Target user profile
 
-* Manager who are handling large amount of booths
-* Able to type fast
-* Interested in storing and finding specific contact from a large database
+* Convention organisers managing many exhibitor representatives
+* Comfortable typing commands for repeated contact-management tasks
+* Need to store and retrieve contact information quickly
 
-**Value proposition**: Able to add and delete the status of clients quickly and find their information faster as compared to mouse driven GUI.
+**Value proposition:** Manage exhibitor contacts through typed commands, with clear feedback and local storage. Enquiry status and follow-up tracking are planned. Startup prints no contacts; list, find, and view print requested results as text.
 
 ### User stories
 
@@ -463,15 +459,16 @@ For all use cases below, the **System** is **BoothManagerPro** and the **Actor**
 A contact represents an exhibitor or an exhibitor representative.
 **MSS** means **Main Success Scenario**; **extensions** describe alternative or unsuccessful interactions.
 
-These use cases describe the intended product workflows, including features not yet implemented. Refer to the [User Guide](UserGuide.md) for currently supported commands.
-**Guarantee:** Rejected requests leave the stored contacts unchanged.
+UC01–UC04 describe implemented workflows. UC05 distinguishes current search behavior from planned status filtering. Refer to the [User Guide](UserGuide.md) for supported commands.
+**Interaction rule:** All contact actions use typed commands. List, find, and view print results in one text output area. There are no graphical contact panels and no automatic startup listing.
+**Guarantee:** Input-validation and duplicate rejections leave contacts unchanged. A storage-write failure is reported, but an already executed change may remain in memory; it is not guaranteed to have been saved.
 
 #### UC01: Add an exhibitor contact
 
 **MSS**
 
 1. Organiser requests to add a contact, supplying the name, company, email, phone, and any optional contact method or tags.
-2. BoothManagerPro adds the contact and displays the newly added contact's details.
+2. BoothManagerPro adds the contact and prints a confirmation containing its name and company.
 
 Use case ends.
 
@@ -515,7 +512,7 @@ Use case ends.
 
 * 1c. More than one contact matches the supplied name.
   * 1c1. BoothManagerPro displays the matching contacts with their companies and asks the organiser to select one.
-  * 1c2. Organiser selects the intended contact.
+  * 1c2. Organiser types the corresponding number for the intended contact.
   * 1c3. If the selection is invalid, BoothManagerPro explains the valid choices and requests another selection.
 
   Steps 1c2 to 1c3 repeat until a valid contact is selected.
@@ -548,14 +545,13 @@ Use case ends.
 
   Use case resumes at step 1.
 
-* 1c. More than one contact matches the supplied name.
-  * 1c1. BoothManagerPro displays the matching contacts with their companies and asks the organiser to select one.
-  * 1c2. Organiser selects the intended contact.
-  * 1c3. If the selection is invalid, BoothManagerPro explains the valid choices and requests another selection.
+* 1c. More than one contact matches the supplied full name.
+  * 1c1. BoothManagerPro rejects the deletion and asks the organiser to use a displayed index.
+  * 1c2. Organiser runs `list`, optionally followed by `find`, to identify the intended contact.
+  * 1c3. Organiser enters `delete INDEX` using its displayed index.
+  * 1c4. BoothManagerPro deletes only that contact, or reports an invalid index without deleting anything.
 
-  Steps 1c2 to 1c3 repeat until a valid contact is selected.
-
-  Use case resumes at step 2, deleting only the selected contact.
+  Use case ends. A bare number is not a delete confirmation.
 
 #### UC04: List exhibitor contacts
 
@@ -584,14 +580,15 @@ Use case ends.
 **Current implementation (v1.2 development):** `find` supports exact name (`n/`), company (`c/`), email (`e/`),
 phone (`p/`), and tag (`t/`) criteria, with OR within a field and AND between fields.
 `ContactMatchesFieldsPredicate` applies these criteria to the full address book through the existing model filter.
-Unprefixed name keywords retain AB3's original word-matching behaviour for compatibility.
+Unprefixed name keywords retain AB3's original word-matching behaviour for compatibility. A match count and numbered
+matching contacts are printed directly, without requiring a preliminary `list` command.
 Enquiry-status criteria remain planned; the parser rejects `s/` and `m/`. The following use case describes the intended full scope.
 
 **MSS**
 
 1. Organiser requests to find contacts using one or more names, companies, emails, phone numbers, enquiry statuses, or tags.
-2. BoothManagerPro displays all contacts that match the supplied criteria, together with the number of matching contacts.
-   Each matching contact is displayed separately with an index and contact details, even if contacts share a name or company.
+2. BoothManagerPro reports the number of matching contacts and filters the contact index set. Each match is printed
+   in the text output with its index and contact details.
 
 Use case ends.
 
@@ -666,7 +663,7 @@ These are requirements for the intended product, not claims that every target ha
 * **Index**: The number shown beside a contact in a displayed list, used to select a specific contact when several share the same name
 * **Mainstream OS**: Windows, Linux, Unix, and macOS
 * **Normalisation**: Converting input to a standard form before storing or comparing it, such as lowercasing emails and removing spaces and hyphens from phone numbers
-* **Prefix**: A marker ending in `/` that identifies which field a value belongs to, e.g. `n/` for name or `s/` for status
+* **Prefix**: A marker ending in `/` that identifies which field a value belongs to, e.g. `n/` for name or `t/` for tag
 * **Primary contact**: The representative to contact first when an exhibitor has several representatives
 * **Representative**: A person who acts on behalf of an exhibitor. One exhibitor may have several
 * **Tag**: A short label attached to a contact to group it beyond enquiry status, for example by industry or priority
@@ -685,36 +682,38 @@ testers are expected to do more *exploratory* testing.
 
 1. Initial launch
 
-   1. Download the JAR file and copy it into an empty folder.
+   1. Build `build/libs/boothmanagerpro.jar` using the [setup instructions](UserGuide.md#quick-start) and copy it into an empty folder.
 
-   1. Double-click the JAR file.<br>
-      Expected: The GUI opens with the contact list hidden and a prompt to type `list` or `find`.
+   1. In a terminal in that folder, run `java -jar boothmanagerpro.jar`.<br>
+      Expected: The command window opens with a ready prompt and no printed contacts or contact panels.
       Sample contacts are still loaded; `list` displays them. The window size may not be optimal.
 
 1. Saving window preferences
 
    1. Resize the window to an optimal size. Move the window to a different location. Close the window.
 
-   1. Relaunch the app by double-clicking the JAR file.<br>
+   1. Relaunch the app with `java -jar boothmanagerpro.jar` from the same folder.<br>
        Expected: The most recent window size and location are retained when they fit an available screen. Off-screen positions are moved onto an available screen, and oversized windows are resized to fit.
 
 1. _{ more test cases …​ }_
 
-### Testing on-demand list display
+### Testing command-only output
 
 Use a disposable data folder. Do not run `clear` against real contact data.
 
 | Scenario | Steps | Expected |
 | --- | --- | --- |
-| Populated startup | Launch with saved contacts. | List hidden, no automatic selection, `List hidden` count; prompt explains `list` and `find`. |
-| Invalid request | Before displaying contacts, try `list extra`, `find`, or `view n/NobodyMatches`. | Error feedback; list stays hidden and stored data is unchanged. |
-| Hidden addition | Before displaying contacts, add a valid new contact. | Brief confirmation and new contact details; list remains hidden. `list` later includes the added contact. |
-| Show all | Run `list`. | All stored contacts shown with the correct count and existing list feedback. |
-| Filter before list | Restart, then run `find Alex` with sample contacts. | Matching contacts shown directly; no preliminary `list` required. |
-| Empty search | Run `find NobodyMatches`. | Visible empty list and `0 records`; stored contacts remain intact. `list` restores them. |
-| View before list | Restart; run a valid `view n/NAME`. | Matching contact(s) shown; a unique match displays details, multiple matches require a numbered reply. |
-| Empty address book | In the disposable folder, run `clear`, restart, then `list`. | Startup prompt first; `list` reveals the empty state and no-contacts feedback. |
-| Restart | Show the list, exit, and relaunch from the same folder. | List hidden again; `list` restores saved contacts, including additions made while hidden. |
+| Populated startup | Launch with saved contacts. | A ready prompt appears. No contacts are printed and no contact panels exist. |
+| Invalid request | Try `list extra`, `find`, or `view n/NobodyMatches`. | Error text replaces the output; input remains for correction and data is unchanged. |
+| Add | Add a valid contact. | Brief identity confirmation only; `view` can print its details. |
+| Show all | Run `list`. | Every contact is printed with an index and details, followed by the total. |
+| Find before list | Restart, then run `find Alex David` with sample data. | Two numbered contacts and their details appear in the output. No preliminary list is needed. |
+| Filtered indices | After `find Alex David`, run `delete 2`. | Only David is deleted. A later list shows the remaining contacts. |
+| Empty search | Run `find NobodyMatches`. | `0 contact(s) found.` with no stale contact details. |
+| View | Run `view n/NAME` for multiple matches, then reply with a valid number. | Numbered choices are replaced by the chosen contact's text details. |
+| Cancel choice | Request multiple view matches, then run `find NAME` or an out-of-range `delete INDEX`. | The new feedback replaces the choice prompt. A subsequent bare number is no longer accepted. |
+| Empty data | Run `clear`, restart, then `list`. | Ready prompt on restart; list prints no-contacts guidance. |
+| Restart | Add contacts, exit, and relaunch from the same folder. | Only a ready prompt appears; list prints the saved records. |
 
 ### Testing exhibitor additions
 
@@ -722,8 +721,8 @@ Use a separate test data folder with no Alicia Tan or Ben Lim records. Run each 
 
 | Check | Command / action | Expected result |
 | --- | --- | --- |
-| Full record and normalisation | `add n/Alicia Tan c/TechNova Pte Ltd e/ALICIA@example.com p/+65 9123-4567 m/EMAIL t/technology t/technology t/high-priority` | Contact added; the selected details show `alicia@example.com`, `+6591234567`, `email`, and each tag once. |
-| Optional fields omitted | `add n/Ben Lim c/GreenWorks e/ben@example.com p/87654321` | Contact added; the selected details show method `Not specified` and `No tags`. |
+| Full record and normalisation | `add n/Alicia Tan c/TechNova Pte Ltd e/ALICIA@example.com p/+65 9123-4567 m/EMAIL t/technology t/technology t/high-priority` | Contact added; a subsequent view shows `alicia@example.com`, `+6591234567`, `email`, and each tag once. |
+| Optional fields omitted | `add n/Ben Lim c/GreenWorks e/ben@example.com p/87654321` | Contact added; a subsequent view shows method `Not specified` and `None` for tags. |
 | Duplicate email, even when hidden | Run `find Ben`, then `add n/Another Person c/Another Company e/ALICIA@example.com p/98765432` | Rejected; identifies Alicia Tan at TechNova Pte Ltd. |
 | Duplicate name and company | `add n/alicia tan c/technova pte ltd e/different@example.com p/98765432` | Rejected despite different email and letter case. |
 | Missing field | `add n/Chris Tan e/chris@example.com p/98765432` | Missing-required-field error; no contact added. |
@@ -732,16 +731,16 @@ Use a separate test data folder with no Alicia Tan or Ben Lim records. Run each 
 | Invalid phone | `add n/Chris Tan c/Example Ltd e/chris@example.com p/123` | Phone-length error; no contact added. |
 | Persistence | Exit and relaunch from the same folder; run `list`, then repeat the first add command. | Both added contacts remain; repeated add is rejected. The saved `data/addressbook.json` retains company and contact method. |
 
-Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibitor-contact-add). Verify the brief identity confirmation, saved JSON, and full details in the selected contact's panel. Repeat an add after `find Nobody`; the new record should be selected, with all contacts visible and command input focused.
+Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibitor-contact-add). Verify the brief identity confirmation, saved JSON, and the details printed by a subsequent `view`. Repeat an add after `find Nobody`; the filter should reset, the input should clear and retain focus, and no graphical panels should appear.
 
 ### Viewing an exhibitor contact
 
-1. With sample data, run `find Nobody`, followed by `view n/alex yeoh`.<br>
-   Expected: Alex is selected in the left panel, with details in the right panel and result area.
+1. With sample data, run `list`, then `find Nobody`, followed by `view n/alex yeoh`.<br>
+   Expected: Alex's details are printed in the command output.
 1. Try `view`, `view c/TechNova`, `view n/Alex n/Yeoh`, `view Alex Yeoh`, and `view n/123`.<br>
    Expected: Each command reports the appropriate input error without changing any contact data.
-1. With contacts named `rhineson` and `rhineson kok`, run `view n/rhineson`.<br>
-   Expected: Both appear on the left, and the right panel asks you to choose. Reply `2` to see rhineson kok.
+1. After `list`, with contacts named `rhineson` and `rhineson kok`, run `view n/rhineson`.<br>
+   Expected: Both appear as numbered text choices. Reply `2` to print rhineson kok's details.
 1. With two stored contacts named Alicia Tan at different companies and with different emails, run
    `view n/Alicia Tan`.<br>
    Expected: Numbered company choices appear. Enter `0`, then `3`, then `2`.<br>
@@ -749,19 +748,19 @@ Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibit
 1. Run `view n/Alicia Tan`, then `list`, then `2`.<br>
    Expected: `list` cancels the pending choice; the final number is not treated as a view selection.
 
-### Deleting a person
+### Deleting a contact
 
-1. Deleting a person while all persons are being shown
+1. Deleting a contact while all contacts are being shown
 
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
+   1. Prerequisites: List all contacts using the `list` command, with multiple contacts in the list.
 
    1. Test case: `delete 1`<br>
       Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
 
    1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
+      Expected: No contact is deleted. The status message shows error details.
 
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
+   1. Other incorrect delete commands to try: `delete`, `delete 999999` (when that index exceeds the list size), and `delete n/Alex Yeoh`<br>
       Expected: Similar to previous.
 
 1. _{ more test cases …​ }_

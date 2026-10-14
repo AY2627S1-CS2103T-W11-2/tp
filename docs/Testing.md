@@ -73,11 +73,13 @@ For interactive checks, use the [manual add scenarios](DeveloperGuide.md#testing
 Manual check in a separate test folder:
 
 1. Add two contacts with the same name, different companies and emails, and an optional method/tag on one.
-2. Run `find c/COMPANY t/TAG` using that record's complete values; expect one match.
-3. Run `view n/NAME` for each record in turn; check company, email, phone, method, and tags. Clicking a contact in the list must not change the displayed details.
-4. Run `list`; expect both records and a total of two (plus any pre-existing contacts).
+2. Before `list`, run `find c/COMPANY t/TAG` using that record's complete values; expect one numbered match with all exhibitor details in the text output.
+3. Run `view n/NAME`, then reply `1` or `2` to choose between the same-name records. Check company, email, phone, method, and tags; repeat for the other record. All choices and details appear in text; no contact panels appear.
+4. Run `list`; expect both records and a total of two (plus any pre-existing contacts). There must be no graphical contact list or details panel. Selection uses `view` and numbered replies.
 5. Run `delete NAME`; expect ambiguity and no deletion. Filter by company, then `delete 1`; check the deleted record's company/method in feedback and confirm only that record is removed after restart.
 
 Add-error regression coverage also checks grouped missing/repeated prefixes, unknown-prefix identification, empty fields, field-specific validation messages, and error precedence. `ExhibitorAddIntegrationTest` verifies that invalid input and a contact conflicting with two existing records preserve the complete contact list, current filter, and saved JSON.
 
-`MainWindowTest.add_afterFilter_selectsSavedContactAndKeepsInputReady` exercises the post-add flow through real FXML and command entry. It checks selection after queued list updates, displayed attributes, persistence, input focus/clearing, retained input and selection after rejection, and recovery on a corrected add. The post-add preview is written to `build/reports/ui/add-success.png`.
+`MainWindowTest` exercises the actual FXML and typed commands. It verifies an empty startup prompt with saved contacts intact, numbered find/list output, filtered edit/delete indices, view replies and cancellation, error recovery, keyboard focus/help/exit, and the absence of contact-list and details panels. Responsive UI previews are written to `build/reports/ui/cli-startup.png`, `cli-find.png`, `cli-list.png`, `cli-view.png`, and `cli-compact.png`.
+
+Tag-order regression coverage runs `edit` with repeated tags, verifies first-occurrence order after JSON reload, and checks the same order in edit, list, and view feedback. Unsupported edit prefixes must leave the contact and saved JSON unchanged.

@@ -3,7 +3,7 @@ layout: page
 title: User Guide
 ---
 
-BoothManagerPro is a **desktop application for convention organisers to manage exhibitor contacts through typed commands**, with a graphical contact list and details panel.
+BoothManagerPro helps **convention organisers manage exhibitor contacts through typed commands in a desktop window**, with command input and text output only. All contact operations use typed commands; no mouse clicks are needed. Contacts are not printed automatically on startup.
 
 * Table of Contents
 {:toc}
@@ -12,20 +12,18 @@ BoothManagerPro is a **desktop application for convention organisers to manage e
 
 ## Quick start
 
-1. Ensure that Java `25` or later is installed on your computer.<br>
-   **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
+1. Ensure that JDK `25` is installed on your computer, as required by the [setup guide](SettingUp.md).
 
 1. Build the development JAR after following the [setup guide](SettingUp.md): run `.\gradlew.bat shadowJar` on Windows or `./gradlew shadowJar` on macOS/Linux. The JAR is generated at `build/libs/boothmanagerpro.jar`.
 
 1. Copy the file to the folder you want to use as the _home folder_ for BoothManagerPro.
 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar boothmanagerpro.jar`.<br>
-   Sample contacts are loaded on first launch, but the contact list is hidden until requested.
-   Type `list` to show all contacts, or `find Alex` to show matching contacts.
-   The image below is the planned UI mockup; some fields await integration.<br>
-   ![Ui](images/Ui.png)
+   Sample contacts are loaded on first launch, but only a ready prompt is shown.
+   Type `list` to print all contacts, `find Alex` to print matches, or `view n/Alex` to view details.<br>
+   ![Command interface on startup](images/cli-startup.png)
 
-1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
+1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to print command usage instructions.<br>
    Some example commands you can try:
 
    * `list` : Lists all contacts.
@@ -42,18 +40,19 @@ BoothManagerPro is a **desktop application for convention organisers to manage e
 
 --------------------------------------------------------------------------------------------------------------------
 
-### Workspace controls
+### Working through commands
 
-* Click the result heading to collapse or expand command feedback. New feedback reopens it automatically; the feedback area grows to fit the result, up to half of the window, and longer results scroll within it.
-* The contact list is display-only: contacts cannot be clicked or scrolled. Use `view` to select a contact and `find` to narrow the list.
-* Each launch starts with the contact list hidden and a prompt explaining how to display it. Stored contacts are not removed.
-* Successful `list`, `find`, and `view` requests reveal the contact list. Empty searches show an empty list, not hidden data.
-* Once requested, the list stays visible for the rest of the session and follows subsequent command results.
-  Adding, editing, deleting, clearing, or an invalid command does not reveal a previously hidden list.
-  A successful `add` still shows the new contact's details. Run `list` or `find` before using a displayed index.
-* Click the result heading to collapse or expand command feedback. New feedback reopens it automatically; long results scroll within a compact area.
-* Drag the divider between the contact list and details to adjust their widths. Both panels use the space freed when feedback is collapsed.
-* Expand **Enquiries & follow-ups** in contact details to see the planned-feature note.
+* Type a command and press **Enter**. Command words and prefixes are case-sensitive: use `list`, not `List`.
+* The command box starts with keyboard focus. Press **Ctrl+L** on Windows/Linux or **Command+L** on macOS to return to it. Use `help` or **F1** for the guide, and `exit` to close the app.
+* Each launch starts with a ready prompt. Saved contacts remain available but are not automatically printed.
+* Results appear only as text in the output area below the command box. There are no contact cards, contact-list panel, or details panel.
+* `list` prints every contact with a number and details. `find` prints the match count and numbered matching contacts; it works without running `list` first.
+* `view` prints a matching contact's details or numbered choices. Reply with a number only when `view` asks you to choose.
+* Each command replaces the previous output. The output fills the available space and scrolls for longer results. Use **Tab** to focus it and the arrow keys to read it; **Ctrl+L** or **Command+L** returns to command entry.
+* For `edit INDEX` and `delete INDEX`, use the numbers from the current `list`, `find`, or `view` matches. A successful `add` or `edit` resets the filter; run `list` or `find` again before choosing another index. After deleting a contact, later indices shift down.
+* Company and contact method show `Not specified` when absent. Tags appear in saved order, with `None` for an empty tag set. The legacy address field remains editable using `edit INDEX a/ADDRESS`; newly added contacts use `Not provided`.
+
+![Find results printed as numbered text](images/cli-find.png)
 
 ## Features
 
@@ -70,7 +69,7 @@ BoothManagerPro is a **desktop application for convention organisers to manage e
 * Items followed by `…`​ can appear zero or more times.<br>
   For example, `[t/TAG]…​` may be omitted, or written as `t/friend` or `t/friend t/family`.
 
-* Parameters can be in any order.<br>
+* Prefixed fields can be in any order; keep the index immediately after `edit`.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
 * Extraneous parameters for commands that take no parameters, such as `help`, `exit`, and `clear`, are ignored.<br>
@@ -81,9 +80,7 @@ BoothManagerPro is a **desktop application for convention organisers to manage e
 
 ### Viewing help: `help`
 
-Shows a message explaining how to access the help page.
-
-![help message](images/helpMessage.png)
+Prints command usage instructions and the User Guide link in the text output area. You can also press **F1**. Keyboard focus stays in the command box.
 
 Format: `help`
 
@@ -120,13 +117,13 @@ Added Alicia Tan at TechNova Pte Ltd.
 
 After a successful add:
 
-* The list shows all contacts again, with the new contact selected and scrolled into view.
-* The details panel shows the saved email, phone, company, contact method, and tags.
+* Any previous filter is cleared. The output shows the addition confirmation.
+* Use `view n/NAME` to print the saved details, or `list` to print all contacts.
 * The command box clears and keeps keyboard focus, ready for the next command.
 
-The second example stores `ben@example.com` and `+6587654321`. Its details show `Not specified` for the omitted method and `No tags` for an empty tag set.
+The second example stores `ben@example.com` and `+6587654321`. A subsequent `view n/Ben Lim` shows `Not specified` for the omitted method and `None` for an empty tag set.
 
-If validation or duplicate detection fails, the typed command remains available for correction and the existing selection is retained. No contact is added.
+If validation or duplicate detection fails, the typed command remains available for correction. No contact is added.
 
 **Duplicate handling**
 
@@ -169,7 +166,7 @@ followed by the total number of contacts.
 Format: `list`
 
 * `list` does not accept parameters. For example, `list 3` is rejected.
-* A successful `list` reveals the contact list, even when there are no contacts. Invalid requests leave its visibility unchanged.
+* `list` prints numbered contacts in the output area. With no contacts, it prints the no-contacts message below.
 * Any filter left by a previous `find` or `view` command is cleared, so all contacts are shown again.
 * Tags are shown in the order they are stored. An omitted contact method or a company missing from an older
   record is shown as `Not specified`. Contacts without tags show `None`.
@@ -180,13 +177,13 @@ Example: `list`
 Exhibitor Contact List
 ──────────────────────────────────────
 
-Alicia Tan at TechNova Pte Ltd
+1. Alicia Tan at TechNova Pte Ltd
 Email: alicia@technova.com
 Phone: 91234567
 Contact method: email
 Tags: technology, high-priority
 
-John Smith at GlobalTech Inc
+2. John Smith at GlobalTech Inc
 Email: john@globaltech.com
 Phone: +6562345678
 Contact method: phone
@@ -205,7 +202,7 @@ Use the 'add' command to add a new exhibitor contact.
 
 ### Viewing an exhibitor contact: `view`
 
-Shows matching contacts in the left panel and the chosen contact's details in the right panel, with command feedback in the result area.
+Prints the chosen contact's details in the command output area.
 
 Format: `view n/NAME`
 
@@ -214,14 +211,13 @@ Format: `view n/NAME`
 * Names must contain 1 to 80 characters and at least one letter. Letters, spaces, hyphens, apostrophes,
   and full stops are supported, for example `Anne-Marie O'Neil`.
 * Searches all stored contacts, including those hidden by a previous `find` command.
-* If several contacts match, the left panel and result show the same numbered choices with their companies.
-  The right panel prompts you to choose a contact.
+* If several contacts match, the output lists numbered choices with their companies and asks you to choose.
   Enter the corresponding number as your next command, for example `2`.
-  The chosen contact is highlighted on the left and their full details appear on the right.
-  A single match is selected automatically.
-* An invalid number shows the valid range and lets you try again. Another recognised command cancels the pending choice.
+  The output is replaced with the chosen contact's details. A single match displays details immediately.
+* An invalid number shows the valid range and lets you try again. Another successfully parsed command cancels the pending choice, even if execution fails. A command with invalid syntax leaves the choice pending. Cancelling a choice clears its prompt; a subsequent bare number is no longer a selection reply.
 * Only `n/` is accepted. Repeated names, other prefixes, missing/invalid names, and unprefixed requests are rejected.
-* Viewing does not change saved data. It filters the displayed list to the matches; use `list` to show everyone again.
+* No match produces an error and keeps the current filter unchanged.
+* Viewing does not change saved data. It filters the current index set to the matches; use `list` to print everyone again. A unique match has index `1`.
 * An omitted contact method or a company missing from an older record is shown as `Not specified`.
   Contacts without tags show `None`.
 
@@ -233,27 +229,30 @@ Alicia Tan at TechNova Pte Ltd
 Email: alicia@technova.com
 Phone: 91234567
 Contact method: email
-Tags: high-priority, technology
+Tags: technology, high-priority
 ```
 
 Create these records with `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [t/TAG]...`.
 
-### Editing a person: `edit`
+### Editing an exhibitor contact: `edit`
 
-Edits an existing person in the address book.
+Edits an existing contact by its displayed index.
 
 Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
 
-* Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
+* Edits the contact at the specified `INDEX`. The index refers to the index number shown in the current numbered command results. The index **must be a positive integer** 1, 2, 3, …​
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values. Name, email, phone, and tags follow the validation rules described under `add`.
-* Company and contact method are preserved; `edit` does not yet support `c/` or `m/`. Changes that create a duplicate are rejected.
-* When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
-* To remove all of a person's tags, enter `t/` without a tag after it.
+* Company and contact method are preserved; `edit` does not support `c/` or `m/`. Unsupported prefixes are rejected, including after `a/ADDRESS`. Changes that create a duplicate are rejected.
+* The legacy `a/ADDRESS` field accepts nonblank text. Whitespace-delimited prefix-like tokens are reserved, as in `add`. Only `t/` may repeat.
+* A successful edit clears the current filter and prints the edited contact. Run `list` or `find` again before choosing another index.
+* When editing tags, all of the contact's existing tags are removed; adding tags is not cumulative.
+* To remove all of a contact's tags, enter `t/` without a tag after it.
 
 Examples:
-*  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
-*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
+
+*  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st contact to be `91234567` and `johndoe@example.com` respectively.
+*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd contact to be `Betsy Crower` and clears all existing tags.
 
 ### Finding and filtering contacts: `find`
 
@@ -262,12 +261,14 @@ Use prefixed criteria to match complete field values:
 Format: `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG]...`
 
 * Supply at least one non-empty criterion. Each value must follow the same format as when adding a contact;
-  phone values accept spaces and hyphens, just as `add` does. Internal tabs are not accepted.
+  phone values accept spaces and hyphens, just as `add` does. Tabs inside phone numbers are not accepted.
 * Names, companies, emails, and tags ignore case and surrounding whitespace. Phone comparisons ignore spaces and hyphens.
 * Repeat a prefix for alternatives (OR). Different fields must all match (AND).
 * Tags match complete tag names; any matching tag satisfies that field.
 * Duplicate criteria have no effect. Results always search all stored contacts, not just the current displayed list.
-* Unknown prefixes and empty/invalid values are rejected without changing the displayed list or stored contacts.
+* Unknown prefixes and empty/invalid values are rejected without changing the filter or stored contacts.
+* `find` prints the number of matches followed by each matching contact's number, name, company, email, phone, method, and tags. No preliminary `list` command is needed.
+* With no matches, it prints `0 contact(s) found.` and no contact details.
 * Company (`c/`) matches the complete stored company name. Legacy contacts without a company do not match this field.
 * Enquiry status (`s/`) and contact method (`m/`) are not searchable. Status tracking remains planned.
 * `list` restores all contacts. A result count of zero means no contacts matched.
@@ -282,7 +283,7 @@ Examples:
 
 #### Legacy name-keyword search
 
-Finds persons whose names contain any of the given keywords.
+Finds contacts whose names contain any of the given keywords.
 
 Format: `find KEYWORD [MORE_KEYWORDS]`
 
@@ -290,16 +291,16 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
 * The search considers only names.
 * Only full words match; for example, `Han` does not match `Hans`.
-* Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* Contacts matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
 
 Examples:
+
 * `find John` returns `john` and `John Doe`
-* `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png)
+* `find alex david` returns `Alex Yeoh` and `David Li` from the sample contacts. Both matches and their details are printed directly in the output area.
 
-### Deleting a person: `delete`
+### Deleting an exhibitor contact: `delete`
 
-Deletes the specified person from the address book.
+Deletes the specified contact.
 
 Format: `delete NAME` or `delete INDEX`
 
@@ -307,20 +308,21 @@ Format: `delete NAME` or `delete INDEX`
 * Name deletion searches all stored contacts, including contacts hidden by a filter. Success feedback includes company and contact method.
 * A partial name does not match. For example, `delete Alex` does not match `Alex Yeoh`.
 * If no contact has the supplied name, no contact is deleted and an error is shown.
-* If multiple contacts match the supplied name ignoring letter case, no contact is deleted. Use `list` or `find`,
+* If multiple contacts match the supplied name ignoring letter case, no contact is deleted. Use `list`, optionally followed by `find`,
   then delete the intended contact by its displayed index.
-* Alternatively, deletes the person at the specified `INDEX`.
-* The index refers to the index number shown in the displayed person list.
+* Alternatively, deletes the contact at the specified `INDEX`.
+* The index refers to the index number shown in the current numbered command results.
 * The index **must be a positive integer** 1, 2, 3, …​
 
 Examples:
+
 * `delete Alex Yeoh` deletes the contact named Alex Yeoh.
-* `list` followed by `delete 2` deletes the 2nd person in the address book.
-* `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
+* `list` followed by `delete 2` deletes the 2nd contact in the contact list.
+* `find Betsy` followed by `delete 1` deletes the 1st contact in the results of the `find` command.
 
 ### Clearing all entries: `clear`
 
-Clears all entries from the address book.
+Deletes all stored contacts, including those hidden by a filter. The action takes effect immediately; there is no confirmation prompt or undo command.
 
 Format: `clear`
 
@@ -332,33 +334,33 @@ Format: `exit`
 
 ### Saving the data
 
-BoothManagerPro automatically saves data after successful commands, except `view` and its numbered selection replies, which do not write the data file. You do not need to save manually.
+BoothManagerPro automatically saves data after successful commands, except `view` and its numbered selection replies, which do not write the data file. You do not need to save manually. If saving fails, an error appears; the change may still be present in the running app but is not guaranteed to be on disk.
 
 ### Editing the data file
 
-By default, BoothManagerPro saves data as `data/addressbook.json`, relative to the folder from which you launch the app. Advanced users are welcome to update data directly by editing that data file.
+By default, BoothManagerPro saves data as `data/addressbook.json`, relative to the folder from which you launch the app. Close the app before editing or replacing this file so that a running session does not overwrite your changes.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, BoothManagerPro starts with an empty address book at the next run. The invalid file remains on disk until a command executes successfully and saves data. Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, BoothManagerPro starts with an empty contact collection at the next run. The invalid file remains on disk until a command other than `view` or a numbered view reply executes successfully and saves data (including `list`, `help`, or `exit`). Still, we recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause BoothManagerPro to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 
-### Archiving data files `[coming in v2.0]`
+### Planned features
 
-_Details coming soon ..._
+Enquiry status, follow-up dates, data archiving, CSV import/export, and undo are not available in the current version. There are no enquiry-management commands in this version.
 
 --------------------------------------------------------------------------------------------------------------------
 
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous BoothManagerPro home folder.
+**A**: Close BoothManagerPro on both computers. Copy `data/addressbook.json` from the old launch folder into the new launch folder's `data` directory, backing up any existing file first. Start the app from the new folder and run `list` to check your contacts.
 
 --------------------------------------------------------------------------------------------------------------------
 
 ## Known issues
 
-1. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
+1. **If you minimize the Help Window** and then run the `help` command (or use the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -374,3 +376,4 @@ Action | Format, Examples
 **List** | `list`
 **View** | `view n/NAME`<br> e.g., `view n/Alicia Tan`; reply `2` if prompted to choose between matches
 **Help** | `help`
+**Exit** | `exit`

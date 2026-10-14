@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -125,6 +126,29 @@ public class ExhibitorAddIntegrationTest {
         assertEquals(ContactMethod.EMAIL, edited.getContactMethod().orElseThrow());
         assertEquals("+6598765432", edited.getPhone().value);
         assertEquals(2, edited.getTags().size());
+    }
+
+    @Test
+    public void edit_tags_keepInputOrderAcrossFeedbackAndReload() throws Exception {
+        logic.execute(ADD);
+        String feedback = logic.execute("edit 1 t/technology t/high-priority t/technology").getFeedbackToUser();
+        Person reloaded = storage.readAddressBook().orElseThrow().getPersonList().getFirst();
+        assertEquals(List.of("technology", "high-priority"),
+                reloaded.getTags().stream().map(tag -> tag.tagName).toList());
+        assertTrue(feedback.contains("Tags: technology, high-priority"));
+        assertTrue(logic.execute("list").getFeedbackToUser().contains("Tags: technology, high-priority"));
+        assertTrue(logic.execute("view n/Alicia Tan").getFeedbackToUser()
+                .contains("Tags: technology, high-priority"));
+    }
+
+    @Test
+    public void edit_unknownField_preservesContactAndSavedData() throws Exception {
+        logic.execute(ADD);
+        String before = Files.readString(storage.getAddressBookFilePath());
+        Person original = model.getAddressBook().getPersonList().getFirst();
+        assertThrows(ParseException.class, () -> logic.execute("edit 1 a/123 Main Street c/New Company"));
+        assertEquals(original, model.getAddressBook().getPersonList().getFirst());
+        assertEquals(before, Files.readString(storage.getAddressBookFilePath()));
     }
 
     @Test

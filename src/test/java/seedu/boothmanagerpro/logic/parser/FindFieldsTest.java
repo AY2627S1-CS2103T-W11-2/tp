@@ -19,6 +19,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.boothmanagerpro.logic.Messages;
 import seedu.boothmanagerpro.logic.commands.FindCommand;
 import seedu.boothmanagerpro.logic.commands.ListCommand;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
@@ -136,7 +137,8 @@ public class FindFieldsTest {
     @Test
     public void execute_resultCountAndListReset() throws Exception {
         Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
-        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1),
+        assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 1) + "\n\n1. "
+                        + Messages.formatContactDetails(ALICE),
                 parser.parse("e/alice@example.com").execute(model).getFeedbackToUser());
         assertEquals(String.format(MESSAGE_PERSONS_LISTED_OVERVIEW, 0),
                 parser.parse("e/missing@example.com").execute(model).getFeedbackToUser());

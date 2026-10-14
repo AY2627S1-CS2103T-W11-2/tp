@@ -5,18 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
-import javafx.collections.ListChangeListener;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -24,17 +17,18 @@ import seedu.boothmanagerpro.commons.core.GuiSettings;
 import seedu.boothmanagerpro.commons.core.LogsCenter;
 import seedu.boothmanagerpro.logic.Logic;
 import seedu.boothmanagerpro.logic.commands.CommandResult;
+import seedu.boothmanagerpro.logic.commands.HelpCommand;
 import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
-import seedu.boothmanagerpro.model.person.Person;
 
 /**
  * The Main Window. Provides the basic application layout containing
- * a menu bar and space where other JavaFX elements can be placed.
+ * command input and text output, without graphical contact panels.
  */
 public class MainWindow extends UiPart<Stage> {
 
     private static final String FXML = "MainWindow.fxml";
+    private static final KeyCombination FOCUS_COMMAND = KeyCombination.valueOf("Shortcut+L");
 
     private final Logger logger = LogsCenter.getLogger(getClass());
 
@@ -43,27 +37,14 @@ public class MainWindow extends UiPart<Stage> {
     private Path dataFilePath;
 
     // Independent Ui parts residing in this Ui container
-    private PersonListPanel personListPanel;
     private ResultDisplay resultDisplay;
-    private HelpWindow helpWindow;
     private CommandBox commandBox;
-    private ContactDetailsPanel detailsPanel;
-    private Label contactListPrompt;
 
     @FXML
-    private Label recordCount;
-
-    @FXML
-    private StackPane contactDetailsPlaceholder;
+    private Label commandHints;
 
     @FXML
     private StackPane commandBoxPlaceholder;
-
-    @FXML
-    private MenuItem helpMenuItem;
-
-    @FXML
-    private StackPane personListPanelPlaceholder;
 
     @FXML
     private StackPane resultDisplayPlaceholder;
@@ -73,7 +54,7 @@ public class MainWindow extends UiPart<Stage> {
 
     /**
      * Creates a {@code MainWindow} with the given {@code Stage}, {@code Logic},
-     * and the data file path to show in the status bar.
+     * and the data file path available in the status bar tooltip.
      */
     public MainWindow(Stage primaryStage, Logic logic, Path dataFilePath) {
         super(FXML, primaryStage);
@@ -85,90 +66,33 @@ public class MainWindow extends UiPart<Stage> {
 
         // Configure the UI
         setWindowDefaultSize(logic.getGuiSettings());
-
-        setAccelerators();
-
-        helpWindow = new HelpWindow();
     }
 
     public Stage getPrimaryStage() {
         return primaryStage;
     }
 
-    private void setAccelerators() {
-        setAccelerator(helpMenuItem, KeyCombination.valueOf("F1"));
-    }
-
-    /**
-     * Sets the accelerator of a MenuItem.
-     * @param keyCombination the KeyCombination value of the accelerator
-     */
-    private void setAccelerator(MenuItem menuItem, KeyCombination keyCombination) {
-        menuItem.setAccelerator(keyCombination);
-
-        /*
-         * TODO: the code below can be removed once the bug reported here
-         * https://bugs.openjdk.java.net/browse/JDK-8131666
-         * is fixed in a later version of the SDK.
-         *
-         * According to the bug report, TextInputControl (TextField, TextArea) will
-         * consume function-key events. Because CommandBox contains a TextField and
-         * ResultDisplay contains a TextArea, some accelerators (e.g., F1) will
-         * not work when the focus is in them because the key event is consumed by
-         * the TextInputControl(s).
-         *
-         * For now, we add the following event filter to capture such key events and open
-         * the help window purposely so as to support accelerators even when focus is
-         * in CommandBox or ResultDisplay.
-         */
-        getRoot().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (event.getTarget() instanceof TextInputControl && keyCombination.match(event)) {
-                menuItem.getOnAction().handle(new ActionEvent());
-                event.consume();
-            }
-        });
-    }
-
     /**
      * Fills up all the placeholders of this window.
      */
     void fillInnerParts() {
-        personListPanel = new PersonListPanel(logic.getFilteredPersonList());
-        personListPanel.getRoot().setVisible(false);
-        personListPanel.getRoot().managedProperty().bind(personListPanel.getRoot().visibleProperty());
-        contactListPrompt = new Label("Contact list hidden.\nType list to show all contacts, "
-                + "or find to search for contacts.");
-        contactListPrompt.setWrapText(true);
-        contactListPrompt.getStyleClass().add("empty-state");
-        contactListPrompt.managedProperty().bind(contactListPrompt.visibleProperty());
-        personListPanelPlaceholder.getChildren().addAll(contactListPrompt, personListPanel.getRoot());
-        detailsPanel = new ContactDetailsPanel();
-        contactDetailsPlaceholder.getChildren().add(detailsPanel.getRoot());
-        personListPanel.selectedPersonProperty().addListener((observable, previous, selected) ->
-                detailsPanel.showPerson(selected));
-        recordCount.textProperty().bind(Bindings.createStringBinding(() -> {
-            if (!personListPanel.getRoot().isVisible()) {
-                return "List hidden";
-            }
-            int count = logic.getFilteredPersonList().size();
-            return count + (count == 1 ? " record" : " records");
-        }, logic.getFilteredPersonList(), personListPanel.getRoot().visibleProperty()));
-        logic.getFilteredPersonList().addListener((ListChangeListener<Person>) change ->
-                Platform.runLater(this::ensureSelectionIfReady));
-
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
-        resultDisplay.bindMaxHeightTo(((Region) primaryStage.getScene().getRoot()).heightProperty());
-        resultDisplay.setFeedbackToUser("Ready. Type a command to begin, or help for usage instructions.");
+        resultDisplay.setFeedbackToUser("Ready. Type list to show all contacts, find to search, "
+                + "or help for usage instructions.");
 
         StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
 
         commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
+        commandHints.setText("Enter to run  |  " + FOCUS_COMMAND.getDisplayText() + " to focus  |  F1 for help");
         getRoot().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (KeyCombination.valueOf("Shortcut+L").match(event)) {
+            if (FOCUS_COMMAND.match(event)) {
                 commandBox.focus();
+                event.consume();
+            } else if (KeyCombination.valueOf("F1").match(event)) {
+                handleHelp();
                 event.consume();
             }
         });
@@ -194,14 +118,15 @@ public class MainWindow extends UiPart<Stage> {
     }
 
     /**
-     * Opens the help window or focuses on it if it's already opened.
+     * Displays help in the command output area.
      */
     @FXML
     public void handleHelp() {
-        if (!helpWindow.isShowing()) {
-            helpWindow.show();
-        } else {
-            helpWindow.focus();
+        try {
+            executeCommand(HelpCommand.COMMAND_WORD);
+        } catch (CommandException | ParseException e) {
+            // executeCommand has already displayed the failure in the output area.
+            logger.warning("Unable to show help: " + e.getMessage());
         }
     }
 
@@ -217,21 +142,7 @@ public class MainWindow extends UiPart<Stage> {
         GuiSettings guiSettings = new GuiSettings(primaryStage.getWidth(), primaryStage.getHeight(),
                 (int) primaryStage.getX(), (int) primaryStage.getY());
         logic.setGuiSettings(guiSettings);
-        helpWindow.hide();
         primaryStage.hide();
-    }
-
-    public PersonListPanel getPersonListPanel() {
-        return personListPanel;
-    }
-
-    /**
-     * Restores a default selection unless a view request is waiting for the user's numbered choice.
-     */
-    private void ensureSelectionIfReady() {
-        if (personListPanel.getRoot().isVisible() && !logic.isAwaitingViewSelection()) {
-            personListPanel.ensureSelection();
-        }
     }
 
     /**
@@ -245,24 +156,7 @@ public class MainWindow extends UiPart<Stage> {
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
 
-            if (commandResult.isShowContactList() || !commandResult.getViewChoices().isEmpty()) {
-                personListPanel.getRoot().setVisible(true);
-                contactListPrompt.setVisible(false);
-            }
-
-            if (!commandResult.getViewChoices().isEmpty()) {
-                personListPanel.clearSelection();
-                detailsPanel.showSelectionPrompt();
-            } else if (commandResult.getPersonToView().isPresent()) {
-                personListPanel.selectPerson(commandResult.getPersonToView().orElseThrow());
-                commandBox.focus();
-            } else {
-                ensureSelectionIfReady();
-            }
-
-            if (commandResult.isShowHelp()) {
-                handleHelp();
-            }
+            commandBox.focus();
 
             if (commandResult.isExit()) {
                 handleExit();
@@ -272,7 +166,6 @@ public class MainWindow extends UiPart<Stage> {
         } catch (CommandException | ParseException e) {
             logger.info("An error occurred while executing command: " + commandText);
             resultDisplay.setFeedbackToUser(e.getMessage(), true);
-            ensureSelectionIfReady();
             throw e;
         }
     }

@@ -2,6 +2,7 @@ package seedu.boothmanagerpro.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.List;
 import java.util.function.Predicate;
 
 import seedu.boothmanagerpro.commons.util.ToStringBuilder;
@@ -33,8 +34,10 @@ public class FindCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
         model.updateFilteredPersonList(predicate);
-        return CommandResult.forContactList(
-                String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, model.getFilteredPersonList().size()));
+        List<Person> matches = model.getFilteredPersonList();
+        String summary = String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, matches.size());
+        return new CommandResult(matches.isEmpty() ? summary
+                : summary + "\n\n" + Messages.formatNumberedContacts(matches));
     }
 
     @Override

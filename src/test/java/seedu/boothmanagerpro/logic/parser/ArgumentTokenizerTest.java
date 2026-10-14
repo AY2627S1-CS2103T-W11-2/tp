@@ -80,6 +80,14 @@ public class ArgumentTokenizerTest {
     }
 
     @Test
+    public void tokenize_prefixAtStartAndAfterWhitespace_recognizesFields() {
+        ArgumentMultimap result = ArgumentTokenizer.tokenize("p/first\t-t second\np/third", pSlash, dashT);
+        assertPreambleEmpty(result);
+        assertArgumentPresent(result, pSlash, "first", "third");
+        assertArgumentPresent(result, dashT, "second");
+    }
+
+    @Test
     public void tokenize_multipleArguments() {
         // Only two arguments are present
         String argsString = "SomePreambleString -t dashT-Value p/pSlash value";

@@ -40,7 +40,6 @@ public class AddCommandTest {
         assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, AddCommand.formatIdentity(validPerson)),
                 commandResult.getFeedbackToUser());
         assertEquals(List.of(validPerson), modelStub.personsAdded);
-        assertEquals(validPerson, commandResult.getPersonToView().orElseThrow());
     }
 
     @Test

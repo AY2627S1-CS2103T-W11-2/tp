@@ -57,7 +57,7 @@ public class AddCommand extends Command {
     /**
      * Checks all stored contacts, including those hidden by a filter, before adding the contact.
      * A duplicate error identifies the existing record and leaves the model unchanged.
-     * Requests selection of the added contact so the UI can show full details beside a concise confirmation.
+     * Returns a concise text confirmation; list, find, and view can display the saved details.
      * Persistence is performed by LogicManager before the result reaches the UI.
      *
      * @throws CommandException If an existing contact matches the duplicate rule.
@@ -79,7 +79,7 @@ public class AddCommand extends Command {
         }
 
         model.addPerson(toAdd);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, formatIdentity(toAdd)), toAdd);
+        return new CommandResult(String.format(MESSAGE_SUCCESS, formatIdentity(toAdd)));
     }
 
     /** Finds every existing match in one pass over the full collection, independently of the UI filter. */

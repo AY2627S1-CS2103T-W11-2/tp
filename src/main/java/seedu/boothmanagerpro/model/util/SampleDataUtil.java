@@ -1,6 +1,7 @@
 package seedu.boothmanagerpro.model.util;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -54,7 +55,7 @@ public class SampleDataUtil {
     public static Set<Tag> getTagSet(String... strings) {
         return Arrays.stream(strings)
                 .map(Tag::new)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
 }
