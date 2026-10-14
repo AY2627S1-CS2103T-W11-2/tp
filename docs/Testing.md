@@ -70,6 +70,10 @@ For interactive checks, use the [manual add scenarios](DeveloperGuide.md#testing
 
 `FindFieldsTest` covers empty/overlong company criteria and rejects internal phone tabs consistently with add. `ViewCommandParserTest` checks the shared name validator, including the 80-code-point Unicode boundary.
 
+`FindUnicodeTest` verifies that exact-name and keyword searches agree on Unicode case variants, including Turkish,
+Greek, and supplementary letters. It also checks that full-name matching and same-field OR / cross-field AND rules
+are preserved.
+
 Manual check in a separate test folder:
 
 1. Add two contacts with the same name, different companies and emails, and an optional method/tag on one.

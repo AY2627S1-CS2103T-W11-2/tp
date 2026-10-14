@@ -21,8 +21,19 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
 
     /** Normalises values for exact matching, including spaces and hyphens in phone numbers. */
     public static String normalise(String field, String value) {
+        if (field.equals("n/")) {
+            return foldName(value);
+        }
         String result = value.trim().toLowerCase(Locale.ROOT);
         return field.equals("p/") ? result.replace(" ", "").replace("-", "") : result;
+    }
+
+    /** Folds each name code point using the same case equivalence as String.equalsIgnoreCase. */
+    private static String foldName(String value) {
+        StringBuilder folded = new StringBuilder();
+        value.trim().codePoints().map(Character::toUpperCase).map(Character::toLowerCase)
+                .forEach(folded::appendCodePoint);
+        return folded.toString();
     }
 
     @Override

@@ -263,6 +263,8 @@ Format: `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG]...`
 * Supply at least one non-empty criterion. Each value must follow the same format as when adding a contact;
   phone values accept spaces and hyphens, just as `add` does. Tabs inside phone numbers are not accepted.
 * Names, companies, emails, and tags ignore case and surrounding whitespace. Phone comparisons ignore spaces and hyphens.
+* Exact-name searches use the same Unicode case rules as name-keyword searches. For example, `find n/ipek`
+  matches a contact whose complete name is `İpek`; partial names still do not match.
 * Repeat a prefix for alternatives (OR). Different fields must all match (AND).
 * Tags match complete tag names; any matching tag satisfies that field.
 * Duplicate criteria have no effect. Results always search all stored contacts, not just the current displayed list.
