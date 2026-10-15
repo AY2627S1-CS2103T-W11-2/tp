@@ -21,7 +21,7 @@ BoothManagerPro helps **convention organisers manage exhibitor contacts through 
 1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar boothmanagerpro.jar`.<br>
    Sample contacts are loaded on first launch, but only a ready prompt is shown.
    Type `list` to print all contacts, `find Alex` to print matches, or `view n/Alex` to view details.<br>
-   ![Command interface on startup](images/cli-startup.png)
+   ![Command interface on startup](images/Ui%20-%20start%20state.png)
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to print command usage instructions.<br>
    Some example commands you can try:
@@ -51,8 +51,6 @@ BoothManagerPro helps **convention organisers manage exhibitor contacts through 
 * Each command replaces the previous output. The output fills the available space and scrolls for longer results. Use **Tab** to focus it and the arrow keys to read it; **Ctrl+L** or **Command+L** returns to command entry.
 * For `edit INDEX` and `delete INDEX`, use the numbers from the current `list`, `find`, or `view` matches. A successful `add` or `edit` resets the filter; run `list` or `find` again before choosing another index. After deleting a contact, later indices shift down.
 * Company and contact method show `Not specified` when absent. Tags appear in saved order, with `None` for an empty tag set. The legacy address field remains editable using `edit INDEX a/ADDRESS`; newly added contacts use `Not provided`.
-
-![Find results printed as numbered text](images/cli-find.png)
 
 ## Features
 
@@ -114,6 +112,10 @@ The first command displays:
 ```text
 Added Alicia Tan at TechNova Pte Ltd.
 ```
+
+![Add command confirmation](images/Ui%20-%20add%20command.png)
+
+*The output confirms the previous addition of John Lim; the command box contains a separate John Doe command.*
 
 After a successful add:
 
@@ -200,6 +202,8 @@ No contacts found.
 Use the 'add' command to add a new exhibitor contact.
 ```
 
+![List command showing numbered contact cards and a total count](images/Ui%20-%20list%20command.png)
+
 ### Viewing an exhibitor contact: `view`
 
 Shows the chosen contact's details as a card in the command output area.
@@ -233,6 +237,8 @@ Tags: technology, high-priority
 ```
 
 Create these records with `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [t/TAG]...`.
+
+![View command showing a matching exhibitor contact](images/Ui%20-%20view%20command.png)
 
 ### Editing an exhibitor contact: `edit`
 
@@ -300,6 +306,8 @@ Examples:
 * `find John` returns `john` and `John Doe`
 * `find alex david` returns `Alex Yeoh` and `David Li` from the sample contacts. Both matches are shown as numbered cards in the output area.
 
+![Find command showing two numbered matches for John](images/Ui%20-%20find%20command.png)
+
 ### Deleting an exhibitor contact: `delete`
 
 Deletes the specified contact.
@@ -321,6 +329,8 @@ Examples:
 * `delete Alex Yeoh` deletes the contact named Alex Yeoh.
 * `list` followed by `delete 2` deletes the 2nd contact in the contact list.
 * `find Betsy` followed by `delete 1` deletes the 1st contact in the results of the `find` command.
+
+![Delete command confirming the removal of John Lim](images/Ui%20-%20delete%20command.png)
 
 ### Clearing all entries: `clear`
 
