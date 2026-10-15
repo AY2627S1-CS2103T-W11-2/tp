@@ -6,7 +6,7 @@ title: BoothManagerPro
 [![CI Status](https://github.com/AY2627S1-CS2103T-W11-2/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-W11-2/tp/actions/workflows/gradle.yml)
 [![codecov](https://codecov.io/github/AY2627S1-CS2103T-W11-2/tp/graph/badge.svg?token=EXE9YQFB7G)](https://codecov.io/github/AY2627S1-CS2103T-W11-2/tp)
 
-![Current startup screen](images/cli-startup.png)
+![Current startup screen](images/Ui%20-%20start%20state.png)
 
 **BoothManagerPro helps convention organisers manage exhibitor contacts through typed commands.** Add contacts with company, email, phone, optional contact method, and tags, with validation and duplicate detection. See the [add command reference](UserGuide.html#adding-an-exhibitor-contact-add).
 

@@ -29,7 +29,7 @@ and identify whom to contact next.
 
 ## UI preview
 
-![Application on startup](docs/images/cli-startup.png)
+![Application on startup](docs/images/Ui%20-%20start%20state.png)
 
 *Current startup screen. The window contains command input and text output only. `list` prints all contacts, `find` prints numbered matches, and `view` prints details or numbered choices. Contacts are not printed automatically on launch.*
 
