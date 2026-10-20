@@ -239,6 +239,21 @@ The JavaFX regression test covers same-name contacts at different companies, num
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Updating an exhibitor contact
+
+`update NAME_OR_INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...`
+
+1. `AddressBookParser` routes to `UpdateCommandParser`, which validates the target, field cardinality and supplied values.
+2. `ContactFieldParser` shares prefix-specific validation feedback with add; domain value types remain the source of constraints and normalisation.
+3. Immutable `ContactUpdate` represents partial changes. An absent optional preserves the value; a present empty date/tag set explicitly clears it. Tags are defensively copied.
+4. `UpdateCommand` resolves a full name across all contacts or an index in the current filtered list. Missing/ambiguous targets fail before mutation.
+5. The command constructs a replacement and checks every other contact for duplicate email or name/company, including hidden records. Only then does it call `Model.setPerson` and clear the filter.
+6. Existing `LogicManager` persistence saves the result; the UI shows a concise confirmation. `view`/`list`/`find` display the new attributes through the existing cards.
+
+Legacy address is preserved. Supplied tags replace the tag set; a sole blank `t/` clears it. Empty `f/` clears the follow-up date. Other empty fields fail validation. There is no new storage schema or persistent contact ID. The existing `edit` command retains its syntax.
+
+`UpdateIntegrationTest` covers command routing, normalisation, partial updates, clearing, duplicate rejection, ambiguity, filtered indices, and persisted JSON. Rejected requests preserve contacts, filters, and disk content. `MainWindowTest` checks confirmation, updated cards, and retained input after invalid updates.
+
 ### Adding an exhibitor contact
 
 `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...`
@@ -255,7 +270,7 @@ Enquiry fields:
 - `EnquiryStatus` validates the three case-insensitive labels; omission defaults to `NEEDS_FOLLOW_UP`.
 - `FollowUpDate` wraps `LocalDate`, validates real calendar dates in `YYYYMMDD` (years 0001-9999), and accepts past dates. Omission is `Optional.empty()`. No time or timezone is stored.
 - JSON stores `enquiryStatus` as its display label and `followUpDate` as a date string or null. Missing/null fields in older files receive the defaults; invalid non-null values are rejected.
-- Existing edit commands preserve both fields. Status transitions and date updates are not implemented yet.
+- Existing edit commands preserve both fields. The `update` command changes status/date; empty `f/` clears the date. No transition order is enforced.
 - Neither field changes duplicate identity. List/find/view output and contact cards display both fields.
 
 Error-handling responsibilities:
