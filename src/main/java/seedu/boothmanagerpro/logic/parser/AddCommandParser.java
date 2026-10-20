@@ -8,6 +8,7 @@ import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_STATUS;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_TAG;
+import static seedu.boothmanagerpro.logic.parser.ContactFieldParser.parseValue;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -114,18 +115,6 @@ public class AddCommandParser implements Parser<AddCommand> {
             return Optional.empty();
         }
         return Optional.of(parseValue(prefix, fields.getValue(prefix).orElseThrow(), constructor));
-    }
-
-    /** Adds field context without duplicating validation or normalisation rules from the model. */
-    private <T> T parseValue(Prefix prefix, String value, Function<String, T> constructor) throws ParseException {
-        if (value.isBlank()) {
-            throw new ParseException("Empty field: " + prefix + ". Supply a value after this prefix.");
-        }
-        try {
-            return constructor.apply(value);
-        } catch (IllegalArgumentException e) {
-            throw new ParseException("Invalid value for " + prefix + ": " + e.getMessage(), e);
-        }
     }
 
     /**
