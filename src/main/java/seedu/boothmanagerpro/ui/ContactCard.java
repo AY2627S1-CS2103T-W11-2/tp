@@ -34,6 +34,12 @@ public class ContactCard extends UiPart<Region> {
     @FXML
     private FlowPane tags;
 
+    @FXML
+    private Label enquiryStatus;
+
+    @FXML
+    private Label followUpDate;
+
     /**
      * Creates a card for {@code person}, prefixed with {@code index} when it is positive.
      */
@@ -45,6 +51,8 @@ public class ContactCard extends UiPart<Region> {
         email.setText("Email: " + person.getEmail());
         phone.setText("Phone: " + person.getPhone());
         contactMethod.setText("Contact method: " + Messages.formatOptional(person.getContactMethod()));
+        enquiryStatus.setText("Enquiry status: " + person.getEnquiryStatus());
+        followUpDate.setText("Follow-up date: " + Messages.formatFollowUpDate(person));
         if (person.getTags().isEmpty()) {
             Label none = new Label("No tags");
             none.getStyleClass().add("card-detail");

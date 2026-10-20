@@ -8,6 +8,8 @@ import seedu.boothmanagerpro.model.person.Address;
 import seedu.boothmanagerpro.model.person.Company;
 import seedu.boothmanagerpro.model.person.ContactMethod;
 import seedu.boothmanagerpro.model.person.Email;
+import seedu.boothmanagerpro.model.person.EnquiryStatus;
+import seedu.boothmanagerpro.model.person.FollowUpDate;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.model.person.Phone;
@@ -24,6 +26,8 @@ public class PersonBuilder {
     public static final String DEFAULT_EMAIL = "amy@gmail.com";
     public static final String DEFAULT_ADDRESS = "123, Jurong West Ave 6, #08-111";
 
+    private EnquiryStatus enquiryStatus = EnquiryStatus.NEEDS_FOLLOW_UP;
+    private Optional<FollowUpDate> followUpDate = Optional.empty();
     private Name name;
     private Phone phone;
     private Email email;
@@ -54,6 +58,8 @@ public class PersonBuilder {
         tags = new LinkedHashSet<>(personToCopy.getTags());
         company = personToCopy.getCompany();
         contactMethod = personToCopy.getContactMethod();
+        enquiryStatus = personToCopy.getEnquiryStatus();
+        followUpDate = personToCopy.getFollowUpDate();
     }
 
     /**
@@ -96,8 +102,20 @@ public class PersonBuilder {
         return this;
     }
 
+    /** Sets the enquiry stage for test fixtures. */
+    public PersonBuilder withEnquiryStatus(String status) {
+        enquiryStatus = EnquiryStatus.fromString(status);
+        return this;
+    }
+
+    /** Sets a calendar follow-up date for test fixtures. */
+    public PersonBuilder withFollowUpDate(String date) {
+        followUpDate = Optional.of(new FollowUpDate(date));
+        return this;
+    }
+
     public Person build() {
-        return new Person(name, phone, email, address, tags, company, contactMethod);
+        return new Person(name, phone, email, address, tags, company, contactMethod, enquiryStatus, followUpDate);
     }
 
     /** Sets the exhibitor organisation. */

@@ -48,6 +48,23 @@ public class JsonAdaptedPersonTest {
             .collect(Collectors.toList());
 
     @Test
+    public void toModelType_enquiryDefaultsAndInvalidValues() throws Exception {
+        Person legacy = new JsonAdaptedPerson(BENSON).toModelType();
+        assertEquals("Needs follow-up", legacy.getEnquiryStatus().toString());
+        assertEquals(java.util.Optional.empty(), legacy.getFollowUpDate());
+        for (String status : new String[]{"", "new"}) {
+            JsonAdaptedPerson invalid = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                    VALID_ADDRESS, VALID_TAGS, null, null, status, null);
+            assertThrows(IllegalValueException.class, invalid::toModelType);
+        }
+        for (String date : new String[]{"", "20230229", "none"}) {
+            JsonAdaptedPerson invalid = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                    VALID_ADDRESS, VALID_TAGS, null, null, "Completed", date);
+            assertThrows(IllegalValueException.class, invalid::toModelType);
+        }
+    }
+
+    @Test
     public void toModelType_normalisesValuesLikeAdd() throws Exception {
         Person expected = new PersonBuilder(BENSON).withPhone("+6598765432")
                 .withCompany("TechNova").withContactMethod("email").build();

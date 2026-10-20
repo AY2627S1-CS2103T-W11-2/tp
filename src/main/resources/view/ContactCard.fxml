@@ -7,5 +7,7 @@
   <Label fx:id="email" styleClass="card-detail" wrapText="true" />
   <Label fx:id="phone" styleClass="card-detail" />
   <Label fx:id="contactMethod" styleClass="card-detail" wrapText="true" />
+  <Label fx:id="enquiryStatus" styleClass="card-detail" wrapText="true" />
+  <Label fx:id="followUpDate" styleClass="card-detail" wrapText="true" />
   <FlowPane fx:id="tags" hgap="6" vgap="6" styleClass="card-tags" />
 </VBox>

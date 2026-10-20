@@ -2,9 +2,11 @@ package seedu.boothmanagerpro.logic.parser;
 
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_COMPANY;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_FOLLOW_UP;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_METHOD;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_STATUS;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.LinkedHashSet;
@@ -21,6 +23,8 @@ import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 import seedu.boothmanagerpro.model.person.Company;
 import seedu.boothmanagerpro.model.person.ContactMethod;
 import seedu.boothmanagerpro.model.person.Email;
+import seedu.boothmanagerpro.model.person.EnquiryStatus;
+import seedu.boothmanagerpro.model.person.FollowUpDate;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.model.person.Phone;
@@ -35,14 +39,15 @@ public class AddCommandParser implements Parser<AddCommand> {
     public static final String MESSAGE_MISSING_FIELD = "Missing required fields: %s. Supply a value after each prefix.";
     public static final String MESSAGE_REPEATED_FIELD =
             "Repeated fields: %s. Keep one value per field; only t/ may repeat.";
-    public static final String MESSAGE_UNKNOWN_FIELD = "Unknown field prefix: %s. Use n/, c/, e/, p/, m/, or t/.";
+    public static final String MESSAGE_UNKNOWN_FIELD =
+            "Unknown field prefix: %s. Use n/, c/, e/, p/, m/, s/, f/, or t/.";
     public static final String MESSAGE_PREAMBLE = "Unexpected text before the first field. "
             + "Start with a prefix, for example: add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567";
     private static final Pattern FIELD_PREFIX = Pattern.compile("(?<!\\S)([^\\s/]+/)");
     private static final Set<Prefix> ALLOWED_PREFIXES = Set.of(PREFIX_NAME, PREFIX_COMPANY, PREFIX_EMAIL,
-            PREFIX_PHONE, PREFIX_METHOD, PREFIX_TAG);
+            PREFIX_PHONE, PREFIX_METHOD, PREFIX_STATUS, PREFIX_FOLLOW_UP, PREFIX_TAG);
     private static final List<Prefix> SINGLE_VALUE_PREFIXES = List.of(PREFIX_NAME, PREFIX_COMPANY,
-            PREFIX_EMAIL, PREFIX_PHONE, PREFIX_METHOD);
+            PREFIX_EMAIL, PREFIX_PHONE, PREFIX_METHOD, PREFIX_STATUS, PREFIX_FOLLOW_UP);
     private static final List<Prefix> REQUIRED_PREFIXES = List.of(PREFIX_NAME, PREFIX_COMPANY,
             PREFIX_EMAIL, PREFIX_PHONE);
 
@@ -92,11 +97,23 @@ public class AddCommandParser implements Parser<AddCommand> {
             method = Optional.of(parseValue(PREFIX_METHOD, fields.getValue(PREFIX_METHOD).orElseThrow(),
                     ContactMethod::fromString));
         }
+        EnquiryStatus status = parseOptional(fields, PREFIX_STATUS, EnquiryStatus::fromString)
+                .orElse(EnquiryStatus.NEEDS_FOLLOW_UP);
+        Optional<FollowUpDate> date = parseOptional(fields, PREFIX_FOLLOW_UP, FollowUpDate::new);
         Set<Tag> tags = new LinkedHashSet<>();
         for (String value : fields.getAllValues(PREFIX_TAG)) {
             tags.add(parseValue(PREFIX_TAG, value, Tag::new));
         }
-        return Person.createExhibitor(name, company, email, phone, method, tags);
+        return Person.createExhibitor(name, company, email, phone, method, tags, status, date);
+    }
+
+    /** Parses an optional field only when supplied; explicit blank values still produce an error. */
+    private <T> Optional<T> parseOptional(ArgumentMultimap fields, Prefix prefix, Function<String, T> constructor)
+            throws ParseException {
+        if (fields.getValue(prefix).isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(parseValue(prefix, fields.getValue(prefix).orElseThrow(), constructor));
     }
 
     /** Adds field context without duplicating validation or normalisation rules from the model. */

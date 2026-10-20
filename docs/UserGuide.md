@@ -87,7 +87,7 @@ Format: `help`
 
 Adds an exhibitor or representative with a required company, email, and phone number.
 
-Format: `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [t/TAG]...`
+Format: `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...`
 
 | Field | Rules |
 | --- | --- |
@@ -96,15 +96,17 @@ Format: `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [t/TAG]...`
 | `e/EMAIL` | Valid email format, such as `alicia@example.com`; stored in lowercase. |
 | `p/PHONE` | 7-15 digits, optionally starting with `+`. Spaces and hyphens are removed. |
 | `m/METHOD` | Optional: `email`, `phone`, or `other`, ignoring case. Omitted method is `Not specified`. |
+| `s/STATUS` | Optional: `Needs follow-up` (default), `In progress`, or `Completed`, ignoring case. |
+| `f/YYYYMMDD` | Optional calendar date, e.g. `20261025`; omitted date displays as `None`. Years 0001-9999; invalid dates are rejected. |
 | `t/TAG` | Optional and repeatable: 1-30 characters, nonblank, without `/`. Identical tags are ignored; comparisons are case-sensitive. |
 
-Leading and trailing spaces are removed from field values. Fields can appear in any order. Only `t/` may repeat. The old `a/ADDRESS` field is not accepted by `add`.
+Leading and trailing spaces are removed from field values. Fields can appear in any order. Only `t/` may repeat. Dates contain no time or timezone; past dates are accepted. Omit `f/` for no date (do not enter `f/none`). Status does not advance automatically. The old `a/ADDRESS` field is not accepted by `add`.
 
 Examples (enter each command on one line):
 
 ```text
 add n/Alicia Tan c/TechNova Pte Ltd e/alicia@technova.com p/91234567 m/email t/technology t/high-priority
-add n/Ben Lim c/GreenWorks e/BEN@example.com p/+65 8765-4321
+add n/Ben Lim c/GreenWorks e/BEN@example.com p/+65 8765-4321 s/In progress f/20261025
 ```
 
 The first command displays:
@@ -140,7 +142,7 @@ Use the edit command if you want to update the existing contact.
 
 If the email matches one record and the name/company matches another, both conflicting contacts are listed with their emails. No contact is added; correct the input before retrying.
 
-The current `edit` command can update name, email, phone, address, and tags; it cannot yet change company or contact method.
+The current `edit` command can update name, email, phone, address, and tags; it cannot yet change company, contact method, enquiry status, or follow-up date; existing values are preserved.
 
 **Input errors**
 
@@ -148,7 +150,7 @@ The current `edit` command can update name, email, phone, address, and tags; it 
 | --- | --- |
 | Missing required prefixes (example: company and email) | `Missing required fields: c/, e/. Supply a value after each prefix.` |
 | Repeated fields (example: name and phone) | `Repeated fields: n/, p/. Keep one value per field; only t/ may repeat.` |
-| Unknown prefix (example: `x/`) | `Unknown field prefix: x/. Use n/, c/, e/, p/, m/, or t/.` |
+| Unknown prefix (example: `x/`) | `Unknown field prefix: x/. Use n/, c/, e/, p/, m/, s/, f/, or t/.` |
 | Text before the first prefix | `Unexpected text before the first field.` followed by a complete example command. |
 | Empty field (example: `c/`) | `Empty field: c/. Supply a value after this prefix.` |
 | Invalid name | `Invalid value for n/: Names must be 1 to 80 characters and contain a letter. Use only letters, spaces, hyphens, apostrophes or full stops.` |
@@ -156,13 +158,15 @@ The current `edit` command can update name, email, phone, address, and tags; it 
 | Invalid email | `Invalid value for e/: Email address is invalid.` |
 | Invalid phone | `Invalid value for p/: Phone number must contain 7 to 15 digits.` |
 | Invalid method | `Invalid value for m/: Contact method must be email, phone, or other.` |
+| Invalid status | `Invalid value for s/: Enquiry status must be Needs follow-up, In progress, or Completed.` |
+| Invalid date | `Invalid value for f/: Follow-up date must be a valid date in YYYYMMDD format (years 0001 to 9999), e.g. 20261025.` |
 | Invalid tag | `Invalid value for t/: Tag must be 1 to 30 characters and cannot contain '/'.` |
 
-Each missing-field or repeated-field error lists all affected prefixes in n/, c/, e/, p/, m/ order. A present but empty field is reported separately from a missing prefix. Words between prefixes belong to the preceding field; prefix-like tokens are reserved. If several errors occur, unknown prefixes/preamble are checked first, then repeated fields, then missing prefixes, then values in n/, c/, e/, p/, m/, t/ order. Invalid input and duplicates do not add a contact.
+Each missing-field or repeated-field error lists all affected prefixes in n/, c/, e/, p/, m/, s/, f/ order. A present but empty field is reported separately from a missing prefix. Words between prefixes belong to the preceding field; prefix-like tokens are reserved. If several errors occur, unknown prefixes/preamble are checked first, then repeated fields, then missing prefixes, then values in n/, c/, e/, p/, m/, s/, f/, t/ order. Invalid input and duplicates do not add a contact.
 
 ### Listing all exhibitor contacts: `list`
 
-Shows every stored exhibitor contact with its name, company, email, phone, preferred contact method, and tags,
+Shows every stored exhibitor contact with its name, company, email, phone, preferred contact method, enquiry status, follow-up date, and tags,
 followed by the total number of contacts.
 
 Format: `list`
@@ -183,12 +187,16 @@ Exhibitor Contact List
 Email: alicia@technova.com
 Phone: 91234567
 Contact method: email
+Enquiry status: Needs follow-up
+Follow-up date: None
 Tags: technology, high-priority
 
 2. John Smith at GlobalTech Inc
 Email: john@globaltech.com
 Phone: +6562345678
 Contact method: phone
+Enquiry status: Needs follow-up
+Follow-up date: None
 Tags: hardware
 
 ──────────────────────────────────────
@@ -233,10 +241,12 @@ Alicia Tan at TechNova Pte Ltd
 Email: alicia@technova.com
 Phone: 91234567
 Contact method: email
+Enquiry status: Needs follow-up
+Follow-up date: None
 Tags: technology, high-priority
 ```
 
-Create these records with `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [t/TAG]...`.
+Create these records with `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...`.
 
 ![View command showing a matching exhibitor contact](images/Ui%20-%20view%20command.png)
 
@@ -249,7 +259,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
 * Edits the contact at the specified `INDEX`. The index refers to the index number shown in the current numbered command results. The index **must be a positive integer** 1, 2, 3, …​
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values. Name, email, phone, and tags follow the validation rules described under `add`.
-* Company and contact method are preserved; `edit` does not support `c/` or `m/`. Unsupported prefixes are rejected, including after `a/ADDRESS`. Changes that create a duplicate are rejected.
+* Company, contact method, enquiry status, and follow-up date are preserved; `edit` does not support `c/`, `m/`, `s/`, or `f/`. Unsupported prefixes are rejected, including after `a/ADDRESS`. Changes that create a duplicate are rejected.
 * The legacy `a/ADDRESS` field accepts nonblank text. Whitespace-delimited prefix-like tokens are reserved, as in `add`. Only `t/` may repeat.
 * A successful edit clears the current filter and prints the edited contact. Run `list` or `find` again before choosing another index.
 * When editing tags, all of the contact's existing tags are removed; adding tags is not cumulative.
@@ -278,7 +288,7 @@ Format: `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG]...`
 * `find` prints the number of matches followed by each matching contact's number, name, company, email, phone, method, and tags. No preliminary `list` command is needed.
 * With no matches, it prints `0 contact(s) found.` and no contact details.
 * Company (`c/`) matches the complete stored company name. Legacy contacts without a company do not match this field.
-* Enquiry status (`s/`) and contact method (`m/`) are not searchable. Status tracking remains planned.
+* Enquiry status (`s/`), follow-up date (`f/`), and contact method (`m/`) are not searchable.
 * `list` restores all contacts. A result count of zero means no contacts matched.
 
 Examples:
@@ -359,7 +369,7 @@ Furthermore, certain edits can cause BoothManagerPro to behave in unexpected way
 
 ### Planned features
 
-Enquiry status, follow-up dates, data archiving, CSV import/export, and undo are not available in the current version. There are no enquiry-management commands in this version.
+Updating enquiry status or follow-up dates after addition, searching these fields, reminders, data archiving, CSV import/export, and undo remain planned.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -374,7 +384,7 @@ Enquiry status, follow-up dates, data archiving, CSV import/export, and undo are
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [t/TAG]...` <br> e.g., `add n/James Ho c/Example Ltd e/jamesho@example.com p/22224444 m/phone t/technology`
+**Add** | `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...` <br> e.g., `add n/James Ho c/Example Ltd e/jamesho@example.com p/22224444 m/phone t/technology`
 **Clear** | `clear`
 **Delete** | `delete NAME` or `delete INDEX`<br> e.g., `delete Alex Yeoh`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
