@@ -72,6 +72,24 @@ public class MainWindowTest {
     }
 
     @Test
+    public void update_successAndFailure_showFeedbackAndSavedDetails() throws Exception {
+        withWindow(new ModelManager(), (window, root, storage) -> {
+            enterCommand(root, "add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567");
+            enterCommand(root, "update Alicia Tan s/Completed f/20261025");
+            assertEquals("Updated Alicia Tan at TechNova.", output(root));
+            assertEquals("", input(root).getText());
+            enterCommand(root, "view n/Alicia");
+            VBox cards = (VBox) root.lookup("#contactCards");
+            Parent card = (Parent) cards.getChildren().getFirst();
+            assertEquals("Enquiry status: Completed", ((Label) card.lookup("#enquiryStatus")).getText());
+            assertEquals("Follow-up date: 20261025", ((Label) card.lookup("#followUpDate")).getText());
+            enterCommand(root, "update Alicia Tan f/20230229");
+            assertTrue(output(root).contains("Invalid value for f/"));
+            assertEquals("update Alicia Tan f/20230229", input(root).getText());
+        });
+    }
+
+    @Test
     public void startupAndRestart_showOnlyPromptWithoutLoadingContactsIntoOutput() throws Exception {
         ModelManager model = sampleModel();
         withWindow(model, (window, root, storage) -> {
