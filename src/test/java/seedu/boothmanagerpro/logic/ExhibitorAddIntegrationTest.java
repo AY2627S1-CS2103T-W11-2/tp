@@ -45,6 +45,45 @@ public class ExhibitorAddIntegrationTest {
     }
 
     @Test
+    public void add_enquiryMetadata_roundTripsAndSurvivesEdit() throws Exception {
+        logic.execute(ADD + " s/IN PROGRESS f/20240229");
+        Person saved = storage.readAddressBook().orElseThrow().getPersonList().getFirst();
+        assertEquals("In progress", saved.getEnquiryStatus().toString());
+        assertEquals("20240229", saved.getFollowUpDate().orElseThrow().toString());
+        logic.execute("edit 1 p/98765432");
+        Person edited = storage.readAddressBook().orElseThrow().getPersonList().getFirst();
+        assertEquals(saved.getEnquiryStatus(), edited.getEnquiryStatus());
+        assertEquals(saved.getFollowUpDate(), edited.getFollowUpDate());
+        String details = logic.execute("view n/Alicia").getFeedbackToUser();
+        assertTrue(details.contains("Enquiry status: In progress\nFollow-up date: 20240229"));
+        assertThrows(CommandException.class, () -> logic.execute(ADD + " s/Completed f/20261025"));
+    }
+
+    @Test
+    public void add_enquiryDefaultsAndIndependentOptions() throws Exception {
+        for (String options : new String[]{"", " s/Completed", " f/20261025"}) {
+            logic.execute(ADD + options);
+            Person saved = storage.readAddressBook().orElseThrow().getPersonList().getFirst();
+            assertEquals(options.contains("s/") ? "Completed" : "Needs follow-up",
+                    saved.getEnquiryStatus().toString());
+            assertEquals(options.contains("f/"), saved.getFollowUpDate().isPresent());
+            logic.execute("clear");
+        }
+    }
+
+    @Test
+    public void add_invalidEnquiryFields_preservesDiskAndContacts() throws Exception {
+        logic.execute(ADD);
+        String before = Files.readString(storage.getAddressBookFilePath());
+        for (String options : new String[]{" s/", " f/", " s/new", " f/20230229", " f/2026-10-25",
+            " s/Completed s/In progress", " f/20261025 f/20261026"}) {
+            assertThrows(ParseException.class, () -> logic.execute(ADD + options));
+            assertEquals(before, Files.readString(storage.getAddressBookFilePath()));
+            assertEquals(1, model.getAddressBook().getPersonList().size());
+        }
+    }
+
+    @Test
     public void add_twoDifferentDuplicateMatches_reportsBothWithoutMutation() throws Exception {
         logic.execute(ADD);
         logic.execute("add n/Ben Lim c/Other e/ben@example.com p/98765432");

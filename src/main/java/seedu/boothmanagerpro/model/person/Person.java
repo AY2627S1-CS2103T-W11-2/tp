@@ -28,6 +28,8 @@ public class Person {
     private final Set<Tag> tags = new LinkedHashSet<>();
     private final Optional<Company> company;
     private final Optional<ContactMethod> contactMethod;
+    private final EnquiryStatus enquiryStatus;
+    private final Optional<FollowUpDate> followUpDate;
 
     /**
      * Creates a legacy contact without company or preferred contact method.
@@ -44,7 +46,17 @@ public class Person {
      */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
             Optional<Company> company, Optional<ContactMethod> contactMethod) {
-        requireAllNonNull(name, phone, email, address, tags, company, contactMethod);
+        this(name, phone, email, address, tags, company, contactMethod,
+                EnquiryStatus.NEEDS_FOLLOW_UP, Optional.empty());
+    }
+
+    /** Creates a contact with validated enquiry metadata; absent date is distinct from an invalid date. */
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
+            Optional<Company> company, Optional<ContactMethod> contactMethod,
+            EnquiryStatus enquiryStatus, Optional<FollowUpDate> followUpDate) {
+        requireAllNonNull(name, phone, email, address, tags, company, contactMethod, enquiryStatus, followUpDate);
+        this.enquiryStatus = enquiryStatus;
+        this.followUpDate = followUpDate;
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -73,6 +85,24 @@ public class Person {
             Optional<ContactMethod> contactMethod, Set<Tag> tags) {
         return new Person(name, phone, email, new Address("Not provided"), tags,
                 Optional.of(company), contactMethod);
+    }
+
+    /** Creates an exhibitor with explicit enquiry metadata and the legacy address default. */
+    public static Person createExhibitor(Name name, Company company, Email email, Phone phone,
+            Optional<ContactMethod> contactMethod, Set<Tag> tags,
+            EnquiryStatus enquiryStatus, Optional<FollowUpDate> followUpDate) {
+        return new Person(name, phone, email, new Address("Not provided"), tags,
+                Optional.of(company), contactMethod, enquiryStatus, followUpDate);
+    }
+
+    /** Returns the stored enquiry stage; it never advances automatically. */
+    public EnquiryStatus getEnquiryStatus() {
+        return enquiryStatus;
+    }
+
+    /** Returns the next follow-up date, or empty when none is assigned. */
+    public Optional<FollowUpDate> getFollowUpDate() {
+        return followUpDate;
     }
 
     public Name getName() {
@@ -137,13 +167,15 @@ public class Person {
                 && address.equals(otherPerson.address)
                 && company.equals(otherPerson.company)
                 && contactMethod.equals(otherPerson.contactMethod)
-                && tags.equals(otherPerson.tags);
+                && tags.equals(otherPerson.tags)
+                && enquiryStatus == otherPerson.enquiryStatus
+                && followUpDate.equals(otherPerson.followUpDate);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, tags, company, contactMethod);
+        return Objects.hash(name, phone, email, address, tags, company, contactMethod, enquiryStatus, followUpDate);
     }
 
     @Override
@@ -156,6 +188,8 @@ public class Person {
                 .add("tags", tags)
                 .add("company", company)
                 .add("contactMethod", contactMethod)
+                .add("enquiryStatus", enquiryStatus)
+                .add("followUpDate", followUpDate)
                 .toString();
     }
 

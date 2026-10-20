@@ -63,7 +63,14 @@ public class Messages {
                 + "\nEmail: " + person.getEmail()
                 + "\nPhone: " + person.getPhone()
                 + "\nContact method: " + formatOptional(person.getContactMethod())
+                + "\nEnquiry status: " + person.getEnquiryStatus()
+                + "\nFollow-up date: " + formatFollowUpDate(person)
                 + "\nTags: " + formatTags(person);
+    }
+
+    /** Uses the same explicit empty-date label in text output and contact cards. */
+    public static String formatFollowUpDate(Person person) {
+        return person.getFollowUpDate().map(Object::toString).orElse("None");
     }
 
     /** Numbers text results using the same one-based indices as edit and delete. */

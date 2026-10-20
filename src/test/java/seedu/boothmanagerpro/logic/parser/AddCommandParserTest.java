@@ -10,6 +10,8 @@ import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.person.Company;
 import seedu.boothmanagerpro.model.person.ContactMethod;
 import seedu.boothmanagerpro.model.person.Email;
+import seedu.boothmanagerpro.model.person.EnquiryStatus;
+import seedu.boothmanagerpro.model.person.FollowUpDate;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.model.person.Phone;
@@ -88,7 +90,7 @@ public class AddCommandParserTest {
             assertParseFailure(parser, valid.replace(field, prefix),
                     "Empty field: " + prefix + ". Supply a value after this prefix.");
         }
-        for (String prefix : new String[]{"m/", "t/"}) {
+        for (String prefix : new String[]{"m/", "s/", "f/", "t/"}) {
             assertParseFailure(parser, valid + " " + prefix,
                     "Empty field: " + prefix + ". Supply a value after this prefix.");
         }
@@ -116,6 +118,16 @@ public class AddCommandParserTest {
             assertParseFailure(parser, valid + " t/" + tag,
                     "Invalid value for t/: " + Tag.MESSAGE_CONSTRAINTS);
         }
+    }
+
+    @Test
+    public void parse_invalidEnquiryFields_identifiesField() {
+        assertParseFailure(parser, valid + " s/done",
+                "Invalid value for s/: " + EnquiryStatus.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, valid + " f/20230229",
+                "Invalid value for f/: " + FollowUpDate.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, valid + " s/Completed s/In progress f/20261025 f/20261026",
+                String.format(AddCommandParser.MESSAGE_REPEATED_FIELD, "s/, f/"));
     }
 
     @Test

@@ -3,9 +3,11 @@ package seedu.boothmanagerpro.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_COMPANY;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_FOLLOW_UP;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_METHOD;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_STATUS;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.List;
@@ -30,6 +32,8 @@ public class AddCommand extends Command {
             + PREFIX_EMAIL + "EMAIL "
             + PREFIX_PHONE + "PHONE "
             + "[" + PREFIX_METHOD + "METHOD] "
+            + "[" + PREFIX_STATUS + "STATUS] "
+            + "[" + PREFIX_FOLLOW_UP + "YYYYMMDD] "
             + "[" + PREFIX_TAG + "TAG]...\n"
             + "Example: " + COMMAND_WORD + " "
             + PREFIX_NAME + "Alicia Tan "

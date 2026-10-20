@@ -24,6 +24,7 @@ import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
@@ -55,6 +56,19 @@ public class MainWindowTest {
         });
         Platform.startup(startup);
         startup.get(15, TimeUnit.SECONDS);
+    }
+
+    @Test
+    public void add_enquiryMetadata_isVisibleInContactCard() throws Exception {
+        withWindow(new ModelManager(), (window, root, storage) -> {
+            enterCommand(root, "add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567"
+                    + " s/In progress f/20261025");
+            enterCommand(root, "view n/Alicia");
+            VBox cards = (VBox) root.lookup("#contactCards");
+            Parent card = (Parent) cards.getChildren().getFirst();
+            assertEquals("Enquiry status: In progress", ((Label) card.lookup("#enquiryStatus")).getText());
+            assertEquals("Follow-up date: 20261025", ((Label) card.lookup("#followUpDate")).getText());
+        });
     }
 
     @Test

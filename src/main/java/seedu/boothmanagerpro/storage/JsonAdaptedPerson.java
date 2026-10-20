@@ -15,6 +15,8 @@ import seedu.boothmanagerpro.model.person.Address;
 import seedu.boothmanagerpro.model.person.Company;
 import seedu.boothmanagerpro.model.person.ContactMethod;
 import seedu.boothmanagerpro.model.person.Email;
+import seedu.boothmanagerpro.model.person.EnquiryStatus;
+import seedu.boothmanagerpro.model.person.FollowUpDate;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.model.person.Phone;
@@ -34,6 +36,8 @@ class JsonAdaptedPerson {
     private final String address;
     private final String company;
     private final String contactMethod;
+    private final String enquiryStatus;
+    private final String followUpDate;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
     /**
@@ -41,6 +45,12 @@ class JsonAdaptedPerson {
      */
     public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags) {
         this(name, phone, email, address, tags, null, null);
+    }
+
+    /** Keeps existing callers compatible while defaulting new metadata during conversion. */
+    public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags,
+            String company, String contactMethod) {
+        this(name, phone, email, address, tags, company, contactMethod, null, null);
     }
 
     /**
@@ -51,7 +61,10 @@ class JsonAdaptedPerson {
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
             @JsonProperty("tags") List<JsonAdaptedTag> tags, @JsonProperty("company") String company,
-            @JsonProperty("contactMethod") String contactMethod) {
+            @JsonProperty("contactMethod") String contactMethod,
+            @JsonProperty("enquiryStatus") String enquiryStatus, @JsonProperty("followUpDate") String followUpDate) {
+        this.enquiryStatus = enquiryStatus;
+        this.followUpDate = followUpDate;
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -67,6 +80,8 @@ class JsonAdaptedPerson {
      * Converts a given {@code Person} into this class for Jackson use.
      */
     public JsonAdaptedPerson(Person source) {
+        enquiryStatus = source.getEnquiryStatus().toString();
+        followUpDate = source.getFollowUpDate().map(Object::toString).orElse(null);
         name = source.getName().fullName;
         phone = source.getPhone().value;
         email = source.getEmail().value;
@@ -126,7 +141,11 @@ class JsonAdaptedPerson {
         try {
             Optional<Company> modelCompany = Optional.ofNullable(company).map(Company::new);
             Optional<ContactMethod> modelMethod = Optional.ofNullable(contactMethod).map(ContactMethod::fromString);
-            return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelCompany, modelMethod);
+            EnquiryStatus modelStatus = enquiryStatus == null ? EnquiryStatus.NEEDS_FOLLOW_UP
+                    : EnquiryStatus.fromString(enquiryStatus);
+            Optional<FollowUpDate> modelDate = Optional.ofNullable(followUpDate).map(FollowUpDate::new);
+            return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelCompany, modelMethod,
+                    modelStatus, modelDate);
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());
         }

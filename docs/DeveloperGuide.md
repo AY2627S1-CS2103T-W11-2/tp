@@ -231,7 +231,7 @@ The five MVP workflows and the inherited edit command use `Person` and its valid
 
 Edit preserves company and method, rejects unsupported prefixes, and replaces tags in input order.
 `Messages.formatContactDetails()` supplies the shared list/view format; `Messages.formatTags()` and
-`Messages.formatOptional()` keep text placeholders consistent. Enquiry status and follow-up fields remain planned.
+`Messages.formatOptional()` keep text placeholders consistent. Enquiry status and follow-up dates are included in contact details.
 
 Tests cover actual persisted exhibitor records, numbered selection and retries, cancelled/stale choices,
 invalid syntax, matching parity with `find`, legacy records, data preservation, and command-only output.
@@ -241,7 +241,7 @@ This section describes some noteworthy details on how certain features are imple
 
 ### Adding an exhibitor contact
 
-`add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [t/TAG]...`
+`add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...`
 
 1. `AddressBookParser` routes `add` to `AddCommandParser`.
 2. The parser rejects unknown prefixes, preambles, repeated non-tag fields, and missing required prefixes.
@@ -249,6 +249,14 @@ This section describes some noteworthy details on how certain features are imple
 4. `AddCommand` checks the complete address book for matching email or name/company, then adds the contact or reports the existing match.
 5. `LogicManager` saves through `JsonAddressBookStorage` before returning the success result.
 6. The result contains a concise identity confirmation. `MainWindow` prints it and focuses command input. `CommandBox` clears successful input and retains failed input. A later `view`, `find`, or `list` prints the saved details.
+
+Enquiry fields:
+
+- `EnquiryStatus` validates the three case-insensitive labels; omission defaults to `NEEDS_FOLLOW_UP`.
+- `FollowUpDate` wraps `LocalDate`, validates real calendar dates in `YYYYMMDD` (years 0001-9999), and accepts past dates. Omission is `Optional.empty()`. No time or timezone is stored.
+- JSON stores `enquiryStatus` as its display label and `followUpDate` as a date string or null. Missing/null fields in older files receive the defaults; invalid non-null values are rejected.
+- Existing edit commands preserve both fields. Status transitions and date updates are not implemented yet.
+- Neither field changes duplicate identity. List/find/view output and contact cards display both fields.
 
 Error-handling responsibilities:
 
@@ -383,7 +391,7 @@ _{Explain here how the data archiving feature will be implemented}_
 * Comfortable typing commands for repeated contact-management tasks
 * Need to store and retrieve contact information quickly
 
-**Value proposition:** Manage exhibitor contacts through typed commands, with clear feedback and local storage. Enquiry status and follow-up tracking are planned. Startup prints no contacts; list, find, and view print requested results as text.
+**Value proposition:** Manage exhibitor contacts through typed commands, with clear feedback and local storage. Contacts can record enquiry status and an optional follow-up date during addition. Startup prints no contacts; list, find, and view print requested results as text.
 
 ### User stories
 
@@ -413,7 +421,7 @@ Planned requirements for BoothManagerPro; implementation status is tracked separ
 | US-10 | `**` | organiser | find contacts by exact name, company, email, or phone | I can locate contacts quickly. |
 | US-11 | `**` | organiser | filter contacts by enquiry status | I can review each enquiry stage. |
 | US-12 | `**` | organiser | combine search fields and alternatives | I can narrow my results. |
-| US-13 | `**` | organiser | set enquiry status to new, contacted, confirmed, or rejected | I can track progress. |
+| US-13 | `**` | organiser | set enquiry status to Needs follow-up, In progress, or Completed | I can track progress. |
 | US-14 | `**` | organiser | set a next follow-up date | I know when to contact someone again. |
 | US-15 | `**` | organiser | view due or overdue follow-ups | I can prioritise outreach. |
 | US-16 | `**` | organiser | tag contacts by industry, priority, or need | I can group exhibitors. |
@@ -614,7 +622,7 @@ Use case ends.
   Use case resumes at step 1.
 
 * 1c. An enquiry status is not one of the supported values.
-  * 1c1. BoothManagerPro rejects the request and explains that the supported statuses are new, contacted, confirmed, and rejected.
+  * 1c1. BoothManagerPro rejects the request and explains that the supported statuses are Needs follow-up, In progress, and Completed.
 
   Use case resumes at step 1.
 
@@ -653,12 +661,12 @@ These are requirements for the intended product, not claims that every target ha
 * **CLI (Command Line Interface)**: A way of using the application by typing text commands instead of clicking through menus
 * **Company**: The exhibitor organisation a contact belongs to. Also called *organisation*; this project uses *company*
 * **Contact**: A single record in the address book representing one exhibitor representative. Also called *client* or *person*; this project uses *contact*
-* **Contacted**: The enquiry status for an exhibitor the organiser has reached out to but who has not yet been confirmed or rejected. Refers to this status, not the general act of contacting someone
+* **In progress**: An enquiry currently being handled by the organiser
 * **Convention organiser**: The primary user of the application: a person at a convention centre who manages exhibitor enquiries and booth allocation. Also referred to as *organiser*
 * **CSV (Comma-Separated Values)**: A plain-text file format for tabular data, used to import and export contact lists
 * **Duplicate (possible duplicate)**: A contact with the same normalised email address, or the same name and company, as an existing contact. Does not mean two contacts that merely share a name
 * **Enquiry**: An exchange between an organiser and an exhibitor about the exhibitor taking part in a convention
-* **Enquiry status**: The stage an exhibitor's enquiry has reached: `new`, `contacted`, `confirmed`, or `rejected`. Also referred to as *status*
+* **Enquiry status**: The stage an exhibitor's enquiry has reached: `Needs follow-up`, `In progress`, or `Completed`. Also referred to as *status*
 * **Exhibitor**: An organisation that is interested in, or has been invited to, take a booth at a convention
 * **Exact match**: A search result where the search value matches the complete field value (ignoring case and leading/trailing spaces), not just part of it. For example, `find n/Alicia` does not match "Alicia Tan"
 * **Index**: The number shown beside a contact in a displayed list, used to select a specific contact when several share the same name

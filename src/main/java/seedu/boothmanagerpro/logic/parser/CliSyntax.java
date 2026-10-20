@@ -6,6 +6,8 @@ package seedu.boothmanagerpro.logic.parser;
 public class CliSyntax {
 
     /* Prefix definitions */
+    public static final Prefix PREFIX_STATUS = new Prefix("s/");
+    public static final Prefix PREFIX_FOLLOW_UP = new Prefix("f/");
     public static final Prefix PREFIX_NAME = new Prefix("n/");
     public static final Prefix PREFIX_COMPANY = new Prefix("c/");
     public static final Prefix PREFIX_METHOD = new Prefix("m/");
