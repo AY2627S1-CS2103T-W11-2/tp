@@ -26,7 +26,7 @@ BoothManagerPro helps **convention organisers manage exhibitor contacts through 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to print command usage instructions.<br>
    Some example commands you can try:
 
-   * `list` : Lists all contacts.
+   * `list` : Lists all contacts. Add `o/name` or `o/company` to sort them, e.g. `list o/name`.
 
    * `add n/John Doe c/Example Ltd e/johnd@example.com p/98765432` : Adds an exhibitor contact named `John Doe`.
 
@@ -46,7 +46,7 @@ BoothManagerPro helps **convention organisers manage exhibitor contacts through 
 * The command box starts with keyboard focus. Press **Ctrl+L** on Windows/Linux or **Command+L** on macOS to return to it. Use `help` or **F1** for the guide, and `exit` to close the app.
 * Each launch starts with a ready prompt. Saved contacts remain available but are not automatically printed.
 * Results appear in the output area below the command box. `list`, `find`, and `view` show matching contacts as separate cards; other commands and errors show text. Cards are display-only and cannot be clicked or selected; scroll the output area to see more. There is no separate contact-list or details panel.
-* `list` prints every contact with a number and details. `find` prints the match count and numbered matching contacts; it works without running `list` first.
+* `list` prints every contact with a number and details, optionally sorted by name or company. `find` prints the match count and numbered matching contacts; it works without running `list` first.
 * `view` prints a matching contact's details or numbered choices. Reply with a number only when `view` asks you to choose.
 * Each command replaces the previous output. The output fills the available space and scrolls for longer results. Use **Tab** to focus it and the arrow keys to read it; **Ctrl+L** or **Command+L** returns to command entry.
 * For `update INDEX`, `edit INDEX`, and `delete INDEX`, use the numbers from the current `list`, `find`, or `view` matches. A successful `add`, `update`, or `edit` resets the filter; run `list` or `find` again before choosing another index. After deleting a contact, later indices shift down.
@@ -71,7 +71,7 @@ BoothManagerPro helps **convention organisers manage exhibitor contacts through 
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
 * Extraneous parameters for commands that take no parameters, such as `help`, `exit`, and `clear`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`. The exception is `list`, which rejects any parameters.
+  For example, `help 123` is interpreted as `help`. The exception is `list`, which accepts only an optional `o/name` or `o/company` and rejects anything else.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
@@ -167,11 +167,20 @@ Each missing-field or repeated-field error lists all affected prefixes in n/, c/
 ### Listing all exhibitor contacts: `list`
 
 Shows every stored exhibitor contact with its name, company, email, phone, preferred contact method, enquiry status, follow-up date, and tags,
-followed by the total number of contacts.
+followed by the total number of contacts. You can optionally sort the list by name or company.
 
-Format: `list`
+Format: `list [o/name]` or `list [o/company]`
 
-* `list` does not accept parameters. For example, `list 3` is rejected.
+* `list` with no parameters shows contacts in the order they were added.
+* `list o/name` sorts contacts alphabetically by name. Contacts with the same name are ordered by company, then by email.
+* `list o/company` sorts contacts alphabetically by company, and by name within the same company.
+  Contacts without a company (possible only in older records) appear last.
+* Sorting ignores upper and lower case, so `alicia tan` and `Alicia Tan` sort together. The sort field itself is also
+  case-insensitive: `o/Name` works like `o/name`.
+* Sorting changes only the displayed order, not the saved data. The numbers shown follow the sorted order, so
+  `list o/name` followed by `delete 1` deletes the first contact alphabetically.
+* The sort order stays in effect for later `find` results and after `add`, `update`, or `edit`, until you run `list` with no parameters again.
+* Only one `o/` is allowed. Anything else, such as `list 3`, `list o/email`, or `list o/name o/company`, is rejected with an explanation.
 * `list` shows numbered contact cards in the output area, followed by the total. With no contacts, it prints the no-contacts message below.
 * Any filter left by a previous `find` or `view` command is cleared, so all contacts are shown again.
 * Tags are shown in the order they are stored. An omitted contact method or a company missing from an older
@@ -202,6 +211,10 @@ Tags: hardware
 ──────────────────────────────────────
 Total contacts: 2
 ```
+
+Example: `list o/company` shows the same contacts ordered by company, with the heading
+`Exhibitor Contact List (sorted by company)`. With the contacts above, John Smith (GlobalTech Inc) is listed
+before Alicia Tan (TechNova Pte Ltd).
 
 If there are no stored contacts:
 
@@ -411,7 +424,7 @@ Action | Format, Examples
 **Update** | `update NAME_OR_INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...`<br> e.g., `update Alicia Tan s/Completed f/`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG]...` or `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find n/Alice Pauline t/friends`
-**List** | `list`
+**List** | `list [o/name]` or `list [o/company]`<br> e.g., `list o/company`
 **View** | `view n/NAME`<br> e.g., `view n/Alicia Tan`; reply `2` if prompted to choose between matches
 **Help** | `help`
 **Exit** | `exit`
