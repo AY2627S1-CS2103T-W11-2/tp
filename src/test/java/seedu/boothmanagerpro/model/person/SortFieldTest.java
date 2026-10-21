@@ -27,6 +27,7 @@ public class SortFieldTest {
     public void fromKeyword() {
         assertEquals(Optional.of(SortField.NAME), SortField.fromKeyword("name"));
         assertEquals(Optional.of(SortField.COMPANY), SortField.fromKeyword(" COMPANY "));
+        assertEquals(Optional.of(SortField.STATUS), SortField.fromKeyword("Status"));
         assertEquals(Optional.empty(), SortField.fromKeyword("email"));
         assertEquals(Optional.empty(), SortField.fromKeyword(""));
     }
@@ -35,6 +36,7 @@ public class SortFieldTest {
     public void toString_returnsKeyword() {
         assertEquals("name", SortField.NAME.toString());
         assertEquals("company", SortField.COMPANY.toString());
+        assertEquals("status", SortField.STATUS.toString());
     }
 
     @Test
@@ -62,6 +64,23 @@ public class SortFieldTest {
     public void company_sameCompanyAndName_breaksTieByEmail() {
         Person second = new PersonBuilder(ZOE).withEmail("zoey@technova.com").build();
         assertEquals(List.of(ZOE, second), sorted(SortField.COMPANY, second, ZOE));
+    }
+
+    @Test
+    public void status_followsWorkflowOrderThenName() {
+        Person completed = new PersonBuilder(ALICIA).withEnquiryStatus("Completed").build();
+        Person inProgress = new PersonBuilder(BEN).withEnquiryStatus("In progress").build();
+        Person needsFollowUpZoe = new PersonBuilder(ZOE).withEnquiryStatus("Needs follow-up").build();
+        Person needsFollowUpChloe = new PersonBuilder(CHLOE).withEnquiryStatus("Needs follow-up").build();
+        assertEquals(List.of(needsFollowUpChloe, needsFollowUpZoe, inProgress, completed),
+                sorted(SortField.STATUS, completed, needsFollowUpZoe, inProgress, needsFollowUpChloe));
+    }
+
+    @Test
+    public void status_sameStatusAndName_breaksTieByEmail() {
+        Person first = new PersonBuilder(ZOE).withEnquiryStatus("In progress").build();
+        Person second = new PersonBuilder(first).withEmail("zoey@technova.com").build();
+        assertEquals(List.of(first, second), sorted(SortField.STATUS, second, first));
     }
 
     private static List<Person> sorted(SortField field, Person... persons) {

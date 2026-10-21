@@ -21,9 +21,9 @@ public class ListCommand extends Command {
     public static final String COMMAND_WORD = "list";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Lists all exhibitor contacts in the order they "
-            + "were added, or sorted by name or company.\n"
-            + "Parameters: [o/name] or [o/company]\n"
-            + "Examples: " + COMMAND_WORD + ", " + COMMAND_WORD + " o/name, " + COMMAND_WORD + " o/company";
+            + "were added, or sorted by name, company, or enquiry status.\n"
+            + "Parameters: [o/name], [o/company], or [o/status]\n"
+            + "Examples: " + COMMAND_WORD + ", " + COMMAND_WORD + " o/name, " + COMMAND_WORD + " o/status";
 
     public static final String MESSAGE_HEADER = "Exhibitor Contact List";
     public static final String MESSAGE_SORTED_HEADER = MESSAGE_HEADER + " (sorted by %s)";

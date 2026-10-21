@@ -10,9 +10,11 @@ import java.util.Optional;
  */
 public enum SortField {
     NAME(Orders.BY_NAME.thenComparing(Orders.BY_COMPANY_MISSING_LAST).thenComparing(Orders.BY_EMAIL)),
-    COMPANY(Orders.BY_COMPANY_MISSING_LAST.thenComparing(Orders.BY_NAME).thenComparing(Orders.BY_EMAIL));
+    COMPANY(Orders.BY_COMPANY_MISSING_LAST.thenComparing(Orders.BY_NAME).thenComparing(Orders.BY_EMAIL)),
+    /** Follows the enquiry workflow, so contacts needing follow-up come first and completed ones last. */
+    STATUS(Orders.BY_STATUS.thenComparing(Orders.BY_NAME).thenComparing(Orders.BY_EMAIL));
 
-    public static final String MESSAGE_CONSTRAINTS = "Contacts can only be sorted by name or company.";
+    public static final String MESSAGE_CONSTRAINTS = "Contacts can only be sorted by name, company, or status.";
 
     private final Comparator<Person> comparator;
 
@@ -51,5 +53,7 @@ public enum SortField {
                         .thenComparing(person -> person.getCompany().map(company -> company.value).orElse(""),
                                 String.CASE_INSENSITIVE_ORDER);
         private static final Comparator<Person> BY_EMAIL = Comparator.comparing(person -> person.getEmail().value);
+        /** Uses the declaration order of {@link EnquiryStatus}: needs follow-up, in progress, completed. */
+        private static final Comparator<Person> BY_STATUS = Comparator.comparing(Person::getEnquiryStatus);
     }
 }

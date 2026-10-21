@@ -97,6 +97,17 @@ public class ListCommandTest {
     }
 
     @Test
+    public void execute_sortByStatus_showsContactsNeedingFollowUpFirst() {
+        Person completed = new PersonBuilder(ALICIA).withEnquiryStatus("Completed").build();
+        Person inProgress = new PersonBuilder(DAVID).withEnquiryStatus("In progress").build();
+        Person needsFollowUp = new PersonBuilder(ZOE).withEnquiryStatus("Needs follow-up").build();
+        Model unsortedModel = modelWith(completed, inProgress, needsFollowUp);
+        CommandResult result = new ListCommand(SortField.STATUS).execute(unsortedModel);
+        assertEquals(List.of(needsFollowUp, inProgress, completed), unsortedModel.getFilteredPersonList());
+        assertTrue(result.getFeedbackToUser().startsWith("Exhibitor Contact List (sorted by status)"));
+    }
+
+    @Test
     public void execute_plainListAfterSort_restoresStoredOrder() {
         Model sortedModel = modelWith(ZOE, DAVID, ALICIA);
         new ListCommand(SortField.NAME).execute(sortedModel);

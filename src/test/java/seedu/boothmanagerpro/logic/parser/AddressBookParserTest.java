@@ -94,6 +94,8 @@ public class AddressBookParserTest {
         assertEquals(new ListCommand(SortField.NAME), parser.parseCommand(ListCommand.COMMAND_WORD + " o/name"));
         assertEquals(new ListCommand(SortField.COMPANY),
                 parser.parseCommand(ListCommand.COMMAND_WORD + " o/company"));
+        assertEquals(new ListCommand(SortField.STATUS),
+                parser.parseCommand(ListCommand.COMMAND_WORD + " o/status"));
     }
 
     @Test

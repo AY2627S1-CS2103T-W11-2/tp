@@ -68,8 +68,8 @@ For interactive checks, use the [manual add scenarios](DeveloperGuide.md#testing
 
 | Test class | Coverage focus |
 | --- | --- |
-| `SortFieldTest` | Name and company orders, case-insensitivity, tie-breaks, and contacts without a company placed last. |
-| `ListCommandParserTest` | `list`, `list o/name`, `list o/company`, and rejection of unknown, repeated, or extra parameters. |
+| `SortFieldTest` | Name, company, and status orders, case-insensitivity, tie-breaks, and contacts without a company placed last. |
+| `ListCommandParserTest` | `list`, `list o/name`, `list o/company`, `list o/status`, and rejection of unknown, repeated, or extra parameters. |
 | `ListCommandTest` | Sorted output, resetting to stored order, unchanged saved order, and `delete 1` acting on the first sorted contact. |
 | `ModelManagerTest` | The sorted view, null comparators, and resetting the order. |
 
