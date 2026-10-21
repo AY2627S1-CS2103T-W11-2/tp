@@ -42,7 +42,14 @@
     -fx-border-width: 0 0 0 4;
     -fx-padding: 14 18;
 }
+.contact-card.status-needs-follow-up { -fx-border-color: #d98e04; }
+.contact-card.status-in-progress { -fx-border-color: #287ab5; }
+.contact-card.status-completed { -fx-border-color: #2f8f4e; }
 .card-name { -fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1b3752; }
+.status-badge { -fx-font-size: 13px; -fx-font-weight: bold; -fx-padding: 4 12; -fx-background-radius: 12; }
+.status-badge.status-needs-follow-up { -fx-background-color: #fff1d6; -fx-text-fill: #8a5300; }
+.status-badge.status-in-progress { -fx-background-color: #e3eefa; -fx-text-fill: #1f5f99; }
+.status-badge.status-completed { -fx-background-color: #e3f4e8; -fx-text-fill: #276b3c; }
 .card-company { -fx-font-size: 15px; -fx-text-fill: #36556e; }
 .card-detail { -fx-font-size: 14px; -fx-text-fill: #536c84; }
 .card-tags { -fx-padding: 6 0 0 0; }
