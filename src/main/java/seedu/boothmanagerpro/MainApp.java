@@ -94,7 +94,7 @@ public class MainApp extends Application {
     protected UserPrefs initPrefs(JsonUserPrefsStorage storage) {
         Path prefsFilePath = storage.getUserPrefsFilePath();
         logger.info("Using preference file : " + prefsFilePath);
-    
+
 
         UserPrefs initializedPrefs;
         try {
