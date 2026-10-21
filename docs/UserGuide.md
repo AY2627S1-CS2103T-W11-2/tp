@@ -49,7 +49,7 @@ BoothManagerPro helps **convention organisers manage exhibitor contacts through 
 * `list` prints every contact with a number and details. `find` prints the match count and numbered matching contacts; it works without running `list` first.
 * `view` prints a matching contact's details or numbered choices. Reply with a number only when `view` asks you to choose.
 * Each command replaces the previous output. The output fills the available space and scrolls for longer results. Use **Tab** to focus it and the arrow keys to read it; **Ctrl+L** or **Command+L** returns to command entry.
-* For `edit INDEX` and `delete INDEX`, use the numbers from the current `list`, `find`, or `view` matches. A successful `add` or `edit` resets the filter; run `list` or `find` again before choosing another index. After deleting a contact, later indices shift down.
+* For `update INDEX`, `edit INDEX`, and `delete INDEX`, use the numbers from the current `list`, `find`, or `view` matches. A successful `add`, `update`, or `edit` resets the filter; run `list` or `find` again before choosing another index. After deleting a contact, later indices shift down.
 * Company and contact method show `Not specified` when absent. Tags appear in saved order, with `None` for an empty tag set. The legacy address field remains editable using `edit INDEX a/ADDRESS`; newly added contacts use `Not provided`.
 
 ## Features
@@ -142,7 +142,7 @@ Use the edit command if you want to update the existing contact.
 
 If the email matches one record and the name/company matches another, both conflicting contacts are listed with their emails. No contact is added; correct the input before retrying.
 
-The current `edit` command can update name, email, phone, address, and tags; it cannot yet change company, contact method, enquiry status, or follow-up date; existing values are preserved.
+The current `edit` command can update name, email, phone, address, and tags; it cannot yet change company, contact method, enquiry status, or follow-up date; existing values are preserved. Use `update` to change these exhibitor fields.
 
 **Input errors**
 
@@ -249,6 +249,27 @@ Tags: technology, high-priority
 Create these records with `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...`.
 
 ![View command showing a matching exhibitor contact](images/Ui%20-%20view%20command.png)
+
+### Updating an exhibitor contact: `update`
+
+Updates only the supplied attributes. All values follow the rules in [Adding an exhibitor contact](#adding-an-exhibitor-contact-add).
+
+Format: `update NAME_OR_INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...`
+
+- Use an exact full name, ignoring case. Name lookup includes contacts hidden by a filter.
+- If names conflict, run `list` or `find` and use the displayed index: `update 2 s/In progress`. This is a current list position, not a permanent contact ID or a numbered view reply.
+- Supply at least one field. Omitted attributes stay unchanged. `n/` changes the name; the text before the first prefix selects the original contact.
+- Only `t/` may repeat. Supplied tags replace existing tags, with duplicates ignored in input order. Empty `t/` clears tags; do not combine it with nonempty tags.
+- Empty `f/` clears the date. Other blank fields are rejected. Status may be changed to any of the three supported values; there is no enforced transition order.
+- Unknown prefixes, invalid values, missing/ambiguous targets, and duplicate email or name/company combinations are rejected without changing contacts or saved data. Duplicate checks include hidden contacts.
+- Success prints `Updated NAME at COMPANY.`, clears the filter and command input, and retains keyboard focus. Run `list` or `find` before reusing an index, or `view n/NAME` to check details.
+- Legacy address is preserved; use `edit INDEX a/ADDRESS` if needed.
+
+```text
+update Alicia Tan p/+65 9876-5432 m/phone s/In progress f/20261025
+update Alicia Tan n/Alicia Lim c/New Company
+update 2 s/Completed f/ t/
+```
 
 ### Editing an exhibitor contact: `edit`
 
@@ -369,7 +390,7 @@ Furthermore, certain edits can cause BoothManagerPro to behave in unexpected way
 
 ### Planned features
 
-Updating enquiry status or follow-up dates after addition, searching these fields, reminders, data archiving, CSV import/export, and undo remain planned.
+Searching enquiry status or follow-up dates, reminders, data archiving, CSV import/export, and undo remain planned.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -387,6 +408,7 @@ Action | Format, Examples
 **Add** | `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...` <br> e.g., `add n/James Ho c/Example Ltd e/jamesho@example.com p/22224444 m/phone t/technology`
 **Clear** | `clear`
 **Delete** | `delete NAME` or `delete INDEX`<br> e.g., `delete Alex Yeoh`
+**Update** | `update NAME_OR_INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...`<br> e.g., `update Alicia Tan s/Completed f/`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG]...` or `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find n/Alice Pauline t/friends`
 **List** | `list`

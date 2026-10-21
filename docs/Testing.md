@@ -89,3 +89,9 @@ Add-error regression coverage also checks grouped missing/repeated prefixes, unk
 Tag-order regression coverage runs `edit` with repeated tags, verifies first-occurrence order after JSON reload, and checks the same order in edit, list, and view feedback. Unsupported edit prefixes must leave the contact and saved JSON unchanged.
 
 Enquiry-field regression coverage: `EnquiryFieldsTest` checks status parsing, date boundaries/leap years, defaults, equality, and duplicate identity. `ExhibitorAddIntegrationTest` covers optional combinations, invalid input without mutation, JSON reload, and preservation through edit. `JsonAdaptedPersonTest` checks legacy defaults and invalid stored values. `MainWindowTest` checks both fields in rendered contact cards.
+
+## Update regression checks
+
+`UpdateIntegrationTest` exercises all eight supported fields through actual command routing and JSON storage. It checks preservation of omitted values, date/tag clearing, duplicate names, hidden duplicate contacts, filtered indices, normalisation, invalid values/prefixes, and unchanged memory/filter/disk on rejection. `MainWindowTest` checks update feedback and rendered enquiry fields.
+
+Manual check: add a contact, update its status/date by name, verify with `view`, then clear the date with `update NAME f/`. Add another contact with the same name but different company/email; an update by name must fail. Use `find` and its displayed index to update only the intended contact. Restart and verify the saved result.

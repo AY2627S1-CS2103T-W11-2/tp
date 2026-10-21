@@ -10,7 +10,7 @@ title: BoothManagerPro
 
 **BoothManagerPro helps convention organisers manage exhibitor contacts through typed commands.** Add contacts with company, email, phone, optional contact method, and tags, with validation and duplicate detection. See the [add command reference](UserGuide.html#adding-an-exhibitor-contact-add).
 
-The image above shows the current startup screen. `list`, `find`, and `view` print their results in a single text output area. Contacts are not printed automatically on startup, and there are no graphical contact panels. Add supports enquiry status and optional follow-up dates; updating and filtering these fields remain planned.
+The image above shows the current startup screen. `list`, `find`, and `view` print their results in a single text output area. Contacts are not printed automatically on startup, and there are no graphical contact panels. Add supports enquiry status and optional follow-up dates; `update` changes these fields by name or displayed index. Filtering enquiry fields remains planned.
 
 * If you are interested in using BoothManagerPro, head over to the [_Quick Start_ section of the **User Guide**](UserGuide.html#quick-start).
 * If you are interested in developing BoothManagerPro, the [**Developer Guide**](DeveloperGuide.html) is a good place to start.
