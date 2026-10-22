@@ -138,7 +138,7 @@ How the parsing works:
 The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
-* stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` used by commands for filtering, numbered output, and indexed editing/deletion.
+* stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list, wrapped in a _sorted_ view that `list o/FIELD` can reorder. It exposes this view as an unmodifiable `ObservableList<Person>` used by commands for filtering, numbered output, and indexed editing/deletion.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -173,7 +173,7 @@ Classes used by multiple components are in the `seedu.boothmanagerpro.commons` p
 `MainWindow` contains a command input and a text result area. Startup prints only a ready prompt. The model
 still holds all saved contacts, but there is no contact-list widget, details widget, or persistent visibility state.
 
-`ListCommand` restores the full model filter and prints every contact. `FindCommand` updates the filter and prints
+`ListCommand` restores the full model filter, applies or clears the sort order, and prints every contact. `FindCommand` updates the filter and prints
 the match count plus every matching contact. Both use `Messages.formatNumberedContacts()` so the numbers in
 text match the one-based indices accepted by `edit` and `delete`. Empty results print a message without records.
 
@@ -226,7 +226,7 @@ The five MVP workflows and the inherited edit command use `Person` and its valid
 | Add | Rejects normalised-email or case-insensitive name/company duplicates across all records. |
 | Delete | Full-name match across all records, or index in the displayed list. Ambiguous names require an index; feedback includes company and method. |
 | View | Whole-name keywords with OR; multiple matches require a numbered selection. |
-| List | Restores every contact and displays all exhibitor attributes plus total; rejects arguments. |
+| List | Restores every contact and displays all exhibitor attributes plus total; optionally sorts by name, company, or enquiry status (`o/name`, `o/company`, `o/status`); rejects other arguments. |
 | Find | Complete prefixed values, OR within each field and AND across fields; unprefixed keywords retain name-word matching. |
 
 Edit preserves company and method, rejects unsupported prefixes, and replaces tags in input order.
@@ -293,6 +293,52 @@ Integration notes:
 - List, find, and view text includes company and contact method. Logic tests run without a display server.
 
 Verification: see [automated add tests](Testing.md#testing-exhibitor-additions) and [manual add checks](#testing-exhibitor-additions). These cover US-01, US-05, US-07, US-16, and US-18 for the add workflow.
+
+### Sorting the contact list
+
+`list o/name`, `list o/company`, and `list o/status` sort the displayed contacts. Plain `list` shows them in stored order, which is
+the order they were added.
+
+**How it works**
+
+1. `AddressBookParser` passes the arguments of `list` to `ListCommandParser`. Blank arguments produce a `ListCommand`
+   with no sort field. Otherwise, the parser tokenises `o/`, rejects any preamble or repeated `o/`, and converts the
+   value to a `SortField` with `SortField.fromKeyword()`, ignoring case. Unknown values are rejected with
+   `SortField.MESSAGE_CONSTRAINTS`.
+2. `ListCommand#execute()` clears the filter, then calls `Model#updateSortedPersonList(comparator)` for a sort field,
+   or `Model#resetPersonListOrder()` for plain `list`.
+3. `ModelManager` wraps its `FilteredList` in a JavaFX `SortedList`. `getFilteredPersonList()` returns the sorted
+   view, so every command that reads indices, such as `delete`, `edit`, and `update`, uses the order the user sees.
+   A `null` comparator keeps the stored order.
+
+`SortField` defines each order as a `Comparator<Person>`:
+
+| Field | Order |
+| --- | --- |
+| `NAME` | Name ignoring case, then company (contacts without a company last), then email. |
+| `COMPANY` | Company ignoring case with contacts without a company last, then name, then email. |
+| `STATUS` | Enquiry status in workflow order (the declaration order of `EnquiryStatus`: Needs follow-up, In progress, Completed), then name, then email. |
+
+Email is unique per contact, so the final email comparison means no two contacts tie and the displayed indices are
+stable between runs.
+
+Status uses workflow order rather than alphabetical order, which would place `Completed` first. Adding a new
+`EnquiryStatus` value therefore needs it declared in the right position to sort correctly.
+
+The comparator stays on the `SortedList` until the next plain `list`. Filters from `find` and `view`, and the filter
+reset after `add`, `update`, and `edit`, apply beneath it, so their results keep the chosen order.
+
+**Design considerations**
+
+* **Alternative 1 (current choice):** Sort a view of the filtered list.
+  * Pros: Saved data and the "date added" order are untouched. Indices always match the displayed order.
+  * Cons: The sort order is session state that later commands inherit, which users need to be told about.
+* **Alternative 2:** Sort the `UniquePersonList` in `AddressBook`.
+  * Pros: Simple, with no extra model state.
+  * Cons: Changes the saved file order and permanently loses the order in which contacts were added.
+* **Alternative 3:** Sort only the output inside `ListCommand`.
+  * Pros: No model changes.
+  * Cons: Displayed numbers would no longer match the indices used by `delete`, `edit`, and `update`.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -442,6 +488,7 @@ Planned requirements for BoothManagerPro; implementation status is tracked separ
 | US-16 | `**` | organiser | tag contacts by industry, priority, or need | I can group exhibitors. |
 | US-17 | `**` | organiser | filter contacts by tags | I can retrieve relevant groups. |
 | US-18 | `**` | organiser | record a preferred contact method | I can use the appropriate channel. |
+| US-36 | `**` | organiser | sort the contact list by name, company, or enquiry status | I can scan contacts in a predictable order and see who needs follow-up first. |
 
 - **US-05:** Duplicates share a normalised email or a name-and-company combination.
 - **US-12:** Repeated values within a field use OR; different fields use AND.
@@ -581,16 +628,16 @@ Use case ends.
 
 **MSS**
 
-1. Organiser requests to list all exhibitor contacts.
+1. Organiser requests to list all exhibitor contacts, optionally sorted by name, company, or enquiry status.
 2. BoothManagerPro displays all stored contacts with their names, companies, emails, phones, preferred contact methods,
-   and tags, followed by the total number of contacts.
+   and tags, in the requested order or in the order they were added, followed by the total number of contacts.
 
 Use case ends.
 
 **Extensions**
 
-* 1a. The organiser supplies parameters with the list request.
-  * 1a1. BoothManagerPro rejects the request and explains that the list command does not accept parameters.
+* 1a. The organiser supplies parameters other than a single sort field of name, company, or status.
+  * 1a1. BoothManagerPro rejects the request and explains the accepted sort fields.
 
   Use case resumes at step 1.
 
@@ -731,6 +778,9 @@ Use a disposable data folder. Do not run `clear` against real contact data.
 | Invalid request | Try `list extra`, `find`, or `view n/NobodyMatches`. | Error text replaces the output; input remains for correction and data is unchanged. |
 | Add | Add a valid contact. | Brief identity confirmation only; `view` can print its details. |
 | Show all | Run `list`. | Every contact is printed with an index and details, followed by the total. |
+| Sort | Run `list o/name`, `list o/company`, then `list o/status`. | Contacts appear alphabetically by name, then by company with contacts without a company last, then by status with `Needs follow-up` first and `Completed` last. The heading names the sort field. |
+| Sorted indices | After `list o/name`, run `delete 1`. | The first contact alphabetically is deleted. Running `list` restores the order contacts were added. |
+| Invalid sort | Try `list o/email` and `list o/name o/company`. | Error text explains the accepted sort fields or the repeated prefix. Data and order are unchanged. |
 | Find before list | Restart, then run `find Alex David` with sample data. | Two numbered contacts and their details appear in the output. No preliminary list is needed. |
 | Filtered indices | After `find Alex David`, run `delete 2`. | Only David is deleted. A later list shows the remaining contacts. |
 | Empty search | Run `find NobodyMatches`. | `0 contact(s) found.` with no stale contact details. |

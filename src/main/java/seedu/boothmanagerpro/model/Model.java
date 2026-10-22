@@ -1,5 +1,6 @@
 package seedu.boothmanagerpro.model;
 
+import java.util.Comparator;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
@@ -60,7 +61,10 @@ public interface Model {
      */
     void setPerson(Person target, Person editedPerson);
 
-    /** Returns an unmodifiable view of the filtered person list */
+    /**
+     * Returns an unmodifiable view of the filtered person list, in the current display order.
+     * Commands that take an index use this list, so indices match what the user sees.
+     */
     ObservableList<Person> getFilteredPersonList();
 
     /**
@@ -68,4 +72,13 @@ public interface Model {
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
+
+    /**
+     * Displays the filtered person list in the order given by {@code comparator}, without changing stored data.
+     * @throws NullPointerException if {@code comparator} is null.
+     */
+    void updateSortedPersonList(Comparator<Person> comparator);
+
+    /** Displays the filtered person list in the order contacts are stored, which is the order they were added. */
+    void resetPersonListOrder();
 }

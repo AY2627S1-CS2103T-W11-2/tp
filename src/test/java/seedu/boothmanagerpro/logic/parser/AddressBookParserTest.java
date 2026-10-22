@@ -25,6 +25,7 @@ import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.NameContainsKeywordsPredicate;
 import seedu.boothmanagerpro.model.person.Person;
+import seedu.boothmanagerpro.model.person.SortField;
 import seedu.boothmanagerpro.testutil.EditPersonDescriptorBuilder;
 import seedu.boothmanagerpro.testutil.PersonBuilder;
 import seedu.boothmanagerpro.testutil.PersonUtil;
@@ -88,8 +89,13 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_list() throws Exception {
-        assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD) instanceof ListCommand);
-        assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD + "   ") instanceof ListCommand);
+        assertEquals(new ListCommand(), parser.parseCommand(ListCommand.COMMAND_WORD));
+        assertEquals(new ListCommand(), parser.parseCommand(ListCommand.COMMAND_WORD + "   "));
+        assertEquals(new ListCommand(SortField.NAME), parser.parseCommand(ListCommand.COMMAND_WORD + " o/name"));
+        assertEquals(new ListCommand(SortField.COMPANY),
+                parser.parseCommand(ListCommand.COMMAND_WORD + " o/company"));
+        assertEquals(new ListCommand(SortField.STATUS),
+                parser.parseCommand(ListCommand.COMMAND_WORD + " o/status"));
     }
 
     @Test

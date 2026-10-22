@@ -64,6 +64,15 @@ Inspect `build/reports/jacoco/coverage/html/index.html` locally. CI generates `b
 
 For interactive checks, use the [manual add scenarios](DeveloperGuide.md#testing-exhibitor-additions).
 
+## Testing list sorting
+
+| Test class | Coverage focus |
+| --- | --- |
+| `SortFieldTest` | Name, company, and status orders, case-insensitivity, tie-breaks, and contacts without a company placed last. |
+| `ListCommandParserTest` | `list`, `list o/name`, `list o/company`, `list o/status`, and rejection of unknown, repeated, or extra parameters. |
+| `ListCommandTest` | Sorted output, resetting to stored order, unchanged saved order, and `delete 1` acting on the first sorted contact. |
+| `ModelManagerTest` | The sorted view, null comparators, and resetting the order. |
+
 ## Cross-feature regression checks
 
 `ExhibitorAddIntegrationTest` runs add, company/tag filtering, view selection, list, ambiguous-name deletion, and indexed deletion together. It checks shared attributes and the saved records. It also verifies that legacy contacts without company data do not match company searches.
