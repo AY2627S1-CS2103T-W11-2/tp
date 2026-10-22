@@ -22,6 +22,8 @@ import seedu.boothmanagerpro.logic.commands.ExitCommand;
 import seedu.boothmanagerpro.logic.commands.FindCommand;
 import seedu.boothmanagerpro.logic.commands.HelpCommand;
 import seedu.boothmanagerpro.logic.commands.ListCommand;
+import seedu.boothmanagerpro.logic.commands.TagCommand;
+import seedu.boothmanagerpro.logic.commands.UpdateCommand;
 import seedu.boothmanagerpro.logic.commands.ViewCommand;
 import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
@@ -42,6 +44,8 @@ public class CommandBox extends UiPart<Region> {
             FindCommand.COMMAND_WORD,
             HelpCommand.COMMAND_WORD,
             ListCommand.COMMAND_WORD,
+            TagCommand.COMMAND_WORD,
+            UpdateCommand.COMMAND_WORD,
             ViewCommand.COMMAND_WORD);
     private static final List<String> ADD_REQUIRED_PREFIXES = List.of(
             PREFIX_NAME.toString(),

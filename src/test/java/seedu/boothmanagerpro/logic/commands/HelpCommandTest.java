@@ -28,7 +28,10 @@ public class HelpCommandTest {
         assertTrue(SHOWING_HELP_MESSAGE.contains("4. VIEW\n"
                 + "   Description: Displays the full details of a contact matching the given name.\n"
                 + "   Example:     view n/Alicia Tan"));
-        assertTrue(SHOWING_HELP_MESSAGE.contains("9. EXIT\n"
+        assertTrue(SHOWING_HELP_MESSAGE.contains("6. TAG\n"
+                + "   Description: Toggles one or more tags on a contact using their full name or displayed index.\n"
+                + "   Example:     tag Alicia Tan t/high-priority"));
+        assertTrue(SHOWING_HELP_MESSAGE.contains("11. EXIT\n"
                 + "   Description: Closes BoothManagerPro.\n"
                 + "   Example:     exit"));
         assertFalse(SHOWING_HELP_MESSAGE.contains("Keyboard shortcuts"));
