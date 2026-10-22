@@ -267,7 +267,7 @@ Legacy address is preserved. Supplied tags replace the tag set; a sole blank `t/
 
 Enquiry fields:
 
-- `EnquiryStatus` validates the three case-insensitive labels; omission defaults to `NEEDS_FOLLOW_UP`.
+- `EnquiryStatus` validates the four case-insensitive labels; omission defaults to `NEEDS_FOLLOW_UP`.
 - `FollowUpDate` wraps `LocalDate`, validates real calendar dates in `YYYYMMDD` (years 0001-9999), and accepts past dates. Omission is `Optional.empty()`. No time or timezone is stored.
 - JSON stores `enquiryStatus` as its display label and `followUpDate` as a date string or null. Missing/null fields in older files receive the defaults; invalid non-null values are rejected.
 - Existing edit commands preserve both fields. The `update` command changes status/date; empty `f/` clears the date. No transition order is enforced.
@@ -317,7 +317,7 @@ the order they were added.
 | --- | --- |
 | `NAME` | Name ignoring case, then company (contacts without a company last), then email. |
 | `COMPANY` | Company ignoring case with contacts without a company last, then name, then email. |
-| `STATUS` | Enquiry status in workflow order (the declaration order of `EnquiryStatus`: Needs follow-up, In progress, Completed), then name, then email. |
+| `STATUS` | Enquiry status in workflow order (the declaration order of `EnquiryStatus`: Needs follow-up, In progress, Completed, Cancelled), then name, then email. |
 
 Email is unique per contact, so the final email comparison means no two contacts tie and the displayed indices are
 stable between runs.
@@ -482,7 +482,7 @@ Planned requirements for BoothManagerPro; implementation status is tracked separ
 | US-10 | `**` | organiser | find contacts by exact name, company, email, or phone | I can locate contacts quickly. |
 | US-11 | `**` | organiser | filter contacts by enquiry status | I can review each enquiry stage. |
 | US-12 | `**` | organiser | combine search fields and alternatives | I can narrow my results. |
-| US-13 | `**` | organiser | set enquiry status to Needs follow-up, In progress, or Completed | I can track progress. |
+| US-13 | `**` | organiser | set enquiry status to Needs follow-up, In progress, Completed, or Cancelled | I can track progress. |
 | US-14 | `**` | organiser | set a next follow-up date | I know when to contact someone again. |
 | US-15 | `**` | organiser | view due or overdue follow-ups | I can prioritise outreach. |
 | US-16 | `**` | organiser | tag contacts by industry, priority, or need | I can group exhibitors. |
@@ -684,7 +684,7 @@ Use case ends.
   Use case resumes at step 1.
 
 * 1c. An enquiry status is not one of the supported values.
-  * 1c1. BoothManagerPro rejects the request and explains that the supported statuses are Needs follow-up, In progress, and Completed.
+  * 1c1. BoothManagerPro rejects the request and explains that the supported statuses are Needs follow-up, In progress, Completed, and Cancelled.
 
   Use case resumes at step 1.
 
@@ -728,7 +728,7 @@ These are requirements for the intended product, not claims that every target ha
 * **CSV (Comma-Separated Values)**: A plain-text file format for tabular data, used to import and export contact lists
 * **Duplicate (possible duplicate)**: A contact with the same normalised email address, or the same name and company, as an existing contact. Does not mean two contacts that merely share a name
 * **Enquiry**: An exchange between an organiser and an exhibitor about the exhibitor taking part in a convention
-* **Enquiry status**: The stage an exhibitor's enquiry has reached: `Needs follow-up`, `In progress`, or `Completed`. Also referred to as *status*
+* **Enquiry status**: The stage an exhibitor's enquiry has reached: `Needs follow-up`, `In progress`, `Completed`, or `Cancelled`. Also referred to as *status*
 * **Exhibitor**: An organisation that is interested in, or has been invited to, take a booth at a convention
 * **Exact match**: A search result where the search value matches the complete field value (ignoring case and leading/trailing spaces), not just part of it. For example, `find n/Alicia` does not match "Alicia Tan"
 * **Index**: The number shown beside a contact in a displayed list, used to select a specific contact when several share the same name
@@ -778,7 +778,7 @@ Use a disposable data folder. Do not run `clear` against real contact data.
 | Invalid request | Try `list extra`, `find`, or `view n/NobodyMatches`. | Error text replaces the output; input remains for correction and data is unchanged. |
 | Add | Add a valid contact. | Brief identity confirmation only; `view` can print its details. |
 | Show all | Run `list`. | Every contact is printed with an index and details, followed by the total. |
-| Sort | Run `list o/name`, `list o/company`, then `list o/status`. | Contacts appear alphabetically by name, then by company with contacts without a company last, then by status with `Needs follow-up` first and `Completed` last. The heading names the sort field. |
+| Sort | Run `list o/name`, `list o/company`, then `list o/status`. | Contacts appear alphabetically by name, then by company with contacts without a company last, then by status with `Needs follow-up` first and `Cancelled` last. The heading names the sort field. |
 | Sorted indices | After `list o/name`, run `delete 1`. | The first contact alphabetically is deleted. Running `list` restores the order contacts were added. |
 | Invalid sort | Try `list o/email` and `list o/name o/company`. | Error text explains the accepted sort fields or the repeated prefix. Data and order are unchanged. |
 | Find before list | Restart, then run `find Alex David` with sample data. | Two numbered contacts and their details appear in the output. No preliminary list is needed. |

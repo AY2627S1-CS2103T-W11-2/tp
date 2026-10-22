@@ -101,9 +101,11 @@ public class ListCommandTest {
         Person completed = new PersonBuilder(ALICIA).withEnquiryStatus("Completed").build();
         Person inProgress = new PersonBuilder(DAVID).withEnquiryStatus("In progress").build();
         Person needsFollowUp = new PersonBuilder(ZOE).withEnquiryStatus("Needs follow-up").build();
-        Model unsortedModel = modelWith(completed, inProgress, needsFollowUp);
+        Person cancelled = new PersonBuilder().withName("Aaron Lee").withEmail("aaron@example.com")
+                .withEnquiryStatus("Cancelled").build();
+        Model unsortedModel = modelWith(cancelled, completed, inProgress, needsFollowUp);
         CommandResult result = new ListCommand(SortField.STATUS).execute(unsortedModel);
-        assertEquals(List.of(needsFollowUp, inProgress, completed), unsortedModel.getFilteredPersonList());
+        assertEquals(List.of(needsFollowUp, inProgress, completed, cancelled), unsortedModel.getFilteredPersonList());
         assertTrue(result.getFeedbackToUser().startsWith("Exhibitor Contact List (sorted by status)"));
     }
 

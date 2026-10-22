@@ -81,9 +81,11 @@ public class MainWindowTest {
             enterCommand(root, "add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567");
             enterCommand(root, "add n/Ben Lim c/Paper and Ink e/ben@example.com p/92345678 s/In progress");
             enterCommand(root, "add n/Chloe Ng c/Green Goods e/chloe@example.com p/93456789 s/Completed");
+            enterCommand(root, "add n/David Lee c/Other e/david@example.com p/94567890 s/Cancelled");
             enterCommand(root, "list");
             VBox cards = (VBox) root.lookup("#contactCards");
-            String[] expected = {"status-needs-follow-up", "status-in-progress", "status-completed"};
+            String[] expected = {"status-needs-follow-up", "status-in-progress", "status-completed",
+                "status-cancelled"};
             for (int i = 0; i < expected.length; i++) {
                 Parent card = (Parent) cards.getChildren().get(i);
                 assertTrue(card.getStyleClass().contains(expected[i]));

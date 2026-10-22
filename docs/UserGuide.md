@@ -45,7 +45,7 @@ BoothManagerPro helps **convention organisers manage exhibitor contacts through 
 * Type a command and press **Enter**. Command words and prefixes are case-sensitive: use `list`, not `List`.
 * The command box starts with keyboard focus. Press **Ctrl+L** on Windows/Linux or **Command+L** on macOS to return to it. Use `help` or **F1** for the guide, and `exit` to close the app.
 * Each launch starts with a ready prompt. Saved contacts remain available but are not automatically printed.
-* Results appear in the output area below the command box. `list`, `find`, and `view` show matching contacts as separate cards; other commands and errors show text. Each card shows the enquiry status as a coloured badge beside the name, and the card's left edge uses the same colour: amber for `Needs follow-up`, blue for `In progress`, and green for `Completed`. Cards are display-only and cannot be clicked or selected; scroll the output area to see more. There is no separate contact-list or details panel.
+* Results appear in the output area below the command box. `list`, `find`, and `view` show matching contacts as separate cards; other commands and errors show text. Each card shows the enquiry status as a coloured badge beside the name, and the card's left edge uses the same colour: amber for `Needs follow-up`, blue for `In progress`, green for `Completed`, and red for `Cancelled`. Cards are display-only and cannot be clicked or selected; scroll the output area to see more. There is no separate contact-list or details panel.
 * `list` prints every contact with a number and details. `find` prints the match count and numbered matching contacts; it works without running `list` first.
 * `view` prints a matching contact's details or numbered choices. Reply with a number only when `view` asks you to choose.
 * Each command replaces the previous output. The output fills the available space and scrolls for longer results. Use **Tab** to focus it and the arrow keys to read it; **Ctrl+L** or **Command+L** returns to command entry.
@@ -96,7 +96,7 @@ Format: `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD]
 | `e/EMAIL` | Valid email format, such as `alicia@example.com`; stored in lowercase. |
 | `p/PHONE` | 7-15 digits, optionally starting with `+`. Spaces and hyphens are removed. |
 | `m/METHOD` | Optional: `email`, `phone`, or `other`, ignoring case. Omitted method is `Not specified`. |
-| `s/STATUS` | Optional: `Needs follow-up` (default), `In progress`, or `Completed`, ignoring case. |
+| `s/STATUS` | Optional: `Needs follow-up` (default), `In progress`, `Completed`, or `Cancelled`, ignoring case. |
 | `f/YYYYMMDD` | Optional calendar date, e.g. `20261025`; omitted date displays as `None`. Years 0001-9999; invalid dates are rejected. |
 | `t/TAG` | Optional and repeatable: 1-30 characters, nonblank, without `/`. Identical tags are ignored; comparisons are case-sensitive. |
 
@@ -158,7 +158,7 @@ The current `edit` command can update name, email, phone, address, and tags; it 
 | Invalid email | `Invalid value for e/: Email address is invalid.` |
 | Invalid phone | `Invalid value for p/: Phone number must contain 7 to 15 digits.` |
 | Invalid method | `Invalid value for m/: Contact method must be email, phone, or other.` |
-| Invalid status | `Invalid value for s/: Enquiry status must be Needs follow-up, In progress, or Completed.` |
+| Invalid status | `Invalid value for s/: Enquiry status must be Needs follow-up, In progress, Completed, or Cancelled.` |
 | Invalid date | `Invalid value for f/: Follow-up date must be a valid date in YYYYMMDD format (years 0001 to 9999), e.g. 20261025.` |
 | Invalid tag | `Invalid value for t/: Tag must be 1 to 30 characters and cannot contain '/'.` |
 
@@ -176,7 +176,7 @@ Format: `list`, `list o/name`, `list o/company`, or `list o/status`
 * `list o/company` sorts contacts alphabetically by company, and by name within the same company.
   Contacts without a company (possible only in older records) appear last.
 * `list o/status` sorts contacts by enquiry status in workflow order: `Needs follow-up` first, then `In progress`,
-  then `Completed`, so the contacts you still need to act on come first. Contacts with the same status are ordered by name.
+  then `Completed`, then `Cancelled`, so the contacts you still need to act on come first. Contacts with the same status are ordered by name.
 * Sorting ignores upper and lower case, so `alicia tan` and `Alicia Tan` sort together. The sort field itself is also
   case-insensitive: `o/Name` works like `o/name`.
 * Sorting changes only the displayed order, not the saved data. The numbers shown follow the sorted order, so
@@ -275,7 +275,7 @@ Format: `update NAME_OR_INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD
 - If names conflict, run `list` or `find` and use the displayed index: `update 2 s/In progress`. This is a current list position, not a permanent contact ID or a numbered view reply.
 - Supply at least one field. Omitted attributes stay unchanged. `n/` changes the name; the text before the first prefix selects the original contact.
 - Only `t/` may repeat. Supplied tags replace existing tags, with duplicates ignored in input order. Empty `t/` clears tags; do not combine it with nonempty tags.
-- Empty `f/` clears the date. Other blank fields are rejected. Status may be changed to any of the three supported values; there is no enforced transition order.
+- Empty `f/` clears the date. Other blank fields are rejected. Status may be changed to any of the four supported values; there is no enforced transition order.
 - Unknown prefixes, invalid values, missing/ambiguous targets, and duplicate email or name/company combinations are rejected without changing contacts or saved data. Duplicate checks include hidden contacts.
 - Success prints `Updated NAME at COMPANY.`, clears the filter and command input, and retains keyboard focus. Run `list` or `find` before reusing an index, or `view n/NAME` to check details.
 - Legacy address is preserved; use `edit INDEX a/ADDRESS` if needed.
@@ -284,6 +284,7 @@ Format: `update NAME_OR_INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD
 update Alicia Tan p/+65 9876-5432 m/phone s/In progress f/20261025
 update Alicia Tan n/Alicia Lim c/New Company
 update 2 s/Completed f/ t/
+update Alicia Tan s/Cancelled
 ```
 
 ### Editing an exhibitor contact: `edit`
