@@ -19,6 +19,7 @@ import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.storage.JsonAddressBookStorage;
 import seedu.boothmanagerpro.storage.JsonUserPrefsStorage;
 import seedu.boothmanagerpro.storage.StorageManager;
+import seedu.boothmanagerpro.testutil.PersonBuilder;
 
 /** Exercises real command routing, partial updates, duplicate checks and persistence together. */
 public class UpdateIntegrationTest {
@@ -54,6 +55,21 @@ public class UpdateIntegrationTest {
         assertEquals("20280229", updated.getFollowUpDate().orElseThrow().toString());
         assertEquals("new, priority", Messages.formatTags(updated));
         assertTrue(logic.execute("view n/Alice Tan").getFeedbackToUser().contains("Follow-up date: 20280229"));
+    }
+
+    @Test
+    public void update_cancelled_preservesOtherFieldsAndCanReopen() throws Exception {
+        Person original = saved().getFirst();
+        assertEquals("Updated Alicia Tan at TechNova.",
+                logic.execute("update alicia tan s/cAnCeLlEd").getFeedbackToUser());
+        assertEquals(new PersonBuilder(original).withEnquiryStatus("Cancelled").build(), saved().getFirst());
+        assertTrue(logic.execute("view n/Alicia").getFeedbackToUser().contains("Enquiry status: Cancelled"));
+        for (String status : List.of("Needs follow-up", "In progress", "Completed")) {
+            logic.execute("update 1 s/" + status);
+            assertEquals(new PersonBuilder(original).withEnquiryStatus(status).build(), saved().getFirst());
+            logic.execute("update 1 s/Cancelled");
+            assertEquals(new PersonBuilder(original).withEnquiryStatus("Cancelled").build(), saved().getFirst());
+        }
     }
 
     @Test

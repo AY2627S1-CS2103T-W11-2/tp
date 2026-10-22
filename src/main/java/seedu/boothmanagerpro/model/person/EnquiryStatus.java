@@ -6,10 +6,11 @@ import static java.util.Objects.requireNonNull;
 public enum EnquiryStatus {
     NEEDS_FOLLOW_UP("Needs follow-up"),
     IN_PROGRESS("In progress"),
-    COMPLETED("Completed");
+    COMPLETED("Completed"),
+    CANCELLED("Cancelled");
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Enquiry status must be Needs follow-up, In progress, or Completed.";
+            "Enquiry status must be Needs follow-up, In progress, Completed, or Cancelled.";
 
     private final String label;
 
