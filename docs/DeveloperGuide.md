@@ -88,7 +88,7 @@ The `UI` component,
 | Component | Responsibility |
 | --- | --- |
 | `MainWindow.fxml` / `BoothManagerPro.css` | Command-only layout, colours, spacing, and an output area that fills available space. |
-| `ContactCard.fxml` / `ContactCard` | A static card for one contact, shown by `ResultDisplay` when a `CommandResult` carries contacts to show. |
+| `ContactCard.fxml` / `ContactCard` | A static card for one contact, shown by `ResultDisplay` when a `CommandResult` carries contacts to show. The enquiry status appears as a badge beside the name; `ContactCard` adds a `status-*` style class (e.g. `status-in-progress`) to the badge and card, and `BoothManagerPro.css` colours both. |
 | `CommandBox` | Typed input through `Logic.execute()`; successful input clears, failed input remains editable. |
 | `ResultDisplay` | Read-only text output, summary heading, and error styling. Each result replaces the previous output. |
 

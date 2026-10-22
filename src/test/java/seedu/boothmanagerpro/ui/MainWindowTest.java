@@ -66,8 +66,30 @@ public class MainWindowTest {
             enterCommand(root, "view n/Alicia");
             VBox cards = (VBox) root.lookup("#contactCards");
             Parent card = (Parent) cards.getChildren().getFirst();
-            assertEquals("Enquiry status: In progress", ((Label) card.lookup("#enquiryStatus")).getText());
+            Label status = (Label) card.lookup("#enquiryStatus");
+            assertEquals("In progress", status.getText());
+            assertEquals("Enquiry status: In progress", status.getAccessibleText());
+            assertTrue(status.getStyleClass().contains("status-in-progress"));
+            assertTrue(card.getStyleClass().contains("status-in-progress"));
             assertEquals("Follow-up date: 20261025", ((Label) card.lookup("#followUpDate")).getText());
+        });
+    }
+
+    @Test
+    public void list_eachEnquiryStatus_showsMatchingBadge() throws Exception {
+        withWindow(new ModelManager(), (window, root, storage) -> {
+            enterCommand(root, "add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567");
+            enterCommand(root, "add n/Ben Lim c/Paper and Ink e/ben@example.com p/92345678 s/In progress");
+            enterCommand(root, "add n/Chloe Ng c/Green Goods e/chloe@example.com p/93456789 s/Completed");
+            enterCommand(root, "list");
+            VBox cards = (VBox) root.lookup("#contactCards");
+            String[] expected = {"status-needs-follow-up", "status-in-progress", "status-completed"};
+            for (int i = 0; i < expected.length; i++) {
+                Parent card = (Parent) cards.getChildren().get(i);
+                assertTrue(card.getStyleClass().contains(expected[i]));
+                assertTrue(card.lookup("#enquiryStatus").getStyleClass().contains(expected[i]));
+            }
+            savePreview(root, 1180, 820, "cli-status.png");
         });
     }
 
@@ -81,7 +103,10 @@ public class MainWindowTest {
             enterCommand(root, "view n/Alicia");
             VBox cards = (VBox) root.lookup("#contactCards");
             Parent card = (Parent) cards.getChildren().getFirst();
-            assertEquals("Enquiry status: Completed", ((Label) card.lookup("#enquiryStatus")).getText());
+            Label status = (Label) card.lookup("#enquiryStatus");
+            assertEquals("Completed", status.getText());
+            assertTrue(status.getStyleClass().contains("status-completed"));
+            assertFalse(status.getStyleClass().contains("status-in-progress"));
             assertEquals("Follow-up date: 20261025", ((Label) card.lookup("#followUpDate")).getText());
             enterCommand(root, "update Alicia Tan f/20230229");
             assertTrue(output(root).contains("Invalid value for f/"));
