@@ -8,6 +8,7 @@ import static seedu.boothmanagerpro.testutil.Assert.assertThrows;
 import static seedu.boothmanagerpro.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -21,11 +22,13 @@ import seedu.boothmanagerpro.logic.commands.ExitCommand;
 import seedu.boothmanagerpro.logic.commands.FindCommand;
 import seedu.boothmanagerpro.logic.commands.HelpCommand;
 import seedu.boothmanagerpro.logic.commands.ListCommand;
+import seedu.boothmanagerpro.logic.commands.TagCommand;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.NameContainsKeywordsPredicate;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.model.person.SortField;
+import seedu.boothmanagerpro.model.tag.Tag;
 import seedu.boothmanagerpro.testutil.EditPersonDescriptorBuilder;
 import seedu.boothmanagerpro.testutil.PersonBuilder;
 import seedu.boothmanagerpro.testutil.PersonUtil;
@@ -56,6 +59,17 @@ public class AddressBookParserTest {
         DeleteCommand commandByName = (DeleteCommand) parser.parseCommand(
                 DeleteCommand.COMMAND_WORD + " Alice Pauline");
         assertEquals(new DeleteCommand(new Name("Alice Pauline")), commandByName);
+    }
+
+    @Test
+    public void parseCommand_tag() throws Exception {
+        TagCommand commandByIndex = (TagCommand) parser.parseCommand(
+                TagCommand.COMMAND_WORD + " " + INDEX_FIRST_PERSON.getOneBased() + " t/vip");
+        assertEquals(new TagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("vip"))), commandByIndex);
+
+        TagCommand commandByName = (TagCommand) parser.parseCommand(
+                TagCommand.COMMAND_WORD + " Alice Pauline t/vip");
+        assertEquals(new TagCommand(new Name("Alice Pauline"), Set.of(new Tag("vip"))), commandByName);
     }
 
     @Test

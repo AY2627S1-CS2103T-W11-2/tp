@@ -49,7 +49,7 @@ BoothManagerPro helps **convention organisers manage exhibitor contacts through 
 * `list` prints every contact with a number and details. `find` prints the match count and numbered matching contacts; it works without running `list` first.
 * `view` prints a matching contact's details or numbered choices. Reply with a number only when `view` asks you to choose.
 * Each command replaces the previous output. The output fills the available space and scrolls for longer results. Use **Tab** to focus it and the arrow keys to read it; **Ctrl+L** or **Command+L** returns to command entry.
-* For `update INDEX`, `edit INDEX`, and `delete INDEX`, use the numbers from the current `list`, `find`, or `view` matches. A successful `add`, `update`, or `edit` resets the filter; run `list` or `find` again before choosing another index. After deleting a contact, later indices shift down.
+* For `update INDEX`, `tag INDEX`, `edit INDEX`, and `delete INDEX`, use the numbers from the current `list`, `find`, or `view` matches. A successful `add`, `update`, `tag`, or `edit` resets the filter; run `list` or `find` again before choosing another index. After deleting a contact, later indices shift down.
 * Company and contact method show `Not specified` when absent. Tags appear in saved order, with `None` for an empty tag set. The legacy address field remains editable using `edit INDEX a/ADDRESS`; newly added contacts use `Not provided`.
 
 ## Features
@@ -287,6 +287,23 @@ update 2 s/Completed f/ t/
 update Alicia Tan s/Cancelled
 ```
 
+### Updating contact tags: `tag`
+
+Toggles one or more tags on a contact: each supplied tag that is not yet on the contact is added, and each supplied tag that already exists on the contact is removed.
+
+Format: `tag NAME_OR_INDEX t/TAG [t/TAG]...`
+
+- Use an exact full name, ignoring case, or a displayed index from `list`, `find`, or `view` (`tag 2 t/vip`). Name lookup includes contacts hidden by a filter; ambiguous names require a displayed index.
+- Supply at least one nonblank `t/TAG` field (`1-30` characters, without `/`). Repeated identical `t/TAG` values in the same command are ignored in input order.
+- Tag matching is case-sensitive, consistent with `add`, `update`, and `edit`: `t/VIP` and `t/vip` are distinct tags.
+- Only `t/` is accepted. Unknown prefixes, missing or blank `t/`, and invalid targets are rejected without changing contacts, filters, or saved data.
+- Success prints the exact tag changes made (`Updated tags for NAME at COMPANY. Added: .... Removed: .... Current tags: ....`), clears the filter and command input, and retains keyboard focus. All other contact attributes remain unchanged.
+
+```text
+tag Alicia Tan t/sponsor t/high-priority
+tag 1 t/technology t/keynote
+```
+
 ### Editing an exhibitor contact: `edit`
 
 Edits an existing contact by its displayed index.
@@ -425,6 +442,7 @@ Action | Format, Examples
 **Clear** | `clear`
 **Delete** | `delete NAME` or `delete INDEX`<br> e.g., `delete Alex Yeoh`
 **Update** | `update NAME_OR_INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...`<br> e.g., `update Alicia Tan s/Completed f/`
+**Tag** | `tag NAME_OR_INDEX t/TAG [t/TAG]...`<br> e.g., `tag Alicia Tan t/high-priority t/sponsor`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG]...` or `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find n/Alice Pauline t/friends`
 **List** | `list`, `list o/name`, `list o/company`, or `list o/status`<br> e.g., `list o/status`
