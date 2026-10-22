@@ -231,13 +231,29 @@ The five MVP workflows and the inherited edit command use `Person` and its valid
 
 Edit preserves company and method, rejects unsupported prefixes, and replaces tags in input order.
 `Messages.formatContactDetails()` supplies the shared list/view format; `Messages.formatTags()` and
-`Messages.formatOptional()` keep text placeholders consistent. Enquiry status and follow-up fields remain planned.
+`Messages.formatOptional()` keep text placeholders consistent. Enquiry status updates are supported; follow-up fields remain planned.
 
 Tests cover actual persisted exhibitor records, numbered selection and retries, cancelled/stale choices,
 invalid syntax, matching parity with `find`, legacy records, data preservation, and command-only output.
 The JavaFX regression test covers same-name contacts at different companies, numbered replies, and cancellation.
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### Updating enquiry status
+
+`update NAME_OR_INDEX s/STATUS` changes only the enquiry status. The three supported labels are
+`Needs follow-up` (default), `In progress`, and `Completed`. Status filtering and other update fields
+are outside this feature's scope.
+
+`UpdateCommandParser` requires one nonblank `s/` field and rejects unsupported or repeated prefixes.
+`UpdateCommand` resolves a full name across all contacts, ignoring case, or an index in the current
+filtered list. Missing and ambiguous targets fail without mutation. The immutable replacement retains
+all other fields, clears the filter, and returns `Updated NAME at COMPANY.`. Any status transition is allowed.
+
+`Person` includes status in value equality but not duplicate identity. `JsonAdaptedPerson` stores the
+label and defaults missing/null values in older files; invalid labels fail validation. Existing edit
+commands preserve status. Shared messages and contact cards display it. `UpdateStatusIntegrationTest`
+and `MainWindowTest` cover parsing, selection, preservation, persistence, and rendered status.
 
 ### Adding an exhibitor contact
 
@@ -383,7 +399,7 @@ _{Explain here how the data archiving feature will be implemented}_
 * Comfortable typing commands for repeated contact-management tasks
 * Need to store and retrieve contact information quickly
 
-**Value proposition:** Manage exhibitor contacts through typed commands, with clear feedback and local storage. Enquiry status and follow-up tracking are planned. Startup prints no contacts; list, find, and view print requested results as text.
+**Value proposition:** Manage exhibitor contacts through typed commands, with clear feedback and local storage. Enquiry status updates are supported; follow-up tracking remains planned. Startup prints no contacts; list, find, and view print requested results as text.
 
 ### User stories
 
@@ -413,7 +429,7 @@ Planned requirements for BoothManagerPro; implementation status is tracked separ
 | US-10 | `**` | organiser | find contacts by exact name, company, email, or phone | I can locate contacts quickly. |
 | US-11 | `**` | organiser | filter contacts by enquiry status | I can review each enquiry stage. |
 | US-12 | `**` | organiser | combine search fields and alternatives | I can narrow my results. |
-| US-13 | `**` | organiser | set enquiry status to new, contacted, confirmed, or rejected | I can track progress. |
+| US-13 | `**` | organiser | set enquiry status to Needs follow-up, In progress, or Completed | I can track progress. |
 | US-14 | `**` | organiser | set a next follow-up date | I know when to contact someone again. |
 | US-15 | `**` | organiser | view due or overdue follow-ups | I can prioritise outreach. |
 | US-16 | `**` | organiser | tag contacts by industry, priority, or need | I can group exhibitors. |
@@ -614,7 +630,7 @@ Use case ends.
   Use case resumes at step 1.
 
 * 1c. An enquiry status is not one of the supported values.
-  * 1c1. BoothManagerPro rejects the request and explains that the supported statuses are new, contacted, confirmed, and rejected.
+  * 1c1. BoothManagerPro rejects the request and explains that the supported statuses are Needs follow-up, In progress, and Completed.
 
   Use case resumes at step 1.
 
@@ -658,7 +674,7 @@ These are requirements for the intended product, not claims that every target ha
 * **CSV (Comma-Separated Values)**: A plain-text file format for tabular data, used to import and export contact lists
 * **Duplicate (possible duplicate)**: A contact with the same normalised email address, or the same name and company, as an existing contact. Does not mean two contacts that merely share a name
 * **Enquiry**: An exchange between an organiser and an exhibitor about the exhibitor taking part in a convention
-* **Enquiry status**: The stage an exhibitor's enquiry has reached: `new`, `contacted`, `confirmed`, or `rejected`. Also referred to as *status*
+* **Enquiry status**: The stage an exhibitor's enquiry has reached: `Needs follow-up`, `In progress`, or `Completed`. Also referred to as *status*
 * **Exhibitor**: An organisation that is interested in, or has been invited to, take a booth at a convention
 * **Exact match**: A search result where the search value matches the complete field value (ignoring case and leading/trailing spaces), not just part of it. For example, `find n/Alicia` does not match "Alicia Tan"
 * **Index**: The number shown beside a contact in a displayed list, used to select a specific contact when several share the same name

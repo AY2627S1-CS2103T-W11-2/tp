@@ -49,7 +49,7 @@ BoothManagerPro helps **convention organisers manage exhibitor contacts through 
 * `list` prints every contact with a number and details. `find` prints the match count and numbered matching contacts; it works without running `list` first.
 * `view` prints a matching contact's details or numbered choices. Reply with a number only when `view` asks you to choose.
 * Each command replaces the previous output. The output fills the available space and scrolls for longer results. Use **Tab** to focus it and the arrow keys to read it; **Ctrl+L** or **Command+L** returns to command entry.
-* For `edit INDEX` and `delete INDEX`, use the numbers from the current `list`, `find`, or `view` matches. A successful `add` or `edit` resets the filter; run `list` or `find` again before choosing another index. After deleting a contact, later indices shift down.
+* For `update INDEX s/STATUS`, `edit INDEX`, and `delete INDEX`, use the numbers from the current `list`, `find`, or `view` matches. A successful `add`, `update`, or `edit` resets the filter; run `list` or `find` again before choosing another index. After deleting a contact, later indices shift down.
 * Company and contact method show `Not specified` when absent. Tags appear in saved order, with `None` for an empty tag set. The legacy address field remains editable using `edit INDEX a/ADDRESS`; newly added contacts use `Not provided`.
 
 ## Features
@@ -183,12 +183,14 @@ Exhibitor Contact List
 Email: alicia@technova.com
 Phone: 91234567
 Contact method: email
+Enquiry status: Needs follow-up
 Tags: technology, high-priority
 
 2. John Smith at GlobalTech Inc
 Email: john@globaltech.com
 Phone: +6562345678
 Contact method: phone
+Enquiry status: Needs follow-up
 Tags: hardware
 
 ──────────────────────────────────────
@@ -233,12 +235,38 @@ Alicia Tan at TechNova Pte Ltd
 Email: alicia@technova.com
 Phone: 91234567
 Contact method: email
+Enquiry status: Needs follow-up
 Tags: technology, high-priority
 ```
 
 Create these records with `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [t/TAG]...`.
 
 ![View command showing a matching exhibitor contact](images/Ui%20-%20view%20command.png)
+
+### Updating enquiry status: `update`
+
+Updates only the enquiry status of the selected contact.
+
+Format: `update NAME_OR_INDEX s/STATUS`
+
+* Status must be `Needs follow-up`, `In progress`, or `Completed`, ignoring case.
+  New contacts and older records without a status default to `Needs follow-up`.
+* Use an exact full name, ignoring case. Name lookup includes contacts hidden by a filter.
+* If names conflict, run `list` or `find` and use the displayed index: `update 2 s/In progress`.
+  The index is a current list position, not a permanent contact ID or a numbered view reply.
+* Supply exactly one nonblank `s/` field. Any of the three statuses may be selected, including the current status;
+  there is no enforced transition order. All other contact attributes stay unchanged.
+* Missing or ambiguous targets, invalid indices/statuses, repeated `s/`, and unsupported prefixes are rejected
+  without changing contacts, filters, or saved data. This feature accepts only `s/`.
+* Success prints `Updated NAME at COMPANY.`, clears the filter and command input, and retains keyboard focus.
+  Run `list` or `find` before reusing an index, or `view n/NAME` to check the saved status.
+* Status is saved automatically and displayed in `list`, `find`, and `view`. Ordinary `edit` commands preserve it.
+
+```text
+update Alicia Tan s/In progress
+update 2 s/Completed
+update Alicia Tan s/Needs follow-up
+```
 
 ### Editing an exhibitor contact: `edit`
 
@@ -278,7 +306,7 @@ Format: `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG]...`
 * `find` prints the number of matches followed by each matching contact's number, name, company, email, phone, method, and tags. No preliminary `list` command is needed.
 * With no matches, it prints `0 contact(s) found.` and no contact details.
 * Company (`c/`) matches the complete stored company name. Legacy contacts without a company do not match this field.
-* Enquiry status (`s/`) and contact method (`m/`) are not searchable. Status tracking remains planned.
+* Enquiry status (`s/`) and contact method (`m/`) are not searchable. Use `update NAME_OR_INDEX s/STATUS` to change enquiry status; status filtering remains planned.
 * `list` restores all contacts. A result count of zero means no contacts matched.
 
 Examples:
@@ -359,7 +387,7 @@ Furthermore, certain edits can cause BoothManagerPro to behave in unexpected way
 
 ### Planned features
 
-Enquiry status, follow-up dates, data archiving, CSV import/export, and undo are not available in the current version. There are no enquiry-management commands in this version.
+Status filtering, follow-up dates, data archiving, CSV import/export, and undo remain planned.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -377,6 +405,7 @@ Action | Format, Examples
 **Add** | `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [t/TAG]...` <br> e.g., `add n/James Ho c/Example Ltd e/jamesho@example.com p/22224444 m/phone t/technology`
 **Clear** | `clear`
 **Delete** | `delete NAME` or `delete INDEX`<br> e.g., `delete Alex Yeoh`
+**Update status** | `update NAME_OR_INDEX s/STATUS`<br> e.g., `update Alicia Tan s/In progress`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG]...` or `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find n/Alice Pauline t/friends`
 **List** | `list`

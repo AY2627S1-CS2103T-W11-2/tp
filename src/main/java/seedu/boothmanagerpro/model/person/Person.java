@@ -28,6 +28,7 @@ public class Person {
     private final Set<Tag> tags = new LinkedHashSet<>();
     private final Optional<Company> company;
     private final Optional<ContactMethod> contactMethod;
+    private final EnquiryStatus enquiryStatus;
 
     /**
      * Creates a legacy contact without company or preferred contact method.
@@ -44,7 +45,13 @@ public class Person {
      */
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
             Optional<Company> company, Optional<ContactMethod> contactMethod) {
-        requireAllNonNull(name, phone, email, address, tags, company, contactMethod);
+        this(name, phone, email, address, tags, company, contactMethod, EnquiryStatus.NEEDS_FOLLOW_UP);
+    }
+
+    /** Creates a contact with an explicit, non-null enquiry status. */
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
+            Optional<Company> company, Optional<ContactMethod> contactMethod, EnquiryStatus enquiryStatus) {
+        requireAllNonNull(name, phone, email, address, tags, company, contactMethod, enquiryStatus);
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -52,6 +59,7 @@ public class Person {
         this.tags.addAll(tags);
         this.company = company;
         this.contactMethod = contactMethod;
+        this.enquiryStatus = enquiryStatus;
     }
 
     /** Returns the exhibitor organisation, or empty for a legacy contact without company information. */
@@ -73,6 +81,15 @@ public class Person {
             Optional<ContactMethod> contactMethod, Set<Tag> tags) {
         return new Person(name, phone, email, new Address("Not provided"), tags,
                 Optional.of(company), contactMethod);
+    }
+
+    public EnquiryStatus getEnquiryStatus() {
+        return enquiryStatus;
+    }
+
+    /** Returns a copy with only the enquiry status changed. */
+    public Person withEnquiryStatus(EnquiryStatus status) {
+        return new Person(name, phone, email, address, tags, company, contactMethod, status);
     }
 
     public Name getName() {
@@ -137,13 +154,14 @@ public class Person {
                 && address.equals(otherPerson.address)
                 && company.equals(otherPerson.company)
                 && contactMethod.equals(otherPerson.contactMethod)
+                && enquiryStatus == otherPerson.enquiryStatus
                 && tags.equals(otherPerson.tags);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, tags, company, contactMethod);
+        return Objects.hash(name, phone, email, address, tags, company, contactMethod, enquiryStatus);
     }
 
     @Override
@@ -156,6 +174,7 @@ public class Person {
                 .add("tags", tags)
                 .add("company", company)
                 .add("contactMethod", contactMethod)
+                .add("enquiryStatus", enquiryStatus)
                 .toString();
     }
 

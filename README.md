@@ -23,9 +23,8 @@ BoothManagerPro focuses on managing exhibitors and their representatives
 throughout the enquiry process. Its initial development includes adding,
 listing, viewing, and deleting contact records.
 
-The planned direction includes enquiry status tracking and follow-up
-management, helping organisers keep track of communication progress
-and identify whom to contact next.
+Enquiry status tracking records whether a contact needs follow-up, is in progress,
+or is completed. Follow-up date management remains planned.
 
 ## UI preview
 
@@ -54,7 +53,7 @@ BoothManagerPro's MVP centres on five contact-management workflows:
 1. **View:** Search by name keywords and select a contact to see its full details.
 1. **Find and filter:** Match complete name, company, email, phone, or tag values; combine alternatives and criteria.
 
-The inherited `edit` and `clear` commands are also available. Edit supports name, phone, email, legacy address, and tags; company and contact method are preserved. See the [User Guide](docs/UserGuide.md) for syntax and examples. Company and contact method are included in contact text output. Enquiry status and follow-up tracking remain planned.
+The inherited `edit` and `clear` commands are also available. Edit supports name, phone, email, legacy address, and tags; company and contact method are preserved. See the [User Guide](docs/UserGuide.md) for syntax and examples. Company and contact method are included in contact text output. Use `update NAME_OR_INDEX s/STATUS` to update enquiry status. Follow-up tracking remains planned.
 
 ### Future enhancements
 

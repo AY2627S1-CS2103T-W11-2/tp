@@ -115,6 +115,23 @@ public class MainWindowTest {
     }
 
     @Test
+    public void updateStatus_typedCommand_updatesCardsAndSavedContact() throws Exception {
+        withWindow(sampleModel(), (window, root, storage) -> {
+            enterCommand(root, "find Alex");
+            enterCommand(root, "update 1 s/In progress");
+            assertEquals("Updated Alex Yeoh.", output(root));
+            enterCommand(root, "view n/Alex");
+            javafx.scene.control.Label status = (javafx.scene.control.Label) root.lookup("#enquiryStatus");
+            assertEquals("Enquiry status: In progress", status.getText());
+            assertEquals("In progress", storage.readAddressBook().orElseThrow().getPersonList().getFirst()
+                    .getEnquiryStatus().toString());
+            enterCommand(root, "update 1 s/invalid");
+            assertTrue(output(root).contains("Enquiry status must be"));
+            assertEquals("update 1 s/invalid", input(root).getText());
+        });
+    }
+
+    @Test
     public void find_emptyAndInvalidRequests_doNotShowStaleContacts() throws Exception {
         ModelManager model = sampleModel();
         withWindow(model, (window, root, storage) -> {

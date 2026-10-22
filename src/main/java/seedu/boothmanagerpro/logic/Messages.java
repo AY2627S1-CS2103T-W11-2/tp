@@ -52,6 +52,8 @@ public class Messages {
                 .append(person.getEmail())
                 .append("; Address: ")
                 .append(person.getAddress())
+                .append("; Enquiry status: ")
+                .append(person.getEnquiryStatus())
                 .append("; Tags: ")
                 .append(formatTags(person));
         return builder.toString();
@@ -63,6 +65,7 @@ public class Messages {
                 + "\nEmail: " + person.getEmail()
                 + "\nPhone: " + person.getPhone()
                 + "\nContact method: " + formatOptional(person.getContactMethod())
+                + "\nEnquiry status: " + person.getEnquiryStatus()
                 + "\nTags: " + formatTags(person);
     }
 

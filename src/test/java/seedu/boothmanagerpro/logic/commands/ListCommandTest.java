@@ -78,9 +78,9 @@ public class ListCommandTest {
         String expected = "Exhibitor Contact List\n"
                 + divider + "\n\n"
                 + "1. Alicia Tan at TechNova Pte Ltd\nEmail: alicia@technova.com\nPhone: 91234567\n"
-                + "Contact method: email\nTags: technology, high-priority\n\n"
+                + "Contact method: email\nEnquiry status: Needs follow-up\nTags: technology, high-priority\n\n"
                 + "2. John Smith at GlobalTech Inc\nEmail: john@globaltech.com\nPhone: +6562345678\n"
-                + "Contact method: phone\nTags: hardware\n\n"
+                + "Contact method: phone\nEnquiry status: Needs follow-up\nTags: hardware\n\n"
                 + divider + "\n"
                 + "Total contacts: 2";
         assertEquals(expected, ListCommand.formatContactList(List.of(alicia, john)));
@@ -92,7 +92,8 @@ public class ListCommandTest {
         String result = ListCommand.formatContactList(List.of(legacy));
         assertEquals("Exhibitor Contact List\n" + ListCommand.MESSAGE_DIVIDER + "\n\n"
                 + "1. " + legacy.getName() + " at Not specified\nEmail: " + legacy.getEmail()
-                + "\nPhone: " + legacy.getPhone() + "\nContact method: Not specified\nTags: None\n\n"
+                + "\nPhone: " + legacy.getPhone() + "\nContact method: Not specified\n"
+                + "Enquiry status: Needs follow-up\nTags: None\n\n"
                 + ListCommand.MESSAGE_DIVIDER + "\nTotal contacts: 1", result);
     }
 

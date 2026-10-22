@@ -8,6 +8,7 @@ import seedu.boothmanagerpro.model.person.Address;
 import seedu.boothmanagerpro.model.person.Company;
 import seedu.boothmanagerpro.model.person.ContactMethod;
 import seedu.boothmanagerpro.model.person.Email;
+import seedu.boothmanagerpro.model.person.EnquiryStatus;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.model.person.Phone;
@@ -24,6 +25,7 @@ public class PersonBuilder {
     public static final String DEFAULT_EMAIL = "amy@gmail.com";
     public static final String DEFAULT_ADDRESS = "123, Jurong West Ave 6, #08-111";
 
+    private EnquiryStatus enquiryStatus = EnquiryStatus.NEEDS_FOLLOW_UP;
     private Name name;
     private Phone phone;
     private Email email;
@@ -47,6 +49,7 @@ public class PersonBuilder {
      * Initializes the PersonBuilder with the data of {@code personToCopy}.
      */
     public PersonBuilder(Person personToCopy) {
+        enquiryStatus = personToCopy.getEnquiryStatus();
         name = personToCopy.getName();
         phone = personToCopy.getPhone();
         email = personToCopy.getEmail();
@@ -97,7 +100,7 @@ public class PersonBuilder {
     }
 
     public Person build() {
-        return new Person(name, phone, email, address, tags, company, contactMethod);
+        return new Person(name, phone, email, address, tags, company, contactMethod, enquiryStatus);
     }
 
     /** Sets the exhibitor organisation. */

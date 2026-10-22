@@ -15,6 +15,7 @@ import seedu.boothmanagerpro.model.person.Address;
 import seedu.boothmanagerpro.model.person.Company;
 import seedu.boothmanagerpro.model.person.ContactMethod;
 import seedu.boothmanagerpro.model.person.Email;
+import seedu.boothmanagerpro.model.person.EnquiryStatus;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.model.person.Phone;
@@ -34,6 +35,7 @@ class JsonAdaptedPerson {
     private final String address;
     private final String company;
     private final String contactMethod;
+    private final String enquiryStatus;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
     /**
@@ -47,17 +49,24 @@ class JsonAdaptedPerson {
      * Captures raw JSON fields; validation is deferred to {@link #toModelType()}.
      * Null company/method values represent absent fields. Blank or unsupported values are not silently discarded.
      */
+    public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags,
+            String company, String contactMethod) {
+        this(name, phone, email, address, tags, company, contactMethod, null);
+    }
+
+    /** Captures enquiry status; missing status in older files defaults to Needs follow-up. */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("address") String address,
             @JsonProperty("tags") List<JsonAdaptedTag> tags, @JsonProperty("company") String company,
-            @JsonProperty("contactMethod") String contactMethod) {
+            @JsonProperty("contactMethod") String contactMethod, @JsonProperty("enquiryStatus") String enquiryStatus) {
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.address = address;
         this.company = company;
         this.contactMethod = contactMethod;
+        this.enquiryStatus = enquiryStatus;
         if (tags != null) {
             this.tags.addAll(tags);
         }
@@ -73,6 +82,7 @@ class JsonAdaptedPerson {
         address = source.getAddress().value;
         company = source.getCompany().map(value -> value.value).orElse(null);
         contactMethod = source.getContactMethod().map(Object::toString).orElse(null);
+        enquiryStatus = source.getEnquiryStatus().toString();
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
@@ -126,7 +136,10 @@ class JsonAdaptedPerson {
         try {
             Optional<Company> modelCompany = Optional.ofNullable(company).map(Company::new);
             Optional<ContactMethod> modelMethod = Optional.ofNullable(contactMethod).map(ContactMethod::fromString);
-            return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelCompany, modelMethod);
+            EnquiryStatus modelStatus = enquiryStatus == null ? EnquiryStatus.NEEDS_FOLLOW_UP
+                    : EnquiryStatus.fromString(enquiryStatus);
+            return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags,
+                    modelCompany, modelMethod, modelStatus);
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());
         }
