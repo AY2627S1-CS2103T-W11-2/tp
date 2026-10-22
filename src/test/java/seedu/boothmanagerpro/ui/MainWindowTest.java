@@ -66,8 +66,51 @@ public class MainWindowTest {
             enterCommand(root, "view n/Alicia");
             VBox cards = (VBox) root.lookup("#contactCards");
             Parent card = (Parent) cards.getChildren().getFirst();
-            assertEquals("Enquiry status: In progress", ((Label) card.lookup("#enquiryStatus")).getText());
+            Label status = (Label) card.lookup("#enquiryStatus");
+            assertEquals("In progress", status.getText());
+            assertEquals("Enquiry status: In progress", status.getAccessibleText());
+            assertTrue(status.getStyleClass().contains("status-in-progress"));
+            assertTrue(card.getStyleClass().contains("status-in-progress"));
             assertEquals("Follow-up date: 20261025", ((Label) card.lookup("#followUpDate")).getText());
+        });
+    }
+
+    @Test
+    public void list_eachEnquiryStatus_showsMatchingBadge() throws Exception {
+        withWindow(new ModelManager(), (window, root, storage) -> {
+            enterCommand(root, "add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567");
+            enterCommand(root, "add n/Ben Lim c/Paper and Ink e/ben@example.com p/92345678 s/In progress");
+            enterCommand(root, "add n/Chloe Ng c/Green Goods e/chloe@example.com p/93456789 s/Completed");
+            enterCommand(root, "list");
+            VBox cards = (VBox) root.lookup("#contactCards");
+            String[] expected = {"status-needs-follow-up", "status-in-progress", "status-completed"};
+            for (int i = 0; i < expected.length; i++) {
+                Parent card = (Parent) cards.getChildren().get(i);
+                assertTrue(card.getStyleClass().contains(expected[i]));
+                assertTrue(card.lookup("#enquiryStatus").getStyleClass().contains(expected[i]));
+            }
+            savePreview(root, 1180, 820, "cli-status.png");
+        });
+    }
+
+    @Test
+    public void update_successAndFailure_showFeedbackAndSavedDetails() throws Exception {
+        withWindow(new ModelManager(), (window, root, storage) -> {
+            enterCommand(root, "add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567");
+            enterCommand(root, "update Alicia Tan s/Completed f/20261025");
+            assertEquals("Updated Alicia Tan at TechNova.", output(root));
+            assertEquals("", input(root).getText());
+            enterCommand(root, "view n/Alicia");
+            VBox cards = (VBox) root.lookup("#contactCards");
+            Parent card = (Parent) cards.getChildren().getFirst();
+            Label status = (Label) card.lookup("#enquiryStatus");
+            assertEquals("Completed", status.getText());
+            assertTrue(status.getStyleClass().contains("status-completed"));
+            assertFalse(status.getStyleClass().contains("status-in-progress"));
+            assertEquals("Follow-up date: 20261025", ((Label) card.lookup("#followUpDate")).getText());
+            enterCommand(root, "update Alicia Tan f/20230229");
+            assertTrue(output(root).contains("Invalid value for f/"));
+            assertEquals("update Alicia Tan f/20230229", input(root).getText());
         });
     }
 
@@ -241,6 +284,9 @@ public class MainWindowTest {
             TextField commandInput = input(root);
 
             commandInput.setText("del");
+            pressKey(commandInput, KeyCode.A);
+            assertEquals("del", commandInput.getText());
+
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("delete ", commandInput.getText());
             assertEquals(commandInput.getText().length(), commandInput.getCaretPosition());
@@ -252,6 +298,10 @@ public class MainWindowTest {
             commandInput.setText("not-a-command");
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("not-a-command", commandInput.getText());
+
+            commandInput.setText("add unexpected-text");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add unexpected-text", commandInput.getText());
 
             commandInput.setText("add");
             pressKey(commandInput, KeyCode.TAB);
@@ -269,6 +319,11 @@ public class MainWindowTest {
             assertEquals("add n/Alicia Tan c/TechNova e/", commandInput.getText());
             assertEquals(commandInput.getText().length(), commandInput.getCaretPosition());
 
+            commandInput.setText("add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567",
+                    commandInput.getText());
+
             commandInput.setText("view");
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("view n/", commandInput.getText());
@@ -277,6 +332,26 @@ public class MainWindowTest {
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("view n/Alicia Tan", commandInput.getText());
             assertEquals(commandInput.getText().length(), commandInput.getCaretPosition());
+        });
+    }
+
+    @Test
+    public void commandBox_blankAndRepeatedInvalidInput_areHandledSafely() throws Exception {
+        withWindow(new ModelManager(), (window, root, storage) -> {
+            TextField commandInput = input(root);
+            String initialOutput = output(root);
+
+            commandInput.setText("   ");
+            commandInput.fireEvent(new ActionEvent());
+            assertEquals("   ", commandInput.getText());
+            assertEquals(initialOutput, output(root));
+
+            commandInput.setText("not-a-command");
+            commandInput.fireEvent(new ActionEvent());
+            assertTrue(commandInput.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+
+            commandInput.fireEvent(new ActionEvent());
+            assertTrue(commandInput.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
         });
     }
 

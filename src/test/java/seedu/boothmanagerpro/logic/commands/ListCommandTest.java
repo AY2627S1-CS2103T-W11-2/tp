@@ -1,6 +1,8 @@
 package seedu.boothmanagerpro.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.boothmanagerpro.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.boothmanagerpro.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.boothmanagerpro.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -24,6 +26,7 @@ import seedu.boothmanagerpro.model.person.Email;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.model.person.Phone;
+import seedu.boothmanagerpro.model.person.SortField;
 import seedu.boothmanagerpro.model.tag.Tag;
 import seedu.boothmanagerpro.testutil.PersonBuilder;
 
@@ -31,6 +34,13 @@ import seedu.boothmanagerpro.testutil.PersonBuilder;
  * Contains integration tests (interaction with the Model) and unit tests for ListCommand.
  */
 public class ListCommandTest {
+
+    private static final Person ALICIA = new PersonBuilder().withName("Alicia Tan")
+            .withCompany("TechNova Pte Ltd").withEmail("alicia@technova.com").build();
+    private static final Person DAVID = new PersonBuilder().withName("David Li")
+            .withEmail("david@example.com").build();
+    private static final Person ZOE = new PersonBuilder().withName("zoe lee")
+            .withCompany("Green Goods Collective").withEmail("zoe@greengoods.com").build();
 
     private Model model;
     private Model expectedModel;
@@ -68,6 +78,82 @@ public class ListCommandTest {
     }
 
     @Test
+    public void execute_sortByName_showsContactsSortedByName() {
+        Model unsortedModel = modelWith(ZOE, DAVID, ALICIA);
+        Model expected = modelWith(ZOE, DAVID, ALICIA);
+        expected.updateSortedPersonList(SortField.NAME.getComparator());
+        List<Person> sorted = List.of(ALICIA, DAVID, ZOE);
+        assertCommandSuccess(new ListCommand(SortField.NAME), unsortedModel,
+                CommandResult.showingContacts(ListCommand.formatContactList(sorted,
+                        "Exhibitor Contact List (sorted by name)"), sorted), expected);
+        assertEquals(sorted, unsortedModel.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_sortByCompany_putsContactsWithoutCompanyLast() {
+        Model unsortedModel = modelWith(DAVID, ZOE, ALICIA);
+        new ListCommand(SortField.COMPANY).execute(unsortedModel);
+        assertEquals(List.of(ZOE, ALICIA, DAVID), unsortedModel.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_sortByStatus_showsContactsNeedingFollowUpFirst() {
+        Person completed = new PersonBuilder(ALICIA).withEnquiryStatus("Completed").build();
+        Person inProgress = new PersonBuilder(DAVID).withEnquiryStatus("In progress").build();
+        Person needsFollowUp = new PersonBuilder(ZOE).withEnquiryStatus("Needs follow-up").build();
+        Model unsortedModel = modelWith(completed, inProgress, needsFollowUp);
+        CommandResult result = new ListCommand(SortField.STATUS).execute(unsortedModel);
+        assertEquals(List.of(needsFollowUp, inProgress, completed), unsortedModel.getFilteredPersonList());
+        assertTrue(result.getFeedbackToUser().startsWith("Exhibitor Contact List (sorted by status)"));
+    }
+
+    @Test
+    public void execute_plainListAfterSort_restoresStoredOrder() {
+        Model sortedModel = modelWith(ZOE, DAVID, ALICIA);
+        new ListCommand(SortField.NAME).execute(sortedModel);
+        new ListCommand().execute(sortedModel);
+        assertEquals(List.of(ZOE, DAVID, ALICIA), sortedModel.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_sortThenDelete_deletesFirstSortedContact() throws Exception {
+        Model sortedModel = modelWith(ZOE, DAVID, ALICIA);
+        new ListCommand(SortField.NAME).execute(sortedModel);
+        new DeleteCommand(INDEX_FIRST_PERSON).execute(sortedModel);
+        assertEquals(List.of(ZOE, DAVID), sortedModel.getAddressBook().getPersonList());
+        assertEquals(List.of(DAVID, ZOE), sortedModel.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_sort_doesNotChangeStoredOrder() {
+        Model sortedModel = modelWith(ZOE, DAVID, ALICIA);
+        new ListCommand(SortField.NAME).execute(sortedModel);
+        assertEquals(List.of(ZOE, DAVID, ALICIA), sortedModel.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void equals() {
+        ListCommand storedOrder = new ListCommand();
+        ListCommand byName = new ListCommand(SortField.NAME);
+
+        assertTrue(storedOrder.equals(storedOrder));
+        assertTrue(storedOrder.equals(new ListCommand()));
+        assertTrue(byName.equals(new ListCommand(SortField.NAME)));
+        assertEquals(byName.hashCode(), new ListCommand(SortField.NAME).hashCode());
+
+        assertFalse(storedOrder.equals(byName));
+        assertFalse(byName.equals(new ListCommand(SortField.COMPANY)));
+        assertFalse(byName.equals(null));
+        assertFalse(byName.equals(1));
+    }
+
+    @Test
+    public void toStringMethod() {
+        assertEquals(ListCommand.class.getCanonicalName() + "{sortField=Optional[name]}",
+                new ListCommand(SortField.NAME).toString());
+    }
+
+    @Test
     public void formatContactList_exhibitors_showsDocumentedFormat() {
         Person alicia = createExhibitor("Alicia Tan", "TechNova Pte Ltd", "alicia@technova.com", "91234567",
                 ContactMethod.EMAIL, "technology", "high-priority");
@@ -97,6 +183,14 @@ public class ListCommandTest {
                 + "\nPhone: " + legacy.getPhone() + "\nContact method: Not specified"
                 + "\nEnquiry status: Needs follow-up\nFollow-up date: None\nTags: None\n\n"
                 + ListCommand.MESSAGE_DIVIDER + "\nTotal contacts: 1", result);
+    }
+
+    private static Model modelWith(Person... persons) {
+        AddressBook addressBook = new AddressBook();
+        for (Person person : persons) {
+            addressBook.addPerson(person);
+        }
+        return new ModelManager(addressBook, new UserPrefs());
     }
 
     private static Person createExhibitor(String name, String company, String email, String phone,

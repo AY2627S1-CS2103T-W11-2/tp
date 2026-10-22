@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.boothmanagerpro.commons.core.GuiSettings;
 import seedu.boothmanagerpro.model.person.NameContainsKeywordsPredicate;
+import seedu.boothmanagerpro.model.person.SortField;
 import seedu.boothmanagerpro.testutil.AddressBookBuilder;
 
 public class ModelManagerTest {
@@ -71,6 +72,27 @@ public class ModelManagerTest {
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPersonList().remove(0));
+    }
+
+    @Test
+    public void updateSortedPersonList_nullComparator_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.updateSortedPersonList(null));
+    }
+
+    @Test
+    public void updateSortedPersonList_sortsViewOnly_resetRestoresStoredOrder() {
+        modelManager.addPerson(BENSON);
+        modelManager.addPerson(ALICE);
+        modelManager.updateSortedPersonList(SortField.NAME.getComparator());
+        assertEquals(List.of(ALICE, BENSON), modelManager.getFilteredPersonList());
+        assertEquals(List.of(BENSON, ALICE), modelManager.getAddressBook().getPersonList());
+
+        ModelManager storedOrder = new ModelManager(modelManager.getAddressBook(), new UserPrefs());
+        assertFalse(modelManager.equals(storedOrder));
+
+        modelManager.resetPersonListOrder();
+        assertEquals(List.of(BENSON, ALICE), modelManager.getFilteredPersonList());
+        assertTrue(modelManager.equals(storedOrder));
     }
 
     @Test
