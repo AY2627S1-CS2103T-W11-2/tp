@@ -1,6 +1,8 @@
 package seedu.boothmanagerpro.logic.parser;
 
 import static seedu.boothmanagerpro.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_FOLLOW_UP;
+import static seedu.boothmanagerpro.logic.parser.ContactFieldParser.parseValue;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,12 +16,13 @@ import seedu.boothmanagerpro.logic.commands.FindCommand;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 import seedu.boothmanagerpro.model.person.Company;
 import seedu.boothmanagerpro.model.person.ContactMatchesFieldsPredicate;
+import seedu.boothmanagerpro.model.person.FollowUpDate;
 import seedu.boothmanagerpro.model.person.NameContainsKeywordsPredicate;
 
 /** Parses legacy name keywords or prefixed exact-match contact criteria. */
 public class FindCommandParser implements Parser<FindCommand> {
     public static final String MESSAGE_UNSUPPORTED_FIELD =
-            "Unsupported search field. Use n/, c/, e/, p/, or t/. Status search is not available yet.";
+            "Unsupported search field. Use n/, c/, e/, p/, t/, or f/. Status search is not available yet.";
     public static final String MESSAGE_EMPTY_VALUE = "Search values cannot be empty.";
     public static final String MESSAGE_UNPREFIXED_VALUE =
             "Every exact-match search value must use a supported field prefix.";
@@ -73,6 +76,9 @@ public class FindCommandParser implements Parser<FindCommand> {
                 break;
             case "t/":
                 ParserUtil.parseTag(value);
+                break;
+            case "f/":
+                parseValue(PREFIX_FOLLOW_UP, value, FollowUpDate::new);
                 break;
             default:
                 throw new ParseException(MESSAGE_UNSUPPORTED_FIELD);

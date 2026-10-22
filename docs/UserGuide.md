@@ -328,7 +328,7 @@ Examples:
 
 Use prefixed criteria to match complete field values:
 
-Format: `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG]...`
+Format: `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG] [f/YYYYMMDD]...`
 
 * Supply at least one non-empty criterion. Each value must follow the same format as when adding a contact;
   phone values accept spaces and hyphens, just as `add` does. Tabs inside phone numbers are not accepted.
@@ -342,7 +342,9 @@ Format: `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG]...`
 * `find` prints the number of matches followed by each matching contact's number, name, company, email, phone, method, and tags. No preliminary `list` command is needed.
 * With no matches, it prints `0 contact(s) found.` and no contact details.
 * Company (`c/`) matches the complete stored company name. Legacy contacts without a company do not match this field.
-* Enquiry status (`s/`), follow-up date (`f/`), and contact method (`m/`) are not searchable.
+* Follow-up date (`f/`) matches the exact stored calendar date in `YYYYMMDD` format, using the same date validation as `add` and `update`. Contacts without a follow-up date do not match. Past dates are accepted; date ranges and overdue searches are not supported.
+* Repeat `f/` to match any of the supplied dates (OR), or combine it with another field to require both (AND). An empty `f/` is invalid in `find`; it does not search for contacts without dates. Invalid dates are rejected without changing the existing results or saved data.
+* Enquiry status (`s/`) and contact method (`m/`) are not searchable.
 * `list` restores all contacts. A result count of zero means no contacts matched.
 
 Examples:
@@ -352,6 +354,9 @@ Examples:
 * `find e/alice@example.com p/9435-1253` requires both email and phone to match.
 * `find c/TechNova Pte Ltd t/high-priority` requires both company and tag to match.
 * `find t/technology t/food` returns contacts tagged with either label.
+* `find f/20261025` returns contacts whose follow-up date is 25 October 2026.
+* `find f/20261025 f/20261026 t/high-priority` returns high-priority contacts due on either date.
+* `update Alicia Tan f/20261028`, then `find f/20261028`, changes Alicia's date using the existing update command and finds contacts due on the new date. Use `update Alicia Tan f/` to clear her date; she will no longer match any date criterion.
 
 #### Legacy name-keyword search
 
@@ -423,7 +428,7 @@ Furthermore, certain edits can cause BoothManagerPro to behave in unexpected way
 
 ### Planned features
 
-Searching enquiry status or follow-up dates, reminders, data archiving, CSV import/export, and undo remain planned.
+Searching enquiry status, reminders, data archiving, CSV import/export, and undo remain planned. Exact follow-up-date search is available through `find f/YYYYMMDD`.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -444,7 +449,7 @@ Action | Format, Examples
 **Update** | `update NAME_OR_INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...`<br> e.g., `update Alicia Tan s/Completed f/`
 **Tag** | `tag NAME_OR_INDEX t/TAG [t/TAG]...`<br> e.g., `tag Alicia Tan t/high-priority t/sponsor`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
-**Find** | `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG]...` or `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find n/Alice Pauline t/friends`
+**Find** | `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG] [f/YYYYMMDD]...` or `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find f/20261025 t/high-priority`
 **List** | `list`, `list o/name`, `list o/company`, or `list o/status`<br> e.g., `list o/status`
 **View** | `view n/NAME`<br> e.g., `view n/Alicia Tan`; reply `2` if prompted to choose between matches
 **Help** | `help`

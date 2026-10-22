@@ -22,7 +22,7 @@ public class HelpCommand extends Command {
                     "Displays all saved exhibitor contacts.",
                     "list"),
             formatCommandHelp(3, FindCommand.COMMAND_WORD,
-                    "Finds contacts using name keywords or specific contact fields.",
+                    "Finds contacts using name keywords or exact fields, including follow-up date (f/YYYYMMDD).",
                     "find n/Alicia t/technology"),
             formatCommandHelp(4, ViewCommand.COMMAND_WORD,
                     "Displays the full details of a contact matching the given name.",

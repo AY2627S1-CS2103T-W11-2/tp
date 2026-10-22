@@ -99,6 +99,24 @@ Tag-order regression coverage runs `edit` with repeated tags, verifies first-occ
 
 Enquiry-field regression coverage: `EnquiryFieldsTest` checks status parsing, date boundaries/leap years, defaults, equality, and duplicate identity. `ExhibitorAddIntegrationTest` covers optional combinations, invalid input without mutation, JSON reload, and preservation through edit. `JsonAdaptedPersonTest` checks legacy defaults and invalid stored values. `MainWindowTest` checks both fields in rendered contact cards.
 
+## Follow-up-date search regression checks
+
+`FindFollowUpDateParserTest` checks valid leap dates and years 0001/9999, rejects impossible dates, non-YYYYMMDD
+formats and empty values, and verifies repeated-date OR criteria combined with another field.
+`FindFollowUpDateIntegrationTest` runs the real command parser, model, and JSON storage together. It verifies
+multiple contacts on one date, no matches, absent dates (including legacy records), cross-field AND, searching
+all contacts rather than only previous results, sorted displayed indices, and unchanged results/data on errors.
+It also verifies that the existing `update` date replacement and clearing survive reload and affect later searches.
+
+Manual check in a separate test folder:
+
+1. Add two contacts with `f/20261025`, one with `f/20261026`, and one without a date, using distinct emails.
+2. Run `find f/20261025`; expect only the two contacts on that date. Run `find f/20261027`; expect zero matches.
+3. Run `find f/20261025 f/20261026`; expect three contacts. Add `c/COMPANY` or `t/TAG`; only contacts also matching that field should remain.
+4. Run `list o/name`, then `find f/20261025`. Use `update 1 f/20261028`; verify that the first displayed contact, not the first stored contact, changed and its other fields were preserved.
+5. Restart the app. `find f/20261028` must find the updated contact. Clear its date with `update NAME f/`, restart, and verify it no longer matches that date.
+6. With valid results visible, try `find f/`, `find f/20230229`, and `find f/2026-10-25`. Expect errors, no data changes, and no change to the model's current filtered index set. Error text may replace the visible output.
+
 ## Update regression checks
 
 `UpdateIntegrationTest` exercises all eight supported fields through actual command routing and JSON storage. It checks preservation of omitted values, date/tag clearing, duplicate names, hidden duplicate contacts, filtered indices, normalisation, invalid values/prefixes, and unchanged memory/filter/disk on rejection. `TagIntegrationTest` covers `tag` toggling (adding new tags and removing existing ones), change summaries, target resolution, and rejection preservation. `MainWindowTest` checks update and tag feedback and rendered enquiry fields.
