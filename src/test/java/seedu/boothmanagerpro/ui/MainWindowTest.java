@@ -278,6 +278,83 @@ public class MainWindowTest {
         });
     }
 
+    @Test
+    public void tabAutocomplete_completesCommandsAndRequiredPrefixes() throws Exception {
+        withWindow(new ModelManager(), (window, root, storage) -> {
+            TextField commandInput = input(root);
+
+            commandInput.setText("del");
+            pressKey(commandInput, KeyCode.A);
+            assertEquals("del", commandInput.getText());
+
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("delete ", commandInput.getText());
+            assertEquals(commandInput.getText().length(), commandInput.getCaretPosition());
+
+            commandInput.setText("e");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("e", commandInput.getText());
+
+            commandInput.setText("not-a-command");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("not-a-command", commandInput.getText());
+
+            commandInput.setText("add unexpected-text");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add unexpected-text", commandInput.getText());
+
+            commandInput.setText("add");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add n/", commandInput.getText());
+
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add n/", commandInput.getText());
+
+            commandInput.appendText("Alicia Tan");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add n/Alicia Tan c/", commandInput.getText());
+
+            commandInput.appendText("TechNova");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add n/Alicia Tan c/TechNova e/", commandInput.getText());
+            assertEquals(commandInput.getText().length(), commandInput.getCaretPosition());
+
+            commandInput.setText("add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567",
+                    commandInput.getText());
+
+            commandInput.setText("view");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("view n/", commandInput.getText());
+
+            commandInput.appendText("Alicia Tan");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("view n/Alicia Tan", commandInput.getText());
+            assertEquals(commandInput.getText().length(), commandInput.getCaretPosition());
+        });
+    }
+
+    @Test
+    public void commandBox_blankAndRepeatedInvalidInput_areHandledSafely() throws Exception {
+        withWindow(new ModelManager(), (window, root, storage) -> {
+            TextField commandInput = input(root);
+            String initialOutput = output(root);
+
+            commandInput.setText("   ");
+            commandInput.fireEvent(new ActionEvent());
+            assertEquals("   ", commandInput.getText());
+            assertEquals(initialOutput, output(root));
+
+            commandInput.setText("not-a-command");
+            commandInput.fireEvent(new ActionEvent());
+            assertTrue(commandInput.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+
+            commandInput.fireEvent(new ActionEvent());
+            assertTrue(commandInput.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+        });
+    }
+
     private ModelManager sampleModel() {
         return new ModelManager(SampleDataUtil.getSampleAddressBook(), new UserPrefs());
     }
@@ -324,6 +401,11 @@ public class MainWindowTest {
 
     private static TextField input(Parent root) {
         return (TextField) root.lookup("#commandTextField");
+    }
+
+    private static void pressKey(Node node, KeyCode keyCode) {
+        node.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", keyCode,
+                false, false, false, false));
     }
 
     private static String output(Parent root) {

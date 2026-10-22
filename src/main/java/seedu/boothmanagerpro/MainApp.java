@@ -95,6 +95,7 @@ public class MainApp extends Application {
         Path prefsFilePath = storage.getUserPrefsFilePath();
         logger.info("Using preference file : " + prefsFilePath);
 
+
         UserPrefs initializedPrefs;
         try {
             Optional<UserPrefs> prefsOptional = storage.readUserPrefs();
