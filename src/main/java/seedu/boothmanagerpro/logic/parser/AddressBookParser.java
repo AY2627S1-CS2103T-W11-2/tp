@@ -17,6 +17,7 @@ import seedu.boothmanagerpro.logic.commands.ExitCommand;
 import seedu.boothmanagerpro.logic.commands.FindCommand;
 import seedu.boothmanagerpro.logic.commands.HelpCommand;
 import seedu.boothmanagerpro.logic.commands.ListCommand;
+import seedu.boothmanagerpro.logic.commands.TagCommand;
 import seedu.boothmanagerpro.logic.commands.UpdateCommand;
 import seedu.boothmanagerpro.logic.commands.ViewCommand;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
@@ -56,6 +57,7 @@ public class AddressBookParser {
         return switch (commandWord) {
             case AddCommand.COMMAND_WORD -> new AddCommandParser().parse(arguments);
             case UpdateCommand.COMMAND_WORD -> new UpdateCommandParser().parse(arguments);
+            case TagCommand.COMMAND_WORD -> new TagCommandParser().parse(arguments);
             case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);
             case DeleteCommand.COMMAND_WORD -> new DeleteCommandParser().parse(arguments);
             case ClearCommand.COMMAND_WORD -> new ClearCommand();

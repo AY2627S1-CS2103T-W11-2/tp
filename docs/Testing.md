@@ -101,6 +101,6 @@ Enquiry-field regression coverage: `EnquiryFieldsTest` checks status parsing, da
 
 ## Update regression checks
 
-`UpdateIntegrationTest` exercises all eight supported fields through actual command routing and JSON storage. It checks preservation of omitted values, date/tag clearing, duplicate names, hidden duplicate contacts, filtered indices, normalisation, invalid values/prefixes, and unchanged memory/filter/disk on rejection. `MainWindowTest` checks update feedback and rendered enquiry fields.
+`UpdateIntegrationTest` exercises all eight supported fields through actual command routing and JSON storage. It checks preservation of omitted values, date/tag clearing, duplicate names, hidden duplicate contacts, filtered indices, normalisation, invalid values/prefixes, and unchanged memory/filter/disk on rejection. `TagIntegrationTest` covers `tag` toggling (adding new tags and removing existing ones), change summaries, target resolution, and rejection preservation. `MainWindowTest` checks update and tag feedback and rendered enquiry fields.
 
 Manual check: add a contact, update its status/date by name, verify with `view`, then clear the date with `update NAME f/`. Add another contact with the same name but different company/email; an update by name must fail. Use `find` and its displayed index to update only the intended contact. Restart and verify the saved result.

@@ -254,6 +254,16 @@ Legacy address is preserved. Supplied tags replace the tag set; a sole blank `t/
 
 `UpdateIntegrationTest` covers command routing, normalisation, partial updates, clearing, duplicate rejection, ambiguity, filtered indices, and persisted JSON. Rejected requests preserve contacts, filters, and disk content. `MainWindowTest` checks confirmation, updated cards, and retained input after invalid updates.
 
+### Updating contact tags
+
+`tag NAME_OR_INDEX t/TAG [t/TAG]...`
+
+1. `AddressBookParser` routes `tag` to `TagCommandParser`, which rejects unsupported prefixes, requires a target and at least one `t/TAG` field, and validates each tag through `ContactFieldParser` and `Tag`. Duplicate `t/TAG` inputs in the same command collapse in input order.
+2. `TagCommand` resolves an exact case-insensitive full name across all contacts or a one-based index in the current filtered list, rejecting missing or ambiguous targets before mutation.
+3. Each supplied tag is toggled against the contact's existing tag set using `Tag#equals` (case-sensitive): absent tags are appended and recorded as added, while present tags are removed and recorded as removed.
+4. The command replaces the contact with all other fields preserved, resets the filtered list, and returns `Updated tags for NAME at COMPANY. Added: .... Removed: .... Current tags: ....` (`None` when a tag list is empty).
+5. `TagIntegrationTest` and `MainWindowTest` verify toggling, exact change summaries, target resolution, persistence, and unchanged state on rejection.
+
 ### Adding an exhibitor contact
 
 `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...`

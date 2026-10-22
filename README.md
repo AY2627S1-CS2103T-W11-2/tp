@@ -1,4 +1,4 @@
-﻿# BoothManagerPro
+# BoothManagerPro
 
 [![CI Status](https://github.com/AY2627S1-CS2103T-W11-2/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-W11-2/tp/actions/workflows/gradle.yml)
 [![codecov](https://codecov.io/github/AY2627S1-CS2103T-W11-2/tp/graph/badge.svg?token=EXE9YQFB7G)](https://codecov.io/github/AY2627S1-CS2103T-W11-2/tp)
@@ -53,7 +53,7 @@ BoothManagerPro's MVP centres on five contact-management workflows:
 1. **View:** Search by name keywords and select a contact to see its full details.
 1. **Find and filter:** Match complete name, company, email, phone, or tag values; combine alternatives and criteria.
 
-The inherited `edit` and `clear` commands are also available. Edit supports name, phone, email, legacy address, and tags; company and contact method are preserved. See the [User Guide](docs/UserGuide.md) for syntax and examples. Company and contact method are included in contact text output. Add supports optional enquiry status and follow-up dates. Use `update` to change supplied contact fields by name or displayed index. Filtering enquiry fields remains planned.
+The inherited `edit` and `clear` commands are also available. Edit supports name, phone, email, legacy address, and tags; company and contact method are preserved. See the [User Guide](docs/UserGuide.md) for syntax and examples. Company and contact method are included in contact text output. Add supports optional enquiry status and follow-up dates. Use `update` to change supplied contact fields and `tag` to toggle tags by name or displayed index. Filtering enquiry fields remains planned.
 
 ### Future enhancements
 

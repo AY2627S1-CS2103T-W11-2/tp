@@ -113,6 +113,12 @@ public class MainWindowTest {
             enterCommand(root, "update Alicia Tan f/20230229");
             assertTrue(output(root).contains("Invalid value for f/"));
             assertEquals("update Alicia Tan f/20230229", input(root).getText());
+            enterCommand(root, "tag Alicia Tan t/vip t/sponsor");
+            assertEquals("Updated tags for Alicia Tan at TechNova. Added: vip, sponsor. "
+                    + "Removed: None. Current tags: vip, sponsor.", output(root));
+            enterCommand(root, "tag Alicia Tan t/vip t/keynote");
+            assertEquals("Updated tags for Alicia Tan at TechNova. Added: keynote. "
+                    + "Removed: vip. Current tags: sponsor, keynote.", output(root));
         });
     }
 
@@ -292,6 +298,10 @@ public class MainWindowTest {
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("delete ", commandInput.getText());
             assertEquals(commandInput.getText().length(), commandInput.getCaretPosition());
+
+            commandInput.setText("ta");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("tag ", commandInput.getText());
 
             commandInput.setText("e");
             pressKey(commandInput, KeyCode.TAB);
