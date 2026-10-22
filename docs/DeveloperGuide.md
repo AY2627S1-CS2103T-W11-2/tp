@@ -648,12 +648,23 @@ Use case ends.
 
 #### UC05: Find and filter contacts
 
-**Current implementation (v1.2 development):** `find` supports exact name (`n/`), company (`c/`), email (`e/`),
-phone (`p/`), and tag (`t/`) criteria, with OR within a field and AND between fields.
+**Current implementation (v1.4 development):** `find` supports exact name (`n/`), company (`c/`), email (`e/`),
+phone (`p/`), tag (`t/`), and follow-up date (`f/YYYYMMDD`) criteria, with OR within a field and AND between fields.
 `ContactMatchesFieldsPredicate` applies these criteria to the full address book through the existing model filter.
 Unprefixed name keywords retain AB3's original word-matching behaviour for compatibility. A match count and numbered
 matching contacts are printed directly, without requiring a preliminary `list` command.
 Enquiry-status criteria remain planned; the parser rejects `s/` and `m/`. The following use case describes the intended full scope.
+
+For date criteria, `FindCommandParser` reuses `FollowUpDate` via the shared field parser to reject invalid calendar
+dates before applying a filter. `ContactMatchesFieldsPredicate` compares the canonical date string with the
+contact's optional follow-up date; an absent date never matches. Repeated dates are deduplicated and use OR,
+while a date combined with company/name/tag or another field uses AND. Existing sorted output and displayed
+indices are preserved. No new command, storage field, or file format is introduced. Date changes and clearing
+remain owned by the existing `update` implementation; subsequent searches reflect the saved value.
+
+`FindFollowUpDateParserTest` covers date boundaries, leap years, repeated dates, invalid formats, and empty values.
+`FindFollowUpDateIntegrationTest` covers exact/combined matches, no results, undated legacy contacts, sorted
+update/delete indices, preservation on rejected input, and update/clear followed by JSON reload and date search.
 
 **MSS**
 

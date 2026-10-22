@@ -76,6 +76,35 @@ public class MainWindowTest {
     }
 
     @Test
+    public void find_followUpDate_showsMatchingCardsAndRetainsInvalidInput() throws Exception {
+        withWindow(new ModelManager(), (window, root, storage) -> {
+            enterCommand(root, "add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567 f/20261025");
+            enterCommand(root, "add n/Ben Lim c/Other e/ben@example.com p/98765432");
+            enterCommand(root, "find f/20261025");
+            assertTrue(output(root).startsWith("1 contact(s) found."));
+            assertEquals("", input(root).getText());
+            VBox cards = (VBox) root.lookup("#contactCards");
+            assertEquals(2, cards.getChildren().size()); // One contact and the existing total-count label.
+            assertEquals("Total contacts: 1", ((Label) cards.getChildren().getLast()).getText());
+            Parent card = (Parent) cards.getChildren().getFirst();
+            assertEquals("1. Alicia Tan", ((Label) card.lookup("#name")).getText());
+            assertEquals("Follow-up date: 20261025", ((Label) card.lookup("#followUpDate")).getText());
+            savePreview(root, 1180, 820, "cli-find-date.png");
+            enterCommand(root, "find f/20230229");
+            assertTrue(output(root).contains("Invalid value for f/"));
+            assertEquals("find f/20230229", input(root).getText());
+            enterCommand(root, "update 1 f/20261028");
+            enterCommand(root, "find f/20261025");
+            assertEquals("0 contact(s) found.", output(root));
+            assertEquals(1, cards.getChildren().size());
+            assertEquals("Total contacts: 0", ((Label) cards.getChildren().getFirst()).getText());
+            assertFalse(root.lookup("#contactScroll").isVisible());
+            enterCommand(root, "find f/20261028");
+            assertEquals(2, cards.getChildren().size());
+        });
+    }
+
+    @Test
     public void list_eachEnquiryStatus_showsMatchingBadge() throws Exception {
         withWindow(new ModelManager(), (window, root, storage) -> {
             enterCommand(root, "add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567");
