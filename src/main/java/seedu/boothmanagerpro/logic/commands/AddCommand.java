@@ -11,8 +11,10 @@ import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_STATUS;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import seedu.boothmanagerpro.commons.core.LogsCenter;
 import seedu.boothmanagerpro.commons.util.ToStringBuilder;
 import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.model.Model;
@@ -48,6 +50,8 @@ public class AddCommand extends Command {
     public static final String MESSAGE_DUPLICATE_PERSON = "This contact may already exist: %s.\n"
             + "Use the edit command if you want to update the existing contact.";
 
+    private static final Logger logger = LogsCenter.getLogger(AddCommand.class);
+
     private final Person toAdd;
 
     /**
@@ -69,12 +73,17 @@ public class AddCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
+        logger.fine("Executing AddCommand for: " + formatIdentity(toAdd));
 
         List<Person> duplicates = findDuplicates(model);
         if (duplicates.size() == 1) {
+            logger.warning("AddCommand rejected: duplicate contact exists for "
+                    + formatIdentity(duplicates.getFirst()));
             throw new CommandException(String.format(MESSAGE_DUPLICATE_PERSON, formatIdentity(duplicates.getFirst())));
         }
         if (!duplicates.isEmpty()) {
+            logger.warning("AddCommand rejected: multiple duplicate contacts detected for: "
+                    + formatIdentity(toAdd));
             String matches = duplicates.stream()
                     .map(person -> formatIdentity(person) + " (" + person.getEmail() + ")")
                     .collect(Collectors.joining("\n"));
@@ -83,6 +92,7 @@ public class AddCommand extends Command {
         }
 
         model.addPerson(toAdd);
+        logger.info("Successfully added exhibitor contact: " + formatIdentity(toAdd));
         return new CommandResult(String.format(MESSAGE_SUCCESS, formatIdentity(toAdd)));
     }
 
