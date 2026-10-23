@@ -4,7 +4,9 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.logging.Logger;
 
+import seedu.boothmanagerpro.commons.core.LogsCenter;
 import seedu.boothmanagerpro.commons.util.ToStringBuilder;
 import seedu.boothmanagerpro.logic.Messages;
 import seedu.boothmanagerpro.model.Model;
@@ -14,7 +16,6 @@ import seedu.boothmanagerpro.model.person.Person;
  * Finds and lists contacts matching name keywords or exact field criteria.
  */
 public class FindCommand extends Command {
-
     public static final String COMMAND_WORD = "find";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds contacts by name keywords or exact fields "
@@ -24,6 +25,8 @@ public class FindCommand extends Command {
             + "Prefixed values match complete fields. Repeat a prefix for alternatives (OR); "
             + "different fields use AND. Dates match the exact follow-up date; contacts without a date do not match.\n"
             + "Example: " + COMMAND_WORD + " n/Alice Pauline t/friends";
+
+    private static final Logger logger = LogsCenter.getLogger(FindCommand.class);
 
     private final Predicate<Person> predicate;
 
@@ -37,8 +40,10 @@ public class FindCommand extends Command {
         model.updateFilteredPersonList(predicate);
         List<Person> matches = model.getFilteredPersonList();
         String summary = String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, matches.size());
-        return CommandResult.showingContacts(matches.isEmpty() ? summary
+        CommandResult result = CommandResult.showingContacts(matches.isEmpty() ? summary
                 : summary + "\n\n" + Messages.formatNumberedContacts(matches), matches);
+        logger.info("Contact search completed: " + matches.size() + " matches.");
+        return result;
     }
 
     @Override

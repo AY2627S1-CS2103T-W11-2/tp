@@ -1,0 +1,59 @@
+@startuml
+!include style.puml
+title Find contacts by follow-up date - successful request
+hide footbox
+skinparam ArrowFontStyle plain
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ParticipantFontColor #FFFFFF
+skinparam SequenceBoxFontColor #222222
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
+participant ":FindCommandParser" as FindCommandParser LOGIC_COLOR
+participant "f:FindCommand" as FindCommand LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+end box
+
+[-> LogicManager : execute("find f/20261025")
+activate LogicManager
+LogicManager -> AddressBookParser : parseCommand("find f/20261025")
+activate AddressBookParser
+
+create FindCommandParser
+AddressBookParser -> FindCommandParser : FindCommandParser()
+AddressBookParser -> FindCommandParser : parse(" f/20261025")
+activate FindCommandParser
+note over FindCommandParser: p = exact-date filter
+
+create FindCommand
+FindCommandParser -> FindCommand : FindCommand(p)
+activate FindCommand
+FindCommand --> FindCommandParser : f
+deactivate FindCommand
+FindCommandParser --> AddressBookParser : f
+deactivate FindCommandParser
+AddressBookParser --> LogicManager : f
+deactivate AddressBookParser
+
+LogicManager -> FindCommand : execute(m)
+activate FindCommand
+FindCommand -> Model : updateFilteredPersonList(p)
+activate Model
+Model --> FindCommand
+deactivate Model
+
+FindCommand -> Model : getFilteredPersonList()
+activate Model
+Model --> FindCommand : matches
+deactivate Model
+FindCommand --> LogicManager : r
+deactivate FindCommand
+
+[<-- LogicManager : r
+deactivate LogicManager
+@enduml

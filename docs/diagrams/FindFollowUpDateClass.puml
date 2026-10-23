@@ -1,0 +1,32 @@
+@startuml
+!include style.puml
+title Follow-up date search - selected classes
+left to right direction
+skinparam defaultFontName Arial
+skinparam ArrowFontStyle plain
+skinparam classBackgroundColor LOGIC_COLOR
+skinparam arrowColor #333333
+hide empty members
+
+package Logic {
+  class FindCommandParser
+  class FindCommand
+}
+
+package "Model" as ModelPackage {
+  interface "Model" as ModelApi MODEL_COLOR
+  interface "Predicate<Person>" as PersonPredicate MODEL_COLOR
+  class ContactMatchesFieldsPredicate MODEL_COLOR
+  class Person MODEL_COLOR
+  class FollowUpDate MODEL_COLOR
+}
+
+FindCommandParser ..> FindCommand : creates
+FindCommandParser ..> ContactMatchesFieldsPredicate : creates
+FindCommandParser ..> FollowUpDate : validates using
+FindCommand --> "1" PersonPredicate : predicate
+FindCommand ..> ModelApi : filters / reads results
+ContactMatchesFieldsPredicate ..|> PersonPredicate
+ContactMatchesFieldsPredicate ..> Person : tests
+Person --> "0..1" FollowUpDate : followUpDate
+@enduml

@@ -676,6 +676,18 @@ remain owned by the existing `update` implementation; subsequent searches reflec
 `FindFollowUpDateIntegrationTest` covers exact/combined matches, no results, undated legacy contacts, sorted
 update/delete indices, preservation on rejected input, and update/clear followed by JSON reload and date search.
 
+The class diagram below shows the main classes involved in follow-up-date search. `FindCommandParser` validates
+date criteria using `FollowUpDate` and creates a `FindCommand` with a predicate. `ContactMatchesFieldsPredicate`
+implements `Predicate<Person>`; contacts without a follow-up date do not match a date criterion.
+
+![Classes involved in follow-up-date search](images/FindFollowUpDateClass.png)
+
+The sequence diagram illustrates a successful `find f/20261025` request. The command updates the filtered
+contact list and returns the matching contacts. Shared validation helpers, predicate evaluation, result formatting
+and unchanged `LogicManager` housekeeping/storage calls are omitted for clarity.
+
+![Successful follow-up-date search](images/FindFollowUpDateSequence.png)
+
 **MSS**
 
 1. Organiser requests to find contacts using one or more names, companies, emails, phone numbers, enquiry statuses, or tags.
