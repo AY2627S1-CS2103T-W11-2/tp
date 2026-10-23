@@ -4,7 +4,9 @@ import static java.util.Objects.requireNonNull;
 import static seedu.boothmanagerpro.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.List;
+import java.util.logging.Logger;
 
+import seedu.boothmanagerpro.commons.core.LogsCenter;
 import seedu.boothmanagerpro.commons.core.index.Index;
 import seedu.boothmanagerpro.logic.Messages;
 import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
@@ -24,6 +26,8 @@ public class UpdateCommand extends Command {
             + "Use list or find, then update the contact by its displayed index. No contact was updated.";
     public static final String MESSAGE_DUPLICATE = "This update conflicts with another contact: %s. "
             + "Check the email and name/company fields. No contact was updated.";
+
+    private static final Logger logger = LogsCenter.getLogger(UpdateCommand.class);
 
     private final Index index;
     private final Name name;
@@ -46,11 +50,13 @@ public class UpdateCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
+        logger.fine("Executing UpdateCommand targeting: " + (index != null ? index.getOneBased() : name));
         Person original = resolveTarget(model);
         Person updated = changes.applyTo(original);
         rejectDuplicates(model, original, updated);
         model.setPerson(original, updated);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        logger.info("Successfully updated contact: " + AddCommand.formatIdentity(updated));
         return new CommandResult("Updated " + AddCommand.formatIdentity(updated) + ".");
     }
 
@@ -59,25 +65,35 @@ public class UpdateCommand extends Command {
         if (index != null) {
             List<Person> displayed = model.getFilteredPersonList();
             if (index.getZeroBased() >= displayed.size()) {
+                logger.warning("UpdateCommand failed: invalid displayed index " + index.getOneBased());
                 throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
             }
-            return displayed.get(index.getZeroBased());
+            Person target = displayed.get(index.getZeroBased());
+            logger.fine("Resolved target contact by index " + index.getOneBased() + ": "
+                    + AddCommand.formatIdentity(target));
+            return target;
         }
         List<Person> matches = model.getAddressBook().getPersonList().stream()
                 .filter(person -> person.getName().fullName.equalsIgnoreCase(name.fullName)).toList();
         if (matches.isEmpty()) {
+            logger.warning("UpdateCommand failed: contact not found with name: " + name);
             throw new CommandException(String.format(DeleteCommand.MESSAGE_PERSON_NOT_FOUND, name));
         }
         if (matches.size() > 1) {
+            logger.warning("UpdateCommand failed: ambiguous matches found for name: " + name);
             throw new CommandException(String.format(MESSAGE_AMBIGUOUS, name));
         }
-        return matches.getFirst();
+        Person target = matches.getFirst();
+        logger.fine("Resolved target contact by name " + name + ": " + AddCommand.formatIdentity(target));
+        return target;
     }
 
     /** Includes hidden contacts, excluding only the contact being replaced. */
     private void rejectDuplicates(Model model, Person original, Person updated) throws CommandException {
         for (Person other : model.getAddressBook().getPersonList()) {
             if (!other.equals(original) && other.isSamePerson(updated)) {
+                logger.warning("UpdateCommand rejected: conflict with existing contact: "
+                        + AddCommand.formatIdentity(other));
                 throw new CommandException(String.format(MESSAGE_DUPLICATE, AddCommand.formatIdentity(other)));
             }
         }

@@ -15,10 +15,14 @@ Class UserPrefs
 Class UniquePersonList
 Class Person
 Class Address
+Class Company
 Class Email
+Class FollowUpDate
 Class Name
 Class Phone
 Class Tag
+Class "<<enumeration>>\nContactMethod" as ContactMethod
+Class "<<enumeration>>\nEnquiryStatus" as EnquiryStatus
 
 Class I #FFFFFF
 }
@@ -41,14 +45,25 @@ Person *--> Name
 Person *--> Phone
 Person *--> Email
 Person *--> Address
+Person *--> Company
+Person *--> ContactMethod
+Person *--> EnquiryStatus
+Person *--> FollowUpDate
 Person *--> "*" Tag
 
 Person -[hidden]up--> I
 UniquePersonList -[hidden]right-> I
 
 Name -[hidden]right-> Phone
-Phone -[hidden]right-> Address
-Address -[hidden]right-> Email
+Phone -[hidden]right-> Email
+Email -[hidden]right-> Company
+Company -[hidden]right-> Address
+
+Address -[hidden]down-> ContactMethod
+
+ContactMethod -[hidden]right-> EnquiryStatus
+EnquiryStatus -[hidden]right-> FollowUpDate
+FollowUpDate -[hidden]right-> Tag
 
 ModelManager --> "~* filtered" Person
 @enduml
