@@ -15,10 +15,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.logging.Logger;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import seedu.boothmanagerpro.commons.core.LogsCenter;
 import seedu.boothmanagerpro.logic.commands.UpdateCommand;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 import seedu.boothmanagerpro.model.person.Company;
@@ -33,19 +35,23 @@ import seedu.boothmanagerpro.model.tag.Tag;
 
 /** Parses a target followed by validated partial changes, without changing model state. */
 public class UpdateCommandParser implements Parser<UpdateCommand> {
+    private static final Logger logger = LogsCenter.getLogger(UpdateCommandParser.class);
     private static final Pattern FIELD_PREFIX = Pattern.compile("(?<!\\S)([^\\s/]+/)");
     private static final List<Prefix> PREFIXES = List.of(PREFIX_NAME, PREFIX_COMPANY, PREFIX_EMAIL,
             PREFIX_PHONE, PREFIX_METHOD, PREFIX_STATUS, PREFIX_FOLLOW_UP, PREFIX_TAG);
 
     @Override
     public UpdateCommand parse(String args) throws ParseException {
+        logger.finer("Parsing UpdateCommand arguments: " + args);
         ArgumentMultimap fields = tokenize(args);
         validateStructure(fields);
         ContactUpdate changes = parseChanges(fields);
         String target = fields.getPreamble();
-        return target.matches("[0-9]+")
+        UpdateCommand command = target.matches("[0-9]+")
                 ? new UpdateCommand(ParserUtil.parseIndex(target), changes)
                 : new UpdateCommand(ParserUtil.parseName(target), changes);
+        logger.fine("Successfully parsed UpdateCommand targeting: " + target);
+        return command;
     }
 
     /** Rejects unsupported prefix-like tokens before tokenising recognised fields and the target. */

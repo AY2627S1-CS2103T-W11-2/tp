@@ -15,10 +15,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.logging.Logger;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import seedu.boothmanagerpro.commons.core.LogsCenter;
 import seedu.boothmanagerpro.logic.commands.AddCommand;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 import seedu.boothmanagerpro.model.person.Company;
@@ -44,6 +46,7 @@ public class AddCommandParser implements Parser<AddCommand> {
             "Unknown field prefix: %s. Use n/, c/, e/, p/, m/, s/, f/, or t/.";
     public static final String MESSAGE_PREAMBLE = "Unexpected text before the first field. "
             + "Start with a prefix, for example: add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567";
+    private static final Logger logger = LogsCenter.getLogger(AddCommandParser.class);
     private static final Pattern FIELD_PREFIX = Pattern.compile("(?<!\\S)([^\\s/]+/)");
     private static final Set<Prefix> ALLOWED_PREFIXES = Set.of(PREFIX_NAME, PREFIX_COMPANY, PREFIX_EMAIL,
             PREFIX_PHONE, PREFIX_METHOD, PREFIX_STATUS, PREFIX_FOLLOW_UP, PREFIX_TAG);
@@ -63,9 +66,12 @@ public class AddCommandParser implements Parser<AddCommand> {
      */
     @Override
     public AddCommand parse(String args) throws ParseException {
+        logger.finer("Parsing AddCommand arguments: " + args);
         ArgumentMultimap fields = tokenize(args);
         validateStructure(fields);
-        return new AddCommand(parseContact(fields));
+        Person person = parseContact(fields);
+        logger.fine("Successfully parsed AddCommand for: " + AddCommand.formatIdentity(person));
+        return new AddCommand(person);
     }
 
     /** Checks field cardinality before attempting value conversion, preserving error precedence. */

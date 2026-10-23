@@ -247,7 +247,7 @@ This section describes some noteworthy details on how certain features are imple
 2. `ContactFieldParser` shares prefix-specific validation feedback with add; domain value types remain the source of constraints and normalisation.
 3. Immutable `ContactUpdate` represents partial changes. An absent optional preserves the value; a present empty date/tag set explicitly clears it. Tags are defensively copied.
 4. `UpdateCommand` resolves a full name across all contacts or an index in the current filtered list. Missing/ambiguous targets fail before mutation.
-5. The command constructs a replacement and checks every other contact for duplicate email or name/company, including hidden records. Only then does it call `Model.setPerson` and clear the filter.
+5. The command constructs a replacement and checks every other contact for duplicate email or name/company, including hidden records. Target resolution, duplicate warnings, and successful updates are logged via `LogsCenter`. Only then does it call `Model.setPerson` and clear the filter.
 6. Existing `LogicManager` persistence saves the result; the UI shows a concise confirmation. `view`/`list`/`find` display the new attributes through the existing cards.
 
 Legacy address is preserved. Supplied tags replace the tag set; a sole blank `t/` clears it. Empty `f/` clears the follow-up date. Other empty fields fail validation. There is no new storage schema or persistent contact ID. The existing `edit` command retains its syntax.
@@ -271,7 +271,7 @@ Legacy address is preserved. Supplied tags replace the tag set; a sole blank `t/
 1. `AddressBookParser` routes `add` to `AddCommandParser`.
 2. The parser rejects unknown prefixes, preambles, repeated non-tag fields, and missing required prefixes.
 3. Value objects validate fields, trim names/company, lowercase email, and remove phone spaces/hyphens. Repeated tags are ignored.
-4. `AddCommand` checks the complete address book for matching email or name/company, then adds the contact or reports the existing match.
+4. `AddCommand` checks the complete address book for matching email or name/company, logging execution, duplicate rejections, and successful additions via `LogsCenter`, then adds the contact or reports the existing match.
 5. `LogicManager` saves through `JsonAddressBookStorage` before returning the success result.
 6. The result contains a concise identity confirmation. `MainWindow` prints it and focuses command input. `CommandBox` clears successful input and retains failed input. A later `view`, `find`, or `list` prints the saved details.
 
