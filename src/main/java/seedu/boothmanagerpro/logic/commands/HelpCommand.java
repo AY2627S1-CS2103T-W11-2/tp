@@ -14,48 +14,65 @@ public class HelpCommand extends Command {
 
     public static final String SHOWING_HELP_MESSAGE = String.join("\n\n",
             "BoothManagerPro commands\n"
-                    + "═════════════════════════════",
+                    + "═════════════════════════════\n"
+                    + "[ ] optional  |  ... repeatable",
             formatCommandHelp(1, AddCommand.COMMAND_WORD,
                     "Adds a new exhibitor contact.",
-                    "add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567"),
+                    "add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...",
+                    "add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567 "
+                            + "m/email s/In progress f/20261025 t/high-priority"),
             formatCommandHelp(2, ListCommand.COMMAND_WORD,
-                    "Displays all saved exhibitor contacts.",
-                    "list"),
+                    "Displays all contacts, optionally sorted by name, company, or enquiry status.",
+                    "list [o/name|o/company|o/status]",
+                    "list o/status"),
             formatCommandHelp(3, FindCommand.COMMAND_WORD,
-                    "Finds contacts using name keywords or exact fields, including follow-up date (f/YYYYMMDD).",
-                    "find n/Alicia t/technology"),
+                    "Finds contacts using name keywords or exact name, company, email, phone, tag, and date fields.",
+                    "find KEYWORD... or find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG] "
+                            + "[f/YYYYMMDD]...",
+                    "find f/20261025 t/high-priority"),
             formatCommandHelp(4, ViewCommand.COMMAND_WORD,
                     "Displays the full details of a contact matching the given name.",
+                    "view n/NAME",
                     "view n/Alicia Tan"),
             formatCommandHelp(5, UpdateCommand.COMMAND_WORD,
                     "Updates one or more fields of a contact using their full name or displayed index.",
-                    "update Alicia Tan s/In progress"),
+                    "update NAME_OR_INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] "
+                            + "[s/STATUS] [f/YYYYMMDD] [t/TAG]...",
+                    "update Alicia Tan s/Completed f/20261028"),
             formatCommandHelp(6, TagCommand.COMMAND_WORD,
                     "Toggles one or more tags on a contact using their full name or displayed index.",
-                    "tag Alicia Tan t/high-priority"),
+                    "tag NAME_OR_INDEX t/TAG [t/TAG]...",
+                    "tag Alicia Tan t/high-priority t/sponsor"),
             formatCommandHelp(7, EditCommand.COMMAND_WORD,
-                    "Updates one or more fields of a contact at a displayed index.",
+                    "Updates legacy contact fields at a displayed index; use update for exhibitor fields.",
+                    "edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...",
                     "edit 1 p/91234567 e/alicia@example.com"),
             formatCommandHelp(8, DeleteCommand.COMMAND_WORD,
                     "Deletes a contact using their full name or displayed index.",
+                    "delete NAME_OR_INDEX",
                     "delete Alicia Tan"),
             formatCommandHelp(9, ClearCommand.COMMAND_WORD,
                     "Deletes every contact from the address book.",
+                    "clear",
                     "clear"),
             formatCommandHelp(10, HelpCommand.COMMAND_WORD,
                     "Displays this list of available commands.",
+                    "help",
                     "help"),
             formatCommandHelp(11, ExitCommand.COMMAND_WORD,
                     "Closes BoothManagerPro.",
+                    "exit",
                     "exit"),
             "─────────────────────────────\n"
                     + "Full User Guide:\n"
                     + "https://github.com/AY2627S1-CS2103T-W11-2/tp/blob/master/docs/UserGuide.md");
 
     /** Formats one command using the consistent help-entry layout. */
-    private static String formatCommandHelp(int number, String function, String description, String example) {
+    private static String formatCommandHelp(int number, String function, String description, String format,
+            String example) {
         return number + ". " + function.toUpperCase() + "\n"
                 + "   Description: " + description + "\n"
+                + "   Format:      " + format + "\n"
                 + "   Example:     " + example;
     }
 

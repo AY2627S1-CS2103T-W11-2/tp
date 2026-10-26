@@ -24,16 +24,25 @@ public class HelpCommandTest {
     public void showingHelpMessage_usesConsistentEntryFormat() {
         assertTrue(SHOWING_HELP_MESSAGE.contains("1. ADD\n"
                 + "   Description: Adds a new exhibitor contact.\n"
-                + "   Example:     add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567"));
+                + "   Format:      add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD] "
+                + "[t/TAG]...\n"
+                + "   Example:     add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567 "
+                + "m/email s/In progress f/20261025 t/high-priority"));
         assertTrue(SHOWING_HELP_MESSAGE.contains("4. VIEW\n"
                 + "   Description: Displays the full details of a contact matching the given name.\n"
+                + "   Format:      view n/NAME\n"
                 + "   Example:     view n/Alicia Tan"));
         assertTrue(SHOWING_HELP_MESSAGE.contains("6. TAG\n"
                 + "   Description: Toggles one or more tags on a contact using their full name or displayed index.\n"
-                + "   Example:     tag Alicia Tan t/high-priority"));
+                + "   Format:      tag NAME_OR_INDEX t/TAG [t/TAG]...\n"
+                + "   Example:     tag Alicia Tan t/high-priority t/sponsor"));
         assertTrue(SHOWING_HELP_MESSAGE.contains("11. EXIT\n"
                 + "   Description: Closes BoothManagerPro.\n"
+                + "   Format:      exit\n"
                 + "   Example:     exit"));
+        assertTrue(SHOWING_HELP_MESSAGE.contains("list [o/name|o/company|o/status]"));
+        assertTrue(SHOWING_HELP_MESSAGE.contains("find f/20261025 t/high-priority"));
+        assertTrue(SHOWING_HELP_MESSAGE.contains("update Alicia Tan s/Completed f/20261028"));
         assertFalse(SHOWING_HELP_MESSAGE.contains("Keyboard shortcuts"));
     }
 }
