@@ -86,7 +86,8 @@ public class MainWindow extends UiPart<Stage> {
 
         commandBox = new CommandBox(this::executeCommand);
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
-        commandHints.setText("Enter to run  |  " + FOCUS_COMMAND.getDisplayText() + " to focus  |  F1 for help");
+        commandHints.setText("Enter to run  |  Tab to autofill  |  " + FOCUS_COMMAND.getDisplayText()
+                + " to focus  |  F1 for help");
         getRoot().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (FOCUS_COMMAND.match(event)) {
                 commandBox.focus();

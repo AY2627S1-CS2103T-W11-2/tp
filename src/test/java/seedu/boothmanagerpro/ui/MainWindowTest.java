@@ -372,6 +372,55 @@ public class MainWindowTest {
             commandInput.appendText("Alicia Tan");
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("view n/Alicia Tan", commandInput.getText());
+            assertEquals(root.lookup("#resultDisplay"), root.getScene().getFocusOwner());
+        });
+    }
+
+    @Test
+    public void tabAutocomplete_completesNewCommandFieldsAndFixedValues() throws Exception {
+        withWindow(new ModelManager(), (window, root, storage) -> {
+            TextField commandInput = input(root);
+
+            commandInput.setText("li");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("list ", commandInput.getText());
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("list o/", commandInput.getText());
+            commandInput.appendText("st");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("list o/status", commandInput.getText());
+
+            commandInput.setText("add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567 m");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567 m/",
+                    commandInput.getText());
+            commandInput.appendText("e");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567 m/email",
+                    commandInput.getText());
+
+            commandInput.setText("update Alicia Tan s");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("update Alicia Tan s/", commandInput.getText());
+            commandInput.appendText("In");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("update Alicia Tan s/In progress", commandInput.getText());
+
+            commandInput.setText("tag Alicia Tan");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("tag Alicia Tan t/", commandInput.getText());
+
+            commandInput.setText("find f");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("find f/", commandInput.getText());
+
+            commandInput.setText("edit 1 a");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("edit 1 a/", commandInput.getText());
+
+            commandInput.setText("view n");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("view n/", commandInput.getText());
             assertEquals(commandInput.getText().length(), commandInput.getCaretPosition());
         });
     }

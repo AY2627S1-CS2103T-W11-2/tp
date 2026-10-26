@@ -24,7 +24,8 @@ throughout the enquiry process. Its initial development includes adding,
 listing, viewing, and deleting contact records.
 
 Contacts support an enquiry status and an optional follow-up date at creation.
-Use `update NAME_OR_INDEX s/STATUS f/YYYYMMDD` to change these fields. Finding due follow-ups remains planned.
+Use `update NAME_OR_INDEX s/STATUS f/YYYYMMDD` to change these fields.
+Use `find f/YYYYMMDD` to find contacts on an exact follow-up date; date ranges and overdue reminders remain planned.
 
 ## UI preview
 
@@ -53,7 +54,7 @@ BoothManagerPro's MVP centres on five contact-management workflows:
 1. **View:** Search by name keywords and select a contact to see its full details.
 1. **Find and filter:** Match complete name, company, email, phone, or tag values; combine alternatives and criteria.
 
-The inherited `edit` and `clear` commands are also available. Edit supports name, phone, email, legacy address, and tags; company and contact method are preserved. See the [User Guide](docs/UserGuide.md) for syntax and examples. Company and contact method are included in contact text output. Add supports optional enquiry status and follow-up dates. Use `update` to change supplied contact fields and `tag` to toggle tags by name or displayed index. Filtering enquiry fields remains planned.
+The inherited `edit` and `clear` commands are also available. Edit supports name, phone, email, legacy address, and tags; company and contact method are preserved. See the [User Guide](docs/UserGuide.md) for syntax and examples. Company and contact method are included in contact text output. Add supports optional enquiry status and follow-up dates. Use `update` to change supplied contact fields and `tag` to toggle tags by name or displayed index. Exact follow-up-date filtering is available; filtering by status or contact method remains planned.
 
 ### Future enhancements
 
