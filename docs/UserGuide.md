@@ -78,7 +78,9 @@ BoothManagerPro helps **convention organisers manage exhibitor contacts through 
 
 ### Viewing help: `help`
 
-Prints command usage instructions and the User Guide link in the text output area. You can also press **F1**. Keyboard focus stays in the command box.
+Prints every command's description, format, example, and the User Guide link in the text output area. This includes
+optional fields and features such as list sorting, follow-up-date searches, status updates, and tag toggling. You can
+also press **F1**. Keyboard focus stays in the command box.
 
 Format: `help`
 
