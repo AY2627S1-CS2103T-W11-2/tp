@@ -23,6 +23,7 @@ Class Phone
 Class Tag
 Class "<<enumeration>>\nContactMethod" as ContactMethod
 Class "<<enumeration>>\nEnquiryStatus" as EnquiryStatus
+Class "<<enumeration>>\nSortField" as SortField
 
 Class I #FFFFFF
 }
@@ -65,5 +66,6 @@ ContactMethod -[hidden]right-> EnquiryStatus
 EnquiryStatus -[hidden]right-> FollowUpDate
 FollowUpDate -[hidden]right-> Tag
 
-ModelManager --> "~* filtered" Person
+ModelManager --> "~*" Person : filtered, sorted >
+Person <.right. SortField
 @enduml

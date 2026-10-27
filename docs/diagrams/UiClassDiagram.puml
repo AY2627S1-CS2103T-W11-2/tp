@@ -12,10 +12,15 @@ Class MainWindow
 Class ResultDisplay
 Class StatusBarFooter
 Class CommandBox
+Class ContactCard
 }
 
 package Logic <<Rectangle>> {
 Class HiddenLogic #FFFFFF
+}
+
+package Model <<Rectangle>> {
+Class HiddenModel #FFFFFF
 }
 
 Class HiddenOutside #FFFFFF
@@ -26,6 +31,7 @@ UiManager -down-> "1" MainWindow
 MainWindow *-down->  "1" CommandBox
 MainWindow *-down-> "1" ResultDisplay
 MainWindow *-down-> "1" StatusBarFooter
+ResultDisplay *-down-> "*" ContactCard
 
 
 MainWindow -left-|> UiPart
@@ -33,6 +39,8 @@ MainWindow -left-|> UiPart
 ResultDisplay --|> UiPart
 CommandBox --|> UiPart
 StatusBarFooter --|> UiPart
+ContactCard --|> UiPart
+ContactCard ..> Model
 
 UiManager -right-> Logic
 MainWindow -left-> Logic
