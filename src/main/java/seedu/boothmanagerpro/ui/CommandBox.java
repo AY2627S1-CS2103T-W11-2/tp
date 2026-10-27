@@ -1,11 +1,19 @@
 package seedu.boothmanagerpro.ui;
 
+import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_COMPANY;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_FOLLOW_UP;
+import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_METHOD;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_ORDER;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_STATUS;
+import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_TAG;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -27,6 +35,9 @@ import seedu.boothmanagerpro.logic.commands.UpdateCommand;
 import seedu.boothmanagerpro.logic.commands.ViewCommand;
 import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
+import seedu.boothmanagerpro.model.person.ContactMethod;
+import seedu.boothmanagerpro.model.person.EnquiryStatus;
+import seedu.boothmanagerpro.model.person.SortField;
 
 /**
  * The UI component that is responsible for receiving user command inputs.
@@ -52,6 +63,25 @@ public class CommandBox extends UiPart<Region> {
             PREFIX_COMPANY.toString(),
             PREFIX_EMAIL.toString(),
             PREFIX_PHONE.toString());
+    private static final Map<String, List<String>> COMMAND_PREFIXES = Map.of(
+            AddCommand.COMMAND_WORD, List.of(PREFIX_NAME.toString(), PREFIX_COMPANY.toString(),
+                    PREFIX_EMAIL.toString(), PREFIX_PHONE.toString(), PREFIX_METHOD.toString(),
+                    PREFIX_STATUS.toString(), PREFIX_FOLLOW_UP.toString(), PREFIX_TAG.toString()),
+            EditCommand.COMMAND_WORD, List.of(PREFIX_NAME.toString(), PREFIX_PHONE.toString(),
+                    PREFIX_EMAIL.toString(), PREFIX_ADDRESS.toString(), PREFIX_TAG.toString()),
+            FindCommand.COMMAND_WORD, List.of(PREFIX_NAME.toString(), PREFIX_COMPANY.toString(),
+                    PREFIX_EMAIL.toString(), PREFIX_PHONE.toString(), PREFIX_TAG.toString(),
+                    PREFIX_FOLLOW_UP.toString()),
+            ListCommand.COMMAND_WORD, List.of(PREFIX_ORDER.toString()),
+            TagCommand.COMMAND_WORD, List.of(PREFIX_TAG.toString()),
+            UpdateCommand.COMMAND_WORD, List.of(PREFIX_NAME.toString(), PREFIX_COMPANY.toString(),
+                    PREFIX_EMAIL.toString(), PREFIX_PHONE.toString(), PREFIX_METHOD.toString(),
+                    PREFIX_STATUS.toString(), PREFIX_FOLLOW_UP.toString(), PREFIX_TAG.toString()),
+            ViewCommand.COMMAND_WORD, List.of(PREFIX_NAME.toString()));
+    private static final Map<String, List<String>> PREFIX_VALUES = Map.of(
+            PREFIX_METHOD.toString(), Arrays.stream(ContactMethod.values()).map(ContactMethod::toString).toList(),
+            PREFIX_STATUS.toString(), Arrays.stream(EnquiryStatus.values()).map(EnquiryStatus::toString).toList(),
+            PREFIX_ORDER.toString(), Arrays.stream(SortField.values()).map(SortField::toString).toList());
 
     private final CommandExecutor commandExecutor;
 
@@ -68,22 +98,28 @@ public class CommandBox extends UiPart<Region> {
         commandTextField.textProperty().addListener((unused1, unused2, unused3) -> setStyleToDefault());
         // Capture Tab before JavaFX uses it to move focus to another control.
         commandTextField.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (event.getCode() == KeyCode.TAB) {
-                autocompleteCommand();
+            if (event.getCode() == KeyCode.TAB && autocompleteCommand()) {
                 event.consume();
             }
         });
     }
 
     /**
-     * Completes the command word when the current input uniquely identifies a supported command.
+     * Completes the current command word, field prefix, or fixed-choice value when there is one clear completion.
+     *
+     * @return whether the command text was changed
      */
-    private void autocompleteCommand() {
+    private boolean autocompleteCommand() {
         String input = commandTextField.getText();
         String trimmedInput = input.trim();
 
-        if (autocompleteAddField(trimmedInput) || autocompleteViewField(trimmedInput)) {
-            return;
+        if (autocompleteAddField(trimmedInput)
+                || autocompleteViewField(trimmedInput)
+                || autocompleteListField(trimmedInput)
+                || autocompleteFieldPrefix(trimmedInput)
+                || autocompleteFieldValue(trimmedInput)
+                || autocompleteTagField(trimmedInput)) {
+            return true;
         }
 
         List<String> matches = COMMAND_WORDS.stream()
@@ -91,8 +127,9 @@ public class CommandBox extends UiPart<Region> {
                 .toList();
 
         if (matches.size() == 1) {
-            setCommandText(matches.get(0) + " ");
+            return setCommandText(matches.getFirst() + " ");
         }
+        return false;
     }
 
     /**
@@ -101,8 +138,7 @@ public class CommandBox extends UiPart<Region> {
      */
     private boolean autocompleteAddField(String input) {
         if (input.equals(AddCommand.COMMAND_WORD)) {
-            setCommandText(AddCommand.COMMAND_WORD + " " + ADD_REQUIRED_PREFIXES.getFirst());
-            return true;
+            return setCommandText(AddCommand.COMMAND_WORD + " " + ADD_REQUIRED_PREFIXES.getFirst());
         }
         if (!input.startsWith(AddCommand.COMMAND_WORD + " ")) {
             return false;
@@ -119,7 +155,7 @@ public class CommandBox extends UiPart<Region> {
         }
 
         if (lastPrefixIndex == -1) {
-            return true;
+            return false;
         }
 
         String currentPrefix = ADD_REQUIRED_PREFIXES.get(lastPrefixIndex);
@@ -127,25 +163,92 @@ public class CommandBox extends UiPart<Region> {
         boolean hasValue = !input.substring(valueStart).isBlank();
         boolean hasNextPrefix = lastPrefixIndex + 1 < ADD_REQUIRED_PREFIXES.size();
         if (hasValue && hasNextPrefix) {
-            setCommandText(input + " " + ADD_REQUIRED_PREFIXES.get(lastPrefixIndex + 1));
+            return setCommandText(input + " " + ADD_REQUIRED_PREFIXES.get(lastPrefixIndex + 1));
         }
-        return true;
+        return false;
     }
 
     /** Adds the required name prefix while the user is building a view command. */
     private boolean autocompleteViewField(String input) {
         if (input.equals(ViewCommand.COMMAND_WORD)) {
-            setCommandText(ViewCommand.COMMAND_WORD + " " + PREFIX_NAME);
-            return true;
+            return setCommandText(ViewCommand.COMMAND_WORD + " " + PREFIX_NAME);
         }
-        return input.startsWith(ViewCommand.COMMAND_WORD + " ");
+        return false;
     }
 
-    /** Replaces the command input and leaves the caret ready for continued typing. */
-    private void setCommandText(String text) {
+    /** Adds the optional sort prefix when a user explicitly requests completion after {@code list}. */
+    private boolean autocompleteListField(String input) {
+        if (input.equals(ListCommand.COMMAND_WORD)) {
+            return setCommandText(ListCommand.COMMAND_WORD + " " + PREFIX_ORDER);
+        }
+        return false;
+    }
+
+    /** Completes a partially typed field prefix supported by the current command. */
+    private boolean autocompleteFieldPrefix(String input) {
+        int firstSpace = input.indexOf(' ');
+        int lastSpace = input.lastIndexOf(' ');
+        if (firstSpace < 0 || lastSpace < firstSpace) {
+            return false;
+        }
+
+        String commandWord = input.substring(0, firstSpace);
+        List<String> supportedPrefixes = COMMAND_PREFIXES.getOrDefault(commandWord, List.of());
+        String partialPrefix = input.substring(lastSpace + 1);
+        List<String> matches = supportedPrefixes.stream()
+                .filter(prefix -> prefix.startsWith(partialPrefix))
+                .toList();
+        if (matches.size() != 1) {
+            return false;
+        }
+        return setCommandText(input.substring(0, lastSpace + 1) + matches.getFirst());
+    }
+
+    /** Completes contact methods, enquiry statuses, and list sort fields from an unambiguous prefix. */
+    private boolean autocompleteFieldValue(String input) {
+        int firstSpace = input.indexOf(' ');
+        if (firstSpace < 0) {
+            return false;
+        }
+
+        String commandWord = input.substring(0, firstSpace);
+        List<String> supportedPrefixes = COMMAND_PREFIXES.getOrDefault(commandWord, List.of());
+        for (Map.Entry<String, List<String>> entry : PREFIX_VALUES.entrySet()) {
+            String prefix = entry.getKey();
+            int prefixStart = input.lastIndexOf(" " + prefix);
+            if (!supportedPrefixes.contains(prefix) || prefixStart < firstSpace) {
+                continue;
+            }
+            String partialValue = input.substring(prefixStart + prefix.length() + 1);
+            List<String> matches = entry.getValue().stream()
+                    .filter(value -> value.regionMatches(true, 0, partialValue, 0, partialValue.length()))
+                    .toList();
+            if (matches.size() == 1) {
+                return setCommandText(input.substring(0, prefixStart + prefix.length() + 1) + matches.getFirst());
+            }
+        }
+        return false;
+    }
+
+    /** Adds the first required tag prefix after a tag command target has been entered. */
+    private boolean autocompleteTagField(String input) {
+        String commandPrefix = TagCommand.COMMAND_WORD + " ";
+        if (!input.startsWith(commandPrefix) || input.substring(commandPrefix.length()).isBlank()
+                || input.contains(" " + PREFIX_TAG)) {
+            return false;
+        }
+        return setCommandText(input + " " + PREFIX_TAG);
+    }
+
+    /** Replaces changed command input and leaves the caret ready for continued typing. */
+    private boolean setCommandText(String text) {
+        if (text.equals(commandTextField.getText())) {
+            return false;
+        }
         commandTextField.setText(text);
         commandTextField.positionCaret(text.length());
         commandTextField.requestFocus();
+        return true;
     }
 
     /** Returns keyboard focus to the command input. */

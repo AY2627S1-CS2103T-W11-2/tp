@@ -44,11 +44,16 @@ BoothManagerPro helps **convention organisers manage exhibitor contacts through 
 
 * Type a command and press **Enter**. Command words and prefixes are case-sensitive: use `list`, not `List`.
 * The command box starts with keyboard focus. Press **Ctrl+L** on Windows/Linux or **Command+L** on macOS to return to it. Use `help` or **F1** for the guide, and `exit` to close the app.
+* Press **Tab** to complete an unambiguous command word, field prefix, contact method, enquiry status, or list sort
+  field. It also supplies the next required `add` prefix, `view n/`, `list o/`, or the first `tag t/` after a target.
+  If no completion is available, **Tab** resumes normal focus navigation.
 * Each launch starts with a ready prompt. Saved contacts remain available but are not automatically printed.
 * Results appear in the output area below the command box. `list`, `find`, and `view` show matching contacts as separate cards; other commands and errors show text. Each card shows the enquiry status as a coloured badge beside the name, and the card's left edge uses the same colour: amber for `Needs follow-up`, blue for `In progress`, green for `Completed`, and red for `Cancelled`. Cards are display-only and cannot be clicked or selected; scroll the output area to see more. There is no separate contact-list or details panel.
 * `list` prints every contact with a number and details. `find` prints the match count and numbered matching contacts; it works without running `list` first.
 * `view` prints a matching contact's details or numbered choices. Reply with a number only when `view` asks you to choose.
-* Each command replaces the previous output. The output fills the available space and scrolls for longer results. Use **Tab** to focus it and the arrow keys to read it; **Ctrl+L** or **Command+L** returns to command entry.
+* Each command replaces the previous output. The output fills the available space and scrolls for longer results.
+  When no autofill is available, use **Tab** to focus it and the arrow keys to read it; **Ctrl+L** or **Command+L**
+  returns to command entry.
 * For `update INDEX`, `tag INDEX`, `edit INDEX`, and `delete INDEX`, use the numbers from the current `list`, `find`, or `view` matches. A successful `add`, `update`, `tag`, or `edit` resets the filter; run `list` or `find` again before choosing another index. After deleting a contact, later indices shift down.
 * Company and contact method show `Not specified` when absent. Tags appear in saved order, with `None` for an empty tag set. The legacy address field remains editable using `edit INDEX a/ADDRESS`; newly added contacts use `Not provided`.
 
