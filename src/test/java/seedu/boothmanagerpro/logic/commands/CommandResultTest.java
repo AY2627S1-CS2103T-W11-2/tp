@@ -53,6 +53,20 @@ public class CommandResultTest {
     }
 
     @Test
+    public void showingContactList_showsTotal_unlikeOtherContactResults() {
+        CommandResult list = CommandResult.showingContactList("Contacts", List.of(ALICE));
+        assertTrue(list.isNumberedContacts());
+        assertTrue(list.isShowingContactTotal());
+        assertFalse(CommandResult.showingContacts("Contacts", List.of(ALICE)).isShowingContactTotal());
+        assertFalse(CommandResult.showingContact("Contacts", ALICE).isShowingContactTotal());
+
+        // same contacts and numbering, different total -> returns false
+        assertNotEquals(list, CommandResult.showingContacts("Contacts", List.of(ALICE)));
+        assertEquals(list, CommandResult.showingContactList("Contacts", List.of(ALICE)));
+        assertEquals(list.hashCode(), CommandResult.showingContactList("Contacts", List.of(ALICE)).hashCode());
+    }
+
+    @Test
     public void equals() {
         CommandResult commandResult = new CommandResult("feedback");
 
@@ -95,7 +109,8 @@ public class CommandResultTest {
         CommandResult commandResult = new CommandResult("feedback");
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser()
-                + ", exit=" + commandResult.isExit() + ", viewChoices=[], contactsToShow=[], numberedContacts=false}";
+                + ", exit=" + commandResult.isExit() + ", viewChoices=[], contactsToShow=[], numberedContacts=false, "
+                + "showingContactTotal=false}";
         assertEquals(expected, commandResult.toString());
     }
 }

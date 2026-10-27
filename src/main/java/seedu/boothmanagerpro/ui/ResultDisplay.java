@@ -63,16 +63,17 @@ public class ResultDisplay extends UiPart<Region> {
 
     /**
      * Shows {@code contacts} as static cards in place of the text output, which keeps the same feedback.
-     * Numbered cards use the one-based indices accepted by edit and delete.
+     * Numbered cards use the one-based indices accepted by edit and delete. The total is shown below the cards
+     * only when {@code isShowingTotal}, since other results already state their count in the heading.
      */
-    public void showContacts(List<Person> contacts, boolean isNumbered) {
+    public void showContacts(List<Person> contacts, boolean isNumbered, boolean isShowingTotal) {
         requireNonNull(contacts);
         contactCards.getChildren().clear();
         for (int i = 0; i < contacts.size(); i++) {
             int index = isNumbered ? i + 1 : ContactCard.NO_INDEX;
             contactCards.getChildren().add(new ContactCard(contacts.get(i), index).getRoot());
         }
-        if (isNumbered) {
+        if (isShowingTotal) {
             Label total = new Label(String.format(ListCommand.MESSAGE_TOTAL, contacts.size()));
             total.getStyleClass().add(TOTAL_STYLE_CLASS);
             contactCards.getChildren().add(total);
