@@ -54,7 +54,8 @@ public class ListCommandTest {
     @Test
     public void execute_listIsNotFiltered_showsSameList() {
         assertCommandSuccess(new ListCommand(), model,
-                CommandResult.showingContacts(ListCommand.formatContactList(expectedModel.getFilteredPersonList()),
+                CommandResult.showingContacts(ListCommand.formatContactList(expectedModel.getFilteredPersonList(),
+                        ListCommand.MESSAGE_HEADER),
                         expectedModel.getFilteredPersonList()),
                 expectedModel);
     }
@@ -63,7 +64,8 @@ public class ListCommandTest {
     public void execute_listIsFiltered_showsEverything() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
         assertCommandSuccess(new ListCommand(), model,
-                CommandResult.showingContacts(ListCommand.formatContactList(expectedModel.getFilteredPersonList()),
+                CommandResult.showingContacts(ListCommand.formatContactList(expectedModel.getFilteredPersonList(),
+                        ListCommand.MESSAGE_HEADER),
                         expectedModel.getFilteredPersonList()),
                 expectedModel);
     }
@@ -173,13 +175,13 @@ public class ListCommandTest {
                 + "\nEnquiry status: Needs follow-up\nFollow-up date: None\nTags: hardware\n\n"
                 + divider + "\n"
                 + "Total contacts: 2";
-        assertEquals(expected, ListCommand.formatContactList(List.of(alicia, john)));
+        assertEquals(expected, ListCommand.formatContactList(List.of(alicia, john), ListCommand.MESSAGE_HEADER));
     }
 
     @Test
     public void formatContactList_omittedFields_showsPlaceholders() {
         Person legacy = new PersonBuilder().withTags().build();
-        String result = ListCommand.formatContactList(List.of(legacy));
+        String result = ListCommand.formatContactList(List.of(legacy), ListCommand.MESSAGE_HEADER);
         assertEquals("Exhibitor Contact List\n" + ListCommand.MESSAGE_DIVIDER + "\n\n"
                 + "1. " + legacy.getName() + " at Not specified\nEmail: " + legacy.getEmail()
                 + "\nPhone: " + legacy.getPhone() + "\nContact method: Not specified"

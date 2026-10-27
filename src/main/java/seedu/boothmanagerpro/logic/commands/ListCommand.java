@@ -27,7 +27,8 @@ public class ListCommand extends Command {
 
     public static final String MESSAGE_HEADER = "Exhibitor Contact List";
     public static final String MESSAGE_SORTED_HEADER = MESSAGE_HEADER + " (sorted by %s)";
-    public static final String MESSAGE_DIVIDER = "─".repeat(38);
+    public static final int DIVIDER_LENGTH = 38;
+    public static final String MESSAGE_DIVIDER = "─".repeat(DIVIDER_LENGTH);
     public static final String MESSAGE_TOTAL = "Total contacts: %d";
     public static final String MESSAGE_EMPTY = "No contacts found.\n"
             + "Use the 'add' command to add a new exhibitor contact.";
@@ -56,13 +57,6 @@ public class ListCommand extends Command {
     }
 
     /**
-     * Returns the contact list feedback for {@code persons}, or the empty-list guidance when there are none.
-     */
-    public static String formatContactList(List<Person> persons) {
-        return formatContactList(persons, MESSAGE_HEADER);
-    }
-
-    /**
      * Returns the contact list feedback for {@code persons} under {@code header}, or the empty-list guidance.
      */
     public static String formatContactList(List<Person> persons, String header) {
@@ -79,7 +73,16 @@ public class ListCommand extends Command {
 
     @Override
     public boolean equals(Object other) {
-        return other == this || other instanceof ListCommand otherCommand && sortField.equals(otherCommand.sortField);
+        if (other == this) {
+            return true;
+        }
+
+        // instanceof handles nulls
+        if (!(other instanceof ListCommand otherCommand)) {
+            return false;
+        }
+
+        return sortField.equals(otherCommand.sortField);
     }
 
     @Override
