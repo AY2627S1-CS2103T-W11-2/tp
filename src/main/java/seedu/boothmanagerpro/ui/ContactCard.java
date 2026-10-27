@@ -47,6 +47,9 @@ public class ContactCard extends UiPart<Region> {
     private Label followUpDate;
 
     @FXML
+    private Label remark;
+
+    @FXML
     private FlowPane tags;
 
     /**
@@ -63,6 +66,7 @@ public class ContactCard extends UiPart<Region> {
         phone.setText("Phone: " + person.getPhone());
         contactMethod.setText("Contact method: " + Messages.formatOptional(person.getContactMethod()));
         followUpDate.setText("Follow-up date: " + Messages.formatFollowUpDate(person));
+        showRemark(person);
         showTags(person);
     }
 
@@ -87,6 +91,14 @@ public class ContactCard extends UiPart<Region> {
             return;
         }
         person.getTags().forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+    }
+
+    /** Shows the remark, or hides the line entirely when the contact has none. */
+    private void showRemark(Person person) {
+        boolean hasRemark = !person.getRemark().isEmpty();
+        remark.setText("Remark: " + person.getRemark());
+        remark.setVisible(hasRemark);
+        remark.setManaged(hasRemark);
     }
 
     /** Returns the style class for {@code status}, e.g. {@code status-needs-follow-up}. */

@@ -106,7 +106,7 @@ public class EditCommand extends Command {
 
         return new Person(updatedName, updatedPhone, updatedEmail, updatedAddress, updatedTags,
                 personToEdit.getCompany(), personToEdit.getContactMethod(),
-                personToEdit.getEnquiryStatus(), personToEdit.getFollowUpDate());
+                personToEdit.getEnquiryStatus(), personToEdit.getFollowUpDate(), personToEdit.getRemark());
     }
 
     @Override

@@ -30,6 +30,7 @@ public class Person {
     private final Optional<ContactMethod> contactMethod;
     private final EnquiryStatus enquiryStatus;
     private final Optional<FollowUpDate> followUpDate;
+    private final Remark remark;
 
     /**
      * Creates a legacy contact without company or preferred contact method.
@@ -54,7 +55,17 @@ public class Person {
     public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
             Optional<Company> company, Optional<ContactMethod> contactMethod,
             EnquiryStatus enquiryStatus, Optional<FollowUpDate> followUpDate) {
-        requireAllNonNull(name, phone, email, address, tags, company, contactMethod, enquiryStatus, followUpDate);
+        this(name, phone, email, address, tags, company, contactMethod, enquiryStatus, followUpDate,
+                new Remark(""));
+    }
+
+    /** Creates a contact with all fields, including a remark, which is empty when the contact has none. */
+    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags,
+            Optional<Company> company, Optional<ContactMethod> contactMethod,
+            EnquiryStatus enquiryStatus, Optional<FollowUpDate> followUpDate, Remark remark) {
+        requireAllNonNull(name, phone, email, address, tags, company, contactMethod, enquiryStatus, followUpDate,
+                remark);
+        this.remark = remark;
         this.enquiryStatus = enquiryStatus;
         this.followUpDate = followUpDate;
         this.name = name;
@@ -103,6 +114,11 @@ public class Person {
     /** Returns the next follow-up date, or empty when none is assigned. */
     public Optional<FollowUpDate> getFollowUpDate() {
         return followUpDate;
+    }
+
+    /** Returns the contact's remark, which is empty when none has been added. */
+    public Remark getRemark() {
+        return remark;
     }
 
     public Name getName() {
@@ -169,13 +185,15 @@ public class Person {
                 && contactMethod.equals(otherPerson.contactMethod)
                 && tags.equals(otherPerson.tags)
                 && enquiryStatus == otherPerson.enquiryStatus
-                && followUpDate.equals(otherPerson.followUpDate);
+                && followUpDate.equals(otherPerson.followUpDate)
+                && remark.equals(otherPerson.remark);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, tags, company, contactMethod, enquiryStatus, followUpDate);
+        return Objects.hash(name, phone, email, address, tags, company, contactMethod, enquiryStatus, followUpDate,
+                remark);
     }
 
     @Override
@@ -190,6 +208,7 @@ public class Person {
                 .add("contactMethod", contactMethod)
                 .add("enquiryStatus", enquiryStatus)
                 .add("followUpDate", followUpDate)
+                .add("remark", remark)
                 .toString();
     }
 

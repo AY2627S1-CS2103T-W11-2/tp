@@ -62,7 +62,7 @@ public class TagCommand extends Command {
         }
         Person updated = new Person(original.getName(), original.getPhone(), original.getEmail(),
                 original.getAddress(), updatedTags, original.getCompany(), original.getContactMethod(),
-                original.getEnquiryStatus(), original.getFollowUpDate());
+                original.getEnquiryStatus(), original.getFollowUpDate(), original.getRemark());
         model.setPerson(original, updated);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         return new CommandResult(String.format(

@@ -29,6 +29,7 @@ import seedu.boothmanagerpro.model.person.Email;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.model.person.Phone;
+import seedu.boothmanagerpro.model.person.Remark;
 import seedu.boothmanagerpro.testutil.PersonBuilder;
 
 public class JsonAdaptedPersonTest {
@@ -223,5 +224,15 @@ public class JsonAdaptedPersonTest {
         JsonAdaptedPerson invalidMethod = new JsonAdaptedPerson("Alicia Tan", "91234567",
                 "alicia@example.com", "Not provided", java.util.List.of(), "TechNova", "fax");
         assertThrows(IllegalValueException.class, invalidMethod::toModelType);
+    }
+
+    @Test
+    public void toModelType_remark_roundTripsAndDefaultsToEmpty() throws Exception {
+        Person withRemark = new PersonBuilder(BENSON).withRemark("Prefers mornings").build();
+        assertEquals(withRemark, new JsonAdaptedPerson(withRemark).toModelType());
+
+        JsonAdaptedPerson withoutRemark = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
+                VALID_ADDRESS, VALID_TAGS, null, null, null, null, null);
+        assertEquals(new Remark(""), withoutRemark.toModelType().getRemark());
     }
 }

@@ -59,6 +59,27 @@ public class MainWindowTest {
     }
 
     @Test
+    public void remark_addedAndRemoved_showsOnlyWhenPresent() throws Exception {
+        withWindow(new ModelManager(), (window, root, storage) -> {
+            enterCommand(root, "add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567");
+            enterCommand(root, "view n/Alicia");
+            VBox cards = (VBox) root.lookup("#contactCards");
+            Label remark = (Label) ((Parent) cards.getChildren().getFirst()).lookup("#remark");
+            assertFalse(remark.isVisible());
+
+            enterCommand(root, "remark 1 r/Prefers morning calls");
+            assertEquals("Added remark to contact: Alicia Tan at TechNova", output(root));
+            enterCommand(root, "view n/Alicia");
+            remark = (Label) ((Parent) cards.getChildren().getFirst()).lookup("#remark");
+            assertTrue(remark.isVisible());
+            assertEquals("Remark: Prefers morning calls", remark.getText());
+
+            enterCommand(root, "remark 1");
+            assertEquals("Removed remark from contact: Alicia Tan at TechNova", output(root));
+        });
+    }
+
+    @Test
     public void add_enquiryMetadata_isVisibleInContactCard() throws Exception {
         withWindow(new ModelManager(), (window, root, storage) -> {
             enterCommand(root, "add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567"

@@ -28,6 +28,7 @@ public record ContactUpdate(Optional<Name> name, Optional<Company> company, Opti
         return new Person(name.orElse(original.getName()), phone.orElse(original.getPhone()),
                 email.orElse(original.getEmail()), original.getAddress(), tags.orElse(original.getTags()),
                 company.or(original::getCompany), method.or(original::getContactMethod),
-                status.orElse(original.getEnquiryStatus()), date.orElse(original.getFollowUpDate()));
+                status.orElse(original.getEnquiryStatus()), date.orElse(original.getFollowUpDate()),
+                original.getRemark());
     }
 }

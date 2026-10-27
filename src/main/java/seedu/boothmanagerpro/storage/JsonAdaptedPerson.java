@@ -20,6 +20,7 @@ import seedu.boothmanagerpro.model.person.FollowUpDate;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.model.person.Phone;
+import seedu.boothmanagerpro.model.person.Remark;
 import seedu.boothmanagerpro.model.tag.Tag;
 
 /**
@@ -38,6 +39,7 @@ class JsonAdaptedPerson {
     private final String contactMethod;
     private final String enquiryStatus;
     private final String followUpDate;
+    private final String remark;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
     /**
@@ -50,7 +52,13 @@ class JsonAdaptedPerson {
     /** Keeps existing callers compatible while defaulting new metadata during conversion. */
     public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags,
             String company, String contactMethod) {
-        this(name, phone, email, address, tags, company, contactMethod, null, null);
+        this(name, phone, email, address, tags, company, contactMethod, null, null, null);
+    }
+
+    /** Keeps callers from before remarks existed compatible, storing no remark. */
+    public JsonAdaptedPerson(String name, String phone, String email, String address, List<JsonAdaptedTag> tags,
+            String company, String contactMethod, String enquiryStatus, String followUpDate) {
+        this(name, phone, email, address, tags, company, contactMethod, enquiryStatus, followUpDate, null);
     }
 
     /**
@@ -62,7 +70,9 @@ class JsonAdaptedPerson {
             @JsonProperty("email") String email, @JsonProperty("address") String address,
             @JsonProperty("tags") List<JsonAdaptedTag> tags, @JsonProperty("company") String company,
             @JsonProperty("contactMethod") String contactMethod,
-            @JsonProperty("enquiryStatus") String enquiryStatus, @JsonProperty("followUpDate") String followUpDate) {
+            @JsonProperty("enquiryStatus") String enquiryStatus, @JsonProperty("followUpDate") String followUpDate,
+            @JsonProperty("remark") String remark) {
+        this.remark = remark;
         this.enquiryStatus = enquiryStatus;
         this.followUpDate = followUpDate;
         this.name = name;
@@ -82,6 +92,7 @@ class JsonAdaptedPerson {
     public JsonAdaptedPerson(Person source) {
         enquiryStatus = source.getEnquiryStatus().toString();
         followUpDate = source.getFollowUpDate().map(Object::toString).orElse(null);
+        remark = source.getRemark().value;
         name = source.getName().fullName;
         phone = source.getPhone().value;
         email = source.getEmail().value;
@@ -144,8 +155,10 @@ class JsonAdaptedPerson {
             EnquiryStatus modelStatus = enquiryStatus == null ? EnquiryStatus.NEEDS_FOLLOW_UP
                     : EnquiryStatus.fromString(enquiryStatus);
             Optional<FollowUpDate> modelDate = Optional.ofNullable(followUpDate).map(FollowUpDate::new);
+            // Data files saved before remarks existed have no remark field; treat that as no remark.
+            Remark modelRemark = new Remark(remark == null ? "" : remark);
             return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelCompany, modelMethod,
-                    modelStatus, modelDate);
+                    modelStatus, modelDate, modelRemark);
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());
         }

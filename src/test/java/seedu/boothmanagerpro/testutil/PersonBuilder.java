@@ -13,6 +13,7 @@ import seedu.boothmanagerpro.model.person.FollowUpDate;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.model.person.Phone;
+import seedu.boothmanagerpro.model.person.Remark;
 import seedu.boothmanagerpro.model.tag.Tag;
 import seedu.boothmanagerpro.model.util.SampleDataUtil;
 
@@ -35,6 +36,7 @@ public class PersonBuilder {
     private Set<Tag> tags;
     private Optional<Company> company = Optional.empty();
     private Optional<ContactMethod> contactMethod = Optional.empty();
+    private Remark remark = new Remark("");
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -60,6 +62,7 @@ public class PersonBuilder {
         contactMethod = personToCopy.getContactMethod();
         enquiryStatus = personToCopy.getEnquiryStatus();
         followUpDate = personToCopy.getFollowUpDate();
+        remark = personToCopy.getRemark();
     }
 
     /**
@@ -114,13 +117,21 @@ public class PersonBuilder {
         return this;
     }
 
+    /** Builds the {@code Person} with the details set so far. */
     public Person build() {
-        return new Person(name, phone, email, address, tags, company, contactMethod, enquiryStatus, followUpDate);
+        return new Person(name, phone, email, address, tags, company, contactMethod, enquiryStatus, followUpDate,
+                remark);
     }
 
     /** Sets the exhibitor organisation. */
     public PersonBuilder withCompany(String company) {
         this.company = Optional.of(new Company(company));
+        return this;
+    }
+
+    /** Sets the {@code Remark} of the {@code Person} that we are building. */
+    public PersonBuilder withRemark(String remark) {
+        this.remark = new Remark(remark);
         return this;
     }
 

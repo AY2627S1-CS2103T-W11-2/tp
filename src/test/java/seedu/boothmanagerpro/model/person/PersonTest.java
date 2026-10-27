@@ -88,6 +88,10 @@ public class PersonTest {
         // different tags -> returns false
         editedAlice = new PersonBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(ALICE.equals(editedAlice));
+
+        // different remark -> returns false
+        editedAlice = new PersonBuilder(ALICE).withRemark("Prefers mornings").build();
+        assertFalse(ALICE.equals(editedAlice));
     }
 
     @Test
@@ -95,7 +99,7 @@ public class PersonTest {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags()
                 + ", company=Optional.empty, contactMethod=Optional.empty"
-                + ", enquiryStatus=Needs follow-up, followUpDate=Optional.empty}";
+                + ", enquiryStatus=Needs follow-up, followUpDate=Optional.empty, remark=}";
         assertEquals(expected, ALICE.toString());
     }
 }
