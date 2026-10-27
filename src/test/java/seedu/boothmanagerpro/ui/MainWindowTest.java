@@ -84,8 +84,7 @@ public class MainWindowTest {
             assertTrue(output(root).startsWith("1 contact(s) found."));
             assertEquals("", input(root).getText());
             VBox cards = (VBox) root.lookup("#contactCards");
-            assertEquals(2, cards.getChildren().size()); // One contact and the existing total-count label.
-            assertEquals("Total contacts: 1", ((Label) cards.getChildren().getLast()).getText());
+            assertEquals(1, cards.getChildren().size(), "One contact and no total, as the heading has the count");
             Parent card = (Parent) cards.getChildren().getFirst();
             assertEquals("1. Alicia Tan", ((Label) card.lookup("#name")).getText());
             assertEquals("Follow-up date: 20261025", ((Label) card.lookup("#followUpDate")).getText());
@@ -96,11 +95,10 @@ public class MainWindowTest {
             enterCommand(root, "update 1 f/20261028");
             enterCommand(root, "find f/20261025");
             assertEquals("0 contact(s) found.", output(root));
-            assertEquals(1, cards.getChildren().size());
-            assertEquals("Total contacts: 0", ((Label) cards.getChildren().getFirst()).getText());
+            assertTrue(cards.getChildren().isEmpty());
             assertFalse(root.lookup("#contactScroll").isVisible());
             enterCommand(root, "find f/20261028");
-            assertEquals(2, cards.getChildren().size());
+            assertEquals(1, cards.getChildren().size());
         });
     }
 
@@ -184,6 +182,8 @@ public class MainWindowTest {
             assertFalse(found.contains("Bernice Yu"));
             assertEquals("", input(root).getText());
             assertNoContactPanels(root);
+            VBox foundCards = (VBox) root.lookup("#contactCards");
+            assertEquals(2, foundCards.getChildren().size(), "2 cards and no total, as the heading has the count");
             savePreview(root, 1180, 820, "cli-find.png");
             savePreview(root, 860, 640, "cli-compact.png");
             enterCommand(root, "edit 2 p/91234567");

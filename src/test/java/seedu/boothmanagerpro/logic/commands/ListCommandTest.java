@@ -54,7 +54,7 @@ public class ListCommandTest {
     @Test
     public void execute_listIsNotFiltered_showsSameList() {
         assertCommandSuccess(new ListCommand(), model,
-                CommandResult.showingContacts(ListCommand.formatContactList(expectedModel.getFilteredPersonList(),
+                CommandResult.showingContactList(ListCommand.formatContactList(expectedModel.getFilteredPersonList(),
                         ListCommand.MESSAGE_HEADER),
                         expectedModel.getFilteredPersonList()),
                 expectedModel);
@@ -64,7 +64,7 @@ public class ListCommandTest {
     public void execute_listIsFiltered_showsEverything() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
         assertCommandSuccess(new ListCommand(), model,
-                CommandResult.showingContacts(ListCommand.formatContactList(expectedModel.getFilteredPersonList(),
+                CommandResult.showingContactList(ListCommand.formatContactList(expectedModel.getFilteredPersonList(),
                         ListCommand.MESSAGE_HEADER),
                         expectedModel.getFilteredPersonList()),
                 expectedModel);
@@ -74,7 +74,7 @@ public class ListCommandTest {
     public void execute_emptyAddressBook_showsNoContactsMessage() {
         Model emptyModel = new ModelManager(new AddressBook(), new UserPrefs());
         assertCommandSuccess(new ListCommand(), emptyModel,
-                CommandResult.showingContacts("No contacts found.\n"
+                CommandResult.showingContactList("No contacts found.\n"
                         + "Use the 'add' command to add a new exhibitor contact.", List.of()),
                 new ModelManager(new AddressBook(), new UserPrefs()));
     }
@@ -86,7 +86,7 @@ public class ListCommandTest {
         expected.updateSortedPersonList(SortField.NAME.getComparator());
         List<Person> sorted = List.of(ALICIA, DAVID, ZOE);
         assertCommandSuccess(new ListCommand(SortField.NAME), unsortedModel,
-                CommandResult.showingContacts(ListCommand.formatContactList(sorted,
+                CommandResult.showingContactList(ListCommand.formatContactList(sorted,
                         "Exhibitor Contact List (sorted by name)"), sorted), expected);
         assertEquals(sorted, unsortedModel.getFilteredPersonList());
     }

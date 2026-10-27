@@ -53,7 +53,7 @@ public class ListCommand extends Command {
                 model::resetPersonListOrder);
         List<Person> contacts = model.getFilteredPersonList();
         String header = sortField.map(field -> String.format(MESSAGE_SORTED_HEADER, field)).orElse(MESSAGE_HEADER);
-        return CommandResult.showingContacts(formatContactList(contacts, header), contacts);
+        return CommandResult.showingContactList(formatContactList(contacts, header), contacts);
     }
 
     /**
