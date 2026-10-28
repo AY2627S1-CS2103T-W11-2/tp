@@ -60,16 +60,24 @@ public class EditCommandParser implements Parser<EditCommand> {
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
 
         if (argMultimap.getValue(PREFIX_NAME).isPresent()) {
-            editPersonDescriptor.setName(ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get()));
+            String name = argMultimap.getValue(PREFIX_NAME).get();
+            ContactFieldParser.requireValue(PREFIX_NAME, name);
+            editPersonDescriptor.setName(ParserUtil.parseName(name));
         }
         if (argMultimap.getValue(PREFIX_PHONE).isPresent()) {
-            editPersonDescriptor.setPhone(ParserUtil.parsePhone(argMultimap.getValue(PREFIX_PHONE).get()));
+            String phone = argMultimap.getValue(PREFIX_PHONE).get();
+            ContactFieldParser.requireValue(PREFIX_PHONE, phone);
+            editPersonDescriptor.setPhone(ParserUtil.parsePhone(phone));
         }
         if (argMultimap.getValue(PREFIX_EMAIL).isPresent()) {
-            editPersonDescriptor.setEmail(ParserUtil.parseEmail(argMultimap.getValue(PREFIX_EMAIL).get()));
+            String email = argMultimap.getValue(PREFIX_EMAIL).get();
+            ContactFieldParser.requireValue(PREFIX_EMAIL, email);
+            editPersonDescriptor.setEmail(ParserUtil.parseEmail(email));
         }
         if (argMultimap.getValue(PREFIX_ADDRESS).isPresent()) {
-            editPersonDescriptor.setAddress(ParserUtil.parseAddress(argMultimap.getValue(PREFIX_ADDRESS).get()));
+            String address = argMultimap.getValue(PREFIX_ADDRESS).get();
+            ContactFieldParser.requireValue(PREFIX_ADDRESS, address);
+            editPersonDescriptor.setAddress(ParserUtil.parseAddress(address));
         }
         parseTagsForEdit(argMultimap.getAllValues(PREFIX_TAG)).ifPresent(editPersonDescriptor::setTags);
 
@@ -91,7 +99,11 @@ public class EditCommandParser implements Parser<EditCommand> {
         if (tags.isEmpty()) {
             return Optional.empty();
         }
-        Collection<String> tagSet = tags.size() == 1 && tags.contains("") ? Collections.emptySet() : tags;
+        boolean isClearTags = tags.size() == 1 && tags.iterator().next().isBlank();
+        Collection<String> tagSet = isClearTags ? Collections.emptySet() : tags;
+        for (String tag : tagSet) {
+            ContactFieldParser.requireValue(PREFIX_TAG, tag);
+        }
         return Optional.of(ParserUtil.parseTags(tagSet));
     }
 

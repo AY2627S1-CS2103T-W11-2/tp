@@ -50,7 +50,8 @@ public class EditCommand extends Command {
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited contact: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
-    public static final String MESSAGE_DUPLICATE_PERSON = "This contact already exists in BoothManagerPro.";
+    public static final String MESSAGE_DUPLICATE_PERSON = "This edit conflicts with another contact: %s. "
+            + "Check the email and name/company fields. No contact was edited.";
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
@@ -80,9 +81,11 @@ public class EditCommand extends Command {
         Person editedPerson = createEditedPerson(personToEdit, editPersonDescriptor);
 
         // Exclude only the record being replaced: matching it does not rule out a collision with another contact.
-        if (model.getAddressBook().getPersonList().stream()
-                .anyMatch(person -> !person.equals(personToEdit) && person.isSamePerson(editedPerson))) {
-            throw new CommandException(MESSAGE_DUPLICATE_PERSON);
+        Optional<Person> conflict = model.getAddressBook().getPersonList().stream()
+                .filter(person -> !person.equals(personToEdit) && person.isSamePerson(editedPerson)).findFirst();
+        if (conflict.isPresent()) {
+            throw new CommandException(String.format(MESSAGE_DUPLICATE_PERSON,
+                    AddCommand.formatIdentity(conflict.get())));
         }
 
         model.setPerson(personToEdit, editedPerson);

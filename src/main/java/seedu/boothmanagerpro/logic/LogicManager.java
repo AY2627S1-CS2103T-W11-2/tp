@@ -90,8 +90,9 @@ public class LogicManager implements Logic {
     }
 
     /**
-     * Resolves a one-based reply against the pending choices and clears them after a successful selection.
-     * Invalid replies preserve the choices so the user can retry; stale contacts cancel the selection.
+     * Resolves a one-based reply against the pending choices, filters the displayed list to the selected contact,
+     * and clears the choices. Invalid replies preserve the choices so the user can retry; stale contacts cancel the
+     * selection.
      *
      * @throws CommandException If the reply is invalid or the selected contact has changed.
      */
@@ -112,8 +113,9 @@ public class LogicManager implements Logic {
             pendingViewChoices = List.of();
             throw new CommandException(MESSAGE_VIEW_CONTACT_CHANGED);
         }
+        model.updateFilteredPersonList(person -> person.equals(selected));
         pendingViewChoices = List.of();
-        logger.fine("Pending view selection resolved");
+        logger.fine("Pending view selection resolved and filtered to the selected contact");
         return ViewCommand.createDetailsResult(selected);
     }
 

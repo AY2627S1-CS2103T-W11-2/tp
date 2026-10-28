@@ -50,15 +50,51 @@ public class ViewCommandIntegrationTest {
     }
 
     @Test
-    public void execute_viewAndNumberedReply_displaysChosenRecordAndFiltersWithoutWriting() throws Exception {
+    public void execute_viewAndNumberedReply_displaysAndFiltersToChosenRecordWithoutWriting() throws Exception {
         String originalFile = Files.readString(folder.resolve("contacts.json"));
         model.updateFilteredPersonList(person -> false);
         assertEquals(List.of(first, second), logic.execute("view n/alicia tan").getViewChoices());
         assertEquals(ViewCommand.createDetailsResult(second), logic.execute("2"));
-        assertEquals(List.of(first, second), model.getFilteredPersonList());
+        assertEquals(List.of(second), model.getFilteredPersonList());
         assertEquals(List.of(first, second), model.getAddressBook().getPersonList());
         assertEquals(originalFile, Files.readString(folder.resolve("contacts.json")));
         assertThrows(ParseException.class, Messages.MESSAGE_UNKNOWN_COMMAND, () -> logic.execute("2"));
+    }
+
+    @Test
+    public void execute_viewSelectionThenEdit_editsOnlySelectedContact() throws Exception {
+        List<Person> contacts = setUpOverlappingViewChoices();
+        Person alicia = contacts.get(0);
+        Person johnGreenWorks = contacts.get(1);
+        Person johnBlueSky = contacts.get(2);
+
+        assertEquals(contacts, logic.execute("view n/John Tan").getViewChoices());
+        assertEquals(ViewCommand.createDetailsResult(johnGreenWorks), logic.execute("2"));
+        assertEquals(List.of(johnGreenWorks), model.getFilteredPersonList());
+
+        logic.execute("edit 1 p/90000001");
+
+        Person editedJohn = new PersonBuilder(johnGreenWorks).withPhone("90000001").build();
+        assertEquals(List.of(alicia, editedJohn, johnBlueSky), model.getAddressBook().getPersonList());
+        assertEquals(List.of(alicia, editedJohn, johnBlueSky),
+                addressStorage.readAddressBook().orElseThrow().getPersonList());
+    }
+
+    @Test
+    public void execute_viewSelectionThenDelete_deletesOnlySelectedContact() throws Exception {
+        List<Person> contacts = setUpOverlappingViewChoices();
+        Person alicia = contacts.get(0);
+        Person johnGreenWorks = contacts.get(1);
+        Person johnBlueSky = contacts.get(2);
+
+        assertEquals(contacts, logic.execute("view n/John Tan").getViewChoices());
+        assertEquals(ViewCommand.createDetailsResult(johnGreenWorks), logic.execute("2"));
+        assertEquals(List.of(johnGreenWorks), model.getFilteredPersonList());
+
+        logic.execute("delete 1");
+
+        assertEquals(List.of(alicia, johnBlueSky), model.getAddressBook().getPersonList());
+        assertEquals(List.of(alicia, johnBlueSky), addressStorage.readAddressBook().orElseThrow().getPersonList());
     }
 
     @Test
@@ -113,5 +149,19 @@ public class ViewCommandIntegrationTest {
     public void execute_editToOtherContactsEmail_rejectsDuplicateAndPreservesData() {
         assertThrows(CommandException.class, () -> logic.execute("edit 1 e/alicia@techindustries.com"));
         assertEquals(List.of(first, second), model.getAddressBook().getPersonList());
+    }
+
+    private List<Person> setUpOverlappingViewChoices() {
+        Person alicia = new PersonBuilder().withName("Alicia Tan").withCompany("TechNova")
+                .withEmail("alicia@technova.com").withPhone("91234567").build();
+        Person johnGreenWorks = new PersonBuilder().withName("John Tan").withCompany("GreenWorks")
+                .withEmail("john1@gw.com").withPhone("81234567").build();
+        Person johnBlueSky = new PersonBuilder().withName("John Tan").withCompany("BlueSky")
+                .withEmail("john2@bs.com").withPhone("81234568").build();
+        List<Person> contacts = List.of(alicia, johnGreenWorks, johnBlueSky);
+        AddressBook book = new AddressBook();
+        book.setPersons(contacts);
+        model.setAddressBook(book);
+        return contacts;
     }
 }

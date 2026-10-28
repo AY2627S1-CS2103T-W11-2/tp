@@ -13,32 +13,37 @@ public class Name {
             "Names must be 1 to 80 characters and contain a letter. "
             + "Use only letters, spaces, hyphens, apostrophes or full stops.";
 
-    // Length and the presence of a letter are checked separately after trimming.
+    // Length and the presence of a letter are checked separately after whitespace normalisation.
     public static final String VALIDATION_REGEX = "[\\p{L}\\p{M} .'\u2019-]+";
 
     public final String fullName;
 
     /**
-     * Trims and validates a name of 1-80 Unicode code points with at least one letter.
+     * Trims, collapses consecutive spaces and validates a name of 1-80 Unicode code points with at least one letter.
      * Allowed characters are letters, spaces, hyphens, apostrophes and full stops.
      *
      * @param name A valid name.
      */
     public Name(String name) {
         requireNonNull(name);
-        checkArgument(isValidName(name), MESSAGE_CONSTRAINTS);
-        fullName = name.trim();
+        String normalisedName = normaliseWhitespace(name);
+        checkArgument(isValidName(normalisedName), MESSAGE_CONSTRAINTS);
+        fullName = normalisedName;
     }
 
     /**
      * Returns true if a given string is a valid name.
      */
     public static boolean isValidName(String test) {
-        String trimmed = test.trim();
-        return trimmed.codePointCount(0, trimmed.length()) <= 80 && trimmed.matches(VALIDATION_REGEX)
-                && trimmed.codePoints().anyMatch(Character::isLetter);
+        String normalised = normaliseWhitespace(test);
+        return normalised.codePointCount(0, normalised.length()) <= 80 && normalised.matches(VALIDATION_REGEX)
+                && normalised.codePoints().anyMatch(Character::isLetter);
     }
 
+    /** Returns a name with surrounding whitespace removed and each run of spaces collapsed to one. */
+    static String normaliseWhitespace(String name) {
+        return name.trim().replaceAll(" +", " ");
+    }
 
     @Override
     public String toString() {

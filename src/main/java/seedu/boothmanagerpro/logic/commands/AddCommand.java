@@ -48,7 +48,7 @@ public class AddCommand extends Command {
 
     public static final String MESSAGE_SUCCESS = "Added %1$s.";
     public static final String MESSAGE_DUPLICATE_PERSON = "This contact may already exist: %s.\n"
-            + "Use the edit command if you want to update the existing contact.";
+            + "Use the update command if you want to change the existing contact.";
 
     private static final Logger logger = LogsCenter.getLogger(AddCommand.class);
 

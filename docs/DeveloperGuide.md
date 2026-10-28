@@ -784,10 +784,10 @@ These are requirements for the intended product, not claims that every target ha
 * **Enquiry**: An exchange between an organiser and an exhibitor about the exhibitor taking part in a convention
 * **Enquiry status**: The stage an exhibitor's enquiry has reached: `Needs follow-up`, `In progress`, `Completed`, or `Cancelled`. Also referred to as *status*
 * **Exhibitor**: An organisation that is interested in, or has been invited to, take a booth at a convention
-* **Exact match**: A search result where the search value matches the complete field value (ignoring case and leading/trailing spaces), not just part of it. For example, `find n/Alicia` does not match "Alicia Tan"
+* **Exact match**: A search result where the search value matches the complete field value (ignoring case and normalising surrounding or repeated spaces), not just part of it. For example, `find n/Alicia` does not match "Alicia Tan"
 * **Index**: The number shown beside a contact in a displayed list, used to select a specific contact when several share the same name
 * **Mainstream OS**: Windows, Linux, Unix, and macOS
-* **Normalisation**: Converting input to a standard form before storing or comparing it, such as lowercasing emails and removing spaces and hyphens from phone numbers
+* **Normalisation**: Converting input to a standard form before storing or comparing it, such as lowercasing emails, collapsing repeated spaces in names, and removing spaces and hyphens from phone numbers
 * **Prefix**: A marker ending in `/` that identifies which field a value belongs to, e.g. `n/` for name or `t/` for tag
 * **Primary contact**: The representative to contact first when an exhibitor has several representatives
 * **Representative**: A person who acts on behalf of an exhibitor. One exhibitor may have several

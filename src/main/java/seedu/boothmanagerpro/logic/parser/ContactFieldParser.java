@@ -8,11 +8,16 @@ import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 final class ContactFieldParser {
     private ContactFieldParser() {}
 
-    /** Adds prefix-specific feedback without duplicating model constraints or normalisation. */
-    static <T> T parseValue(Prefix prefix, String value, Function<String, T> constructor) throws ParseException {
+    /** Rejects a blank field using the common add, edit and update error. */
+    static void requireValue(Prefix prefix, String value) throws ParseException {
         if (value.isBlank()) {
             throw new ParseException("Empty field: " + prefix + ". Supply a value after this prefix.");
         }
+    }
+
+    /** Adds prefix-specific feedback without duplicating model constraints or normalisation. */
+    static <T> T parseValue(Prefix prefix, String value, Function<String, T> constructor) throws ParseException {
+        requireValue(prefix, value);
         try {
             return constructor.apply(value);
         } catch (IllegalArgumentException e) {
