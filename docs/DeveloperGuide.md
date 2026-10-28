@@ -76,7 +76,9 @@ The **API** of this component is specified in [`Ui.java`](../src/main/java/seedu
 
 The command interface is composed of `MainWindow`, `CommandBox`, `ResultDisplay`, and `StatusBarFooter`. Help is printed in the same output area.
 
-The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
+<img src="images/UiClassDiagram.png" width="550"/>
+
+The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, and `StatusBarFooter`. `ResultDisplay` shows the contacts returned by `list`, `find`, and `view` as `ContactCard`s. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](../src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](../src/main/java/seedu/boothmanagerpro/ui/MainWindow.java).
 
@@ -329,6 +331,10 @@ the order they were added.
 3. `ModelManager` wraps its `FilteredList` in a JavaFX `SortedList`. `getFilteredPersonList()` returns the sorted
    view, so every command that reads indices, such as `delete`, `edit`, and `update`, uses the order the user sees.
    A `null` comparator keeps the stored order.
+
+The sequence diagram below shows how `list o/name` is executed.
+
+<img src="images/ListSortSequenceDiagram.png" width="750" />
 
 `SortField` defines each order as a `Comparator<Person>`:
 

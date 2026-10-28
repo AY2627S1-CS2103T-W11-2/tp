@@ -1,0 +1,86 @@
+@startuml
+!include style.puml
+title List contacts sorted by name
+hide footbox
+skinparam ArrowFontStyle plain
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ParticipantFontColor #FFFFFF
+skinparam SequenceBoxFontColor #222222
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
+participant ":ListCommandParser" as ListCommandParser LOGIC_COLOR
+participant "l:ListCommand" as ListCommand LOGIC_COLOR
+participant "<<class>>\nCommandResult" as CommandResultClass LOGIC_COLOR
+participant "r:CommandResult" as CommandResult LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+end box
+
+[-> LogicManager : execute("list o/name")
+activate LogicManager
+LogicManager -> AddressBookParser : parseCommand("list o/name")
+activate AddressBookParser
+
+create ListCommandParser
+AddressBookParser -> ListCommandParser : ListCommandParser()
+activate ListCommandParser
+ListCommandParser --> AddressBookParser
+deactivate ListCommandParser
+
+AddressBookParser -> ListCommandParser : parse(" o/name")
+activate ListCommandParser
+note right of ListCommandParser: SortField.fromKeyword("name") returns\nOptional.of(NAME), which the parser unwraps;\nan empty Optional throws a ParseException.
+
+create ListCommand
+ListCommandParser -> ListCommand : ListCommand(NAME)
+activate ListCommand
+ListCommand --> ListCommandParser : l
+deactivate ListCommand
+ListCommandParser --> AddressBookParser : l
+deactivate ListCommandParser
+'Hidden arrow to position the destroy marker below the end of the activation bar.
+ListCommandParser -[hidden]-> AddressBookParser
+destroy ListCommandParser
+
+AddressBookParser --> LogicManager : l
+deactivate AddressBookParser
+
+LogicManager -> ListCommand : execute(m)
+activate ListCommand
+ListCommand -> Model : updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS)
+activate Model
+Model --> ListCommand
+deactivate Model
+
+ListCommand -> Model : updateSortedPersonList(NAME.getComparator())
+activate Model
+note right of Model: Reorders only the displayed view;\nsaved contacts keep their order.
+Model --> ListCommand
+deactivate Model
+
+ListCommand -> Model : getFilteredPersonList()
+activate Model
+Model --> ListCommand : contacts
+deactivate Model
+
+ListCommand -> CommandResultClass : showingContacts(feedback, contacts)
+activate CommandResultClass
+create CommandResult
+CommandResultClass -> CommandResult : CommandResult(...)
+activate CommandResult
+CommandResult --> CommandResultClass : r
+deactivate CommandResult
+CommandResultClass --> ListCommand : r
+deactivate CommandResultClass
+
+ListCommand --> LogicManager : r
+deactivate ListCommand
+
+[<-- LogicManager : r
+deactivate LogicManager
+@enduml
