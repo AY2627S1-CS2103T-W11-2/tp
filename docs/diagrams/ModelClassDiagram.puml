@@ -67,5 +67,5 @@ EnquiryStatus -[hidden]right-> FollowUpDate
 FollowUpDate -[hidden]right-> Tag
 
 ModelManager --> "~*" Person : filtered, sorted >
-Person <.right. SortField
+SortField .left.> Person
 @enduml

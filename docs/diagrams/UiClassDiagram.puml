@@ -31,7 +31,7 @@ UiManager -down-> "1" MainWindow
 MainWindow *-down->  "1" CommandBox
 MainWindow *-down-> "1" ResultDisplay
 MainWindow *-down-> "1" StatusBarFooter
-ResultDisplay *-down-> "*" ContactCard
+ResultDisplay .down.> ContactCard
 
 
 MainWindow -left-|> UiPart

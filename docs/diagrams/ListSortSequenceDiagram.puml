@@ -13,6 +13,7 @@ participant ":LogicManager" as LogicManager LOGIC_COLOR
 participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
 participant ":ListCommandParser" as ListCommandParser LOGIC_COLOR
 participant "l:ListCommand" as ListCommand LOGIC_COLOR
+participant "<<class>>\nCommandResult" as CommandResultClass LOGIC_COLOR
 participant "r:CommandResult" as CommandResult LOGIC_COLOR
 end box
 
@@ -26,14 +27,14 @@ LogicManager -> AddressBookParser : parseCommand("list o/name")
 activate AddressBookParser
 
 create ListCommandParser
-AddressBookParser -> ListCommandParser
+AddressBookParser -> ListCommandParser : ListCommandParser()
 activate ListCommandParser
 ListCommandParser --> AddressBookParser
 deactivate ListCommandParser
 
 AddressBookParser -> ListCommandParser : parse(" o/name")
 activate ListCommandParser
-note right of ListCommandParser: SortField.fromKeyword("name")\nreturns NAME
+note right of ListCommandParser: SortField.fromKeyword("name") returns\nOptional.of(NAME), which the parser unwraps;\nan empty Optional throws a ParseException.
 
 create ListCommand
 ListCommandParser -> ListCommand : ListCommand(NAME)
@@ -67,11 +68,15 @@ activate Model
 Model --> ListCommand : contacts
 deactivate Model
 
+ListCommand -> CommandResultClass : showingContacts(feedback, contacts)
+activate CommandResultClass
 create CommandResult
-ListCommand -> CommandResult
+CommandResultClass -> CommandResult : CommandResult(...)
 activate CommandResult
-CommandResult --> ListCommand
+CommandResult --> CommandResultClass : r
 deactivate CommandResult
+CommandResultClass --> ListCommand : r
+deactivate CommandResultClass
 
 ListCommand --> LogicManager : r
 deactivate ListCommand
