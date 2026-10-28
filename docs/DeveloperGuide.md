@@ -53,7 +53,11 @@ The bulk of the app's work is done by the following four components:
 
 The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delete 1`.
 
-<img src="images/ArchitectureSequenceDiagram.png" width="574" />
+<img src="images/ArchitectureSequenceDiagram.png" alt="Architecture component interactions for delete 1" width="600" style="max-width: 100%; height: auto;" />
+
+For this command, `Logic` obtains the contacts in their current displayed order from `Model` and resolves `1` to the
+first displayed contact. After deleting that contact, `Logic` obtains the updated address book and asks `Storage` to
+save it. The resulting `CommandResult` is then returned to `UI`, which displays the feedback to the user.
 
 Each of the four main components (also shown in the diagram above),
 
@@ -102,24 +106,29 @@ The `UI` component,
 
 **API** : [`Logic.java`](../src/main/java/seedu/boothmanagerpro/logic/Logic.java)
 
-Here's a (partial) class diagram of the `Logic` component:
+Here's a (partial) class diagram of the `Logic` component. `LogicManager` owns one `AddressBookParser`, which creates
+the command-specific parser and command required for the user's input. The concrete command operates on `Model` and
+creates a `CommandResult`, while `LogicManager` coordinates persistence through `Storage`.
 
-<img src="images/LogicClassDiagram.png" width="550"/>
+<img src="images/LogicClassDiagram.png" alt="Partial class diagram of the Logic component" width="700" style="max-width: 100%; height: auto;" />
 
 The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete 1")` API call as an example.
 
-![Interactions Inside the Logic Component for the `delete 1` Command](images/DeleteSequenceDiagram.png)
+<img src="images/DeleteSequenceDiagram.png" alt="Interactions inside Logic for the delete 1 command" width="950" style="max-width: 100%; height: auto;" />
 
 <div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `DeleteCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
 </div>
 
 How the `Logic` component works:
 
-1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
-1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
-1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
-   Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
-1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
+1. `LogicManager` passes `delete 1` to `AddressBookParser`. It creates a `DeleteCommandParser`, which parses the
+   argument as an `Index` and creates a `DeleteCommand`.
+1. `LogicManager` executes the `DeleteCommand` with `Model`.
+1. `DeleteCommand` obtains the filtered and sorted contact list from `Model`, resolves the one-based displayed index
+   to `personToDelete`, and asks `Model` to delete that `Person`.
+1. `DeleteCommand` creates and returns a `CommandResult` containing the deleted contact's details.
+1. `LogicManager` obtains the updated address book from `Model` and asks `Storage` to save it.
+1. After persistence succeeds, `LogicManager` returns the `CommandResult` to its caller.
 
 Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
 
@@ -609,30 +618,42 @@ Use case ends.
 
 **MSS**
 
-1. Organiser requests to delete a contact by name.
-2. BoothManagerPro deletes the matching contact and displays the deleted contact's details.
+1. Organiser requests to delete a contact using its displayed index.
+2. BoothManagerPro resolves the index against the contacts in their current displayed order.
+3. BoothManagerPro deletes the selected contact and saves the updated contact data.
+4. BoothManagerPro displays the deleted contact's details.
 
 Use case ends.
 
 **Extensions**
 
-* 1a. The name is missing or invalid.
+* 1a. The argument is missing or is neither a valid name nor a positive integer.
   * 1a1. BoothManagerPro explains the input error.
 
   Use case resumes at step 1.
 
-* 1b. No contact matches the supplied name, including when there are no stored contacts.
-  * 1b1. BoothManagerPro informs the organiser that no matching contact was found.
+* 1b. Organiser supplies a full name instead of an index.
+  * 1b1. BoothManagerPro searches all stored contacts for an exact full-name match, ignoring letter case.
+  * 1b2. Exactly one contact matches.
+
+  Use case resumes at step 3 for the matching contact.
+
+* 1b1a. No contact matches the supplied full name, including when there are no stored contacts.
+  * 1b1a1. BoothManagerPro informs the organiser that no matching contact was found.
 
   Use case resumes at step 1.
 
-* 1c. More than one contact matches the supplied full name.
-  * 1c1. BoothManagerPro rejects the deletion and asks the organiser to use a displayed index.
-  * 1c2. Organiser runs `list`, optionally followed by `find`, to identify the intended contact.
-  * 1c3. Organiser enters `delete INDEX` using its displayed index.
-  * 1c4. BoothManagerPro deletes only that contact, or reports an invalid index without deleting anything.
+* 1b1b. More than one contact matches the supplied full name.
+  * 1b1b1. BoothManagerPro rejects the deletion and asks the organiser to use a displayed index.
+  * 1b1b2. Organiser runs `list`, optionally followed by `find`, to identify the intended contact.
+  * 1b1b3. Organiser enters `delete INDEX` using its displayed index.
 
-  Use case ends. A bare number is not a delete confirmation.
+  Use case resumes at step 2. A bare number is not a delete confirmation.
+
+* 2a. The supplied index is outside the currently displayed list.
+  * 2a1. BoothManagerPro reports that the displayed index is invalid and does not delete or save anything.
+
+  Use case resumes at step 1.
 
 #### UC04: List exhibitor contacts
 
