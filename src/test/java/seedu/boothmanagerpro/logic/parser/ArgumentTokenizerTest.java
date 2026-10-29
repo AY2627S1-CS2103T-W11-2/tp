@@ -158,6 +158,44 @@ public class ArgumentTokenizerTest {
         assertFalse(ArgumentTokenizer.isPatronymicToken("n/Raj s/o c/Acme", 6));
         assertFalse(ArgumentTokenizer.isPatronymicToken("n/Raj s/o 123", 6));
         assertFalse(ArgumentTokenizer.isPatronymicToken("n/Raj s/other", 6));
+
+        Prefix nSlash = CliSyntax.PREFIX_NAME;
+        Prefix cSlash = CliSyntax.PREFIX_COMPANY;
+        Prefix eSlash = CliSyntax.PREFIX_EMAIL;
+        Prefix tSlash = CliSyntax.PREFIX_TAG;
+
+        ArgumentMultimap tradingAs = ArgumentTokenizer.tokenize(
+                " n/Alicia c/Acme Pte Ltd t/a Acme Events t/vip e/a@b.com",
+                nSlash, cSlash, eSlash, tSlash);
+        assertArgumentPresent(tradingAs, cSlash, "Acme Pte Ltd t/a Acme Events");
+        assertArgumentPresent(tradingAs, tSlash, "vip");
+        assertArgumentPresent(tradingAs, eSlash, "a@b.com");
+
+        ArgumentMultimap careOf = ArgumentTokenizer.tokenize(
+                "c/Holdings c/o Legal Dept e/legal@b.com", cSlash, eSlash);
+        assertArgumentPresent(careOf, cSlash, "Holdings c/o Legal Dept");
+        assertArgumentPresent(careOf, eSlash, "legal@b.com");
+
+        ArgumentMultimap careOfAtStart = ArgumentTokenizer.tokenize("c/ c/o Legal Dept", cSlash);
+        assertArgumentPresent(careOfAtStart, cSlash, "c/o Legal Dept");
+
+        ArgumentMultimap initialisms = ArgumentTokenizer.tokenize(
+                "c/ M/s. Lim & Co S/B d/b/a I/O Labs e/lim@b.com", cSlash, eSlash);
+        assertArgumentPresent(initialisms, cSlash, "M/s. Lim & Co S/B d/b/a I/O Labs");
+        assertArgumentPresent(initialisms, eSlash, "lim@b.com");
+
+        // Unrequested single-letter prefixes are ignored by tokenize when not listed in prefixes
+        ArgumentMultimap partialPrefixes = ArgumentTokenizer.tokenize("x/ignored p/91234567", pSlash);
+        assertPreamblePresent(partialPrefixes, "x/ignored");
+        assertArgumentPresent(partialPrefixes, pSlash, "91234567");
+
+        // Non-abbreviation cases: blank company before t/a, trailing t/a, or t/a outside c/ remain prefixes
+        assertFalse(ArgumentTokenizer.isCompanySlashAbbreviation("t/a Events", 0, "", 0));
+        assertFalse(ArgumentTokenizer.isCompanySlashAbbreviation("c/ t/a Events", 3, "c/", 2));
+        assertFalse(ArgumentTokenizer.isCompanySlashAbbreviation("c/Acme t/a", 7, "c/", 2));
+        assertFalse(ArgumentTokenizer.isCompanySlashAbbreviation("c/Acme t/a t/b", 7, "c/", 2));
+        assertFalse(ArgumentTokenizer.isCompanySlashAbbreviation("c/Acme t/a 123", 7, "c/", 2));
+        assertFalse(ArgumentTokenizer.isCompanySlashAbbreviation("p/91234567 t/a vip", 11, "p/", 2));
     }
 
     @Test

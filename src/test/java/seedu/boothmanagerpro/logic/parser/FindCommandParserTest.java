@@ -5,10 +5,13 @@ import static seedu.boothmanagerpro.logic.parser.CommandParserTestUtil.assertPar
 import static seedu.boothmanagerpro.logic.parser.CommandParserTestUtil.assertParseSuccess;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.boothmanagerpro.logic.commands.FindCommand;
+import seedu.boothmanagerpro.model.person.ContactMatchesFieldsPredicate;
 import seedu.boothmanagerpro.model.person.NameContainsKeywordsPredicate;
 
 public class FindCommandParserTest {
@@ -29,6 +32,17 @@ public class FindCommandParserTest {
 
         // multiple whitespaces between keywords
         assertParseSuccess(parser, " \n Alice \n \t Bob  \t", expectedFindCommand);
+    }
+
+    @Test
+    public void parse_companyWithSlashAbbreviations_returnsFindCommand() {
+        FindCommand expectedTradingAs = new FindCommand(new ContactMatchesFieldsPredicate(
+                Map.of("c/", Set.of(ContactMatchesFieldsPredicate.normalise("c/", "Acme Pte Ltd t/a Acme Events")))));
+        assertParseSuccess(parser, " c/Acme Pte Ltd t/a Acme Events", expectedTradingAs);
+
+        FindCommand expectedSdnBhd = new FindCommand(new ContactMatchesFieldsPredicate(
+                Map.of("c/", Set.of(ContactMatchesFieldsPredicate.normalise("c/", "TechNova S/B")))));
+        assertParseSuccess(parser, " c/TechNova S/B", expectedSdnBhd);
     }
 
 }

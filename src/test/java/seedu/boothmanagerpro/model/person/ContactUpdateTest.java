@@ -78,7 +78,7 @@ public class ContactUpdateTest {
                 Optional.of(new Company("NewCorp")),
                 Optional.of(new Email("alicia@newcorp.com")),
                 Optional.of(new Phone("81112222")),
-                Optional.of(ContactMethod.PHONE),
+                Optional.of(Optional.of(ContactMethod.PHONE)),
                 Optional.of(EnquiryStatus.COMPLETED),
                 Optional.of(Optional.empty()),
                 Optional.of(Set.of()));
@@ -93,6 +93,10 @@ public class ContactUpdateTest {
         assertEquals(EnquiryStatus.COMPLETED, result.getEnquiryStatus());
         assertTrue(result.getFollowUpDate().isEmpty());
         assertTrue(result.getTags().isEmpty());
+
+        ContactUpdate clearMethod = new ContactUpdate(
+                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.of(Optional.empty()), Optional.empty(), Optional.empty(), Optional.empty());
+        assertTrue(clearMethod.applyTo(result).getContactMethod().isEmpty());
     }
 }
-
