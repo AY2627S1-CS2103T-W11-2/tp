@@ -2,6 +2,7 @@ package seedu.boothmanagerpro.logic;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -80,12 +81,13 @@ public class LogicManager implements Logic {
         pendingViewChoices = List.of();
         ReadOnlyAddressBook previousAddressBook = new AddressBook(model.getAddressBook());
         Predicate<? super Person> previousPredicate = model.getFilteredPersonListPredicate();
+        Comparator<Person> previousComparator = model.getPersonListComparator();
 
         CommandResult commandResult;
         try {
             commandResult = command.execute(model);
         } catch (CommandException | RuntimeException e) {
-            rollbackModel(previousAddressBook, previousPredicate);
+            rollbackModel(previousAddressBook, previousPredicate, previousComparator);
             throw e;
         }
 
@@ -106,10 +108,10 @@ public class LogicManager implements Logic {
         try {
             storage.saveAddressBook(model.getAddressBook());
         } catch (AccessDeniedException e) {
-            rollbackModel(previousAddressBook, previousPredicate);
+            rollbackModel(previousAddressBook, previousPredicate, previousComparator);
             throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
         } catch (IOException ioe) {
-            rollbackModel(previousAddressBook, previousPredicate);
+            rollbackModel(previousAddressBook, previousPredicate, previousComparator);
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
         }
 
@@ -120,12 +122,18 @@ public class LogicManager implements Logic {
      * Restores the in-memory address book and filter predicate to the state prior to command execution.
      */
     private void rollbackModel(ReadOnlyAddressBook previousAddressBook,
-                               Predicate<? super Person> previousPredicate) {
+                               Predicate<? super Person> previousPredicate,
+                               Comparator<Person> previousComparator) {
         model.setAddressBook(previousAddressBook);
         if (previousPredicate != null) {
             model.updateFilteredPersonList(previousPredicate::test);
         } else {
             model.updateFilteredPersonList(Model.PREDICATE_SHOW_ALL_PERSONS);
+        }
+        if (previousComparator == null) {
+            model.resetPersonListOrder();
+        } else {
+            model.updateSortedPersonList(previousComparator);
         }
     }
 
