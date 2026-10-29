@@ -42,6 +42,16 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void rejectMultipleIndices_rejectsMultipleNumbersAndAcceptsSingleTarget() throws Exception {
+        for (String target : new String[]{"1 2", "  1   2  ", "1 -2", "+1 2 3"}) {
+            assertThrows(ParseException.class, ParserUtil.MESSAGE_MULTIPLE_INDICES, () ->
+                    ParserUtil.rejectMultipleIndices(target));
+        }
+        ParserUtil.rejectMultipleIndices("1");
+        ParserUtil.rejectMultipleIndices("Alicia Tan");
+    }
+
+    @Test
     public void rejectNamePrefix_rejectsPrefixAndAcceptsPlainTarget() throws Exception {
         assertThrows(ParseException.class,
                 String.format(ParserUtil.MESSAGE_NAME_PREFIX_NOT_ALLOWED, "delete", "delete NAME"), ()

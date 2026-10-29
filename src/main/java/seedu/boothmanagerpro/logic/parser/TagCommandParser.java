@@ -23,9 +23,11 @@ public class TagCommandParser implements Parser<TagCommand> {
         validateStructure(fields);
         Set<Tag> tags = parseTags(fields);
         String target = fields.getPreamble();
-        return ParserUtil.isIndexLike(target)
-                ? new TagCommand(ParserUtil.parseIndex(target), tags)
-                : new TagCommand(ParserUtil.parseName(target), tags);
+        if (ParserUtil.isIndexLike(target)) {
+            return new TagCommand(ParserUtil.parseIndex(target), tags);
+        }
+        ParserUtil.rejectMultipleIndices(target);
+        return new TagCommand(ParserUtil.parseName(target), tags);
     }
 
     /** Rejects unsupported prefix-like tokens before tokenising t/TAG fields and the target. */

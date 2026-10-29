@@ -25,6 +25,7 @@ public class ParserUtil {
             "Index must be an unsigned positive integer (e.g. 1, not +1).";
     public static final String MESSAGE_INDEX_TOO_LARGE =
             "Index is too large. Use a number shown in the current list, find or view results.";
+    public static final String MESSAGE_MULTIPLE_INDICES = "Specify only one displayed index at a time.";
     public static final String MESSAGE_NAME_PREFIX_NOT_ALLOWED = "Don't include n/ for %1$s. Use: %2$s";
     public static final String MESSAGE_PHONE_CHARACTERS =
             "Phone number can only contain digits, spaces, hyphens, and a + at the start.";
@@ -32,6 +33,7 @@ public class ParserUtil {
             "Phone number must contain 7 to 15 digits, optionally starting with +.";
 
     private static final String INDEX_LIKE_REGEX = "[+-]?[0-9]+";
+    private static final String MULTIPLE_INDICES_REGEX = "[+-]?[0-9]+(?:\\s+[+-]?[0-9]+)+";
     private static final String PHONE_CHARACTERS_REGEX = "\\+?[0-9 -]*";
 
     /**
@@ -62,6 +64,18 @@ public class ParserUtil {
     private static boolean isTooLargeIndex(String index) {
         String unsigned = index.startsWith("+") ? index.substring(1) : index;
         return unsigned.matches("0*[1-9][0-9]*");
+    }
+
+    /**
+     * Rejects a target written as two or more whitespace-separated whole numbers (e.g. {@code 1 2}),
+     * so commands that accept {@code NAME_OR_INDEX} do not misreport multiple indices as an invalid name.
+     *
+     * @throws ParseException If {@code target} consists of multiple whole-number tokens.
+     */
+    public static void rejectMultipleIndices(String target) throws ParseException {
+        if (target.strip().matches(MULTIPLE_INDICES_REGEX)) {
+            throw new ParseException(MESSAGE_MULTIPLE_INDICES);
+        }
     }
 
     /**

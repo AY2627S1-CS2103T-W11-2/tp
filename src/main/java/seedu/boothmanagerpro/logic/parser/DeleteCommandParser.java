@@ -2,14 +2,18 @@ package seedu.boothmanagerpro.logic.parser;
 
 import static seedu.boothmanagerpro.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
+import java.util.List;
+import java.util.regex.MatchResult;
+
 import seedu.boothmanagerpro.logic.commands.DeleteCommand;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
-import seedu.boothmanagerpro.model.person.Name;
 
 /**
  * Parses input arguments and creates a new DeleteCommand object
  */
 public class DeleteCommandParser implements Parser<DeleteCommand> {
+    public static final String MESSAGE_UNKNOWN_FIELD =
+            "Unexpected field prefix: %s. Use: delete NAME or delete INDEX";
     private static final String TARGET_USAGE = "delete NAME or delete INDEX";
 
     /**
@@ -20,19 +24,18 @@ public class DeleteCommandParser implements Parser<DeleteCommand> {
     public DeleteCommand parse(String args) throws ParseException {
         ParserUtil.rejectNamePrefix(args, DeleteCommand.COMMAND_WORD, TARGET_USAGE);
         String trimmedArgs = args.strip();
+        if (trimmedArgs.isEmpty()) {
+            throw new ParseException(
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
+        }
+        List<MatchResult> prefixes = ArgumentTokenizer.findSingleLetterPrefixes(trimmedArgs);
+        if (!prefixes.isEmpty()) {
+            throw new ParseException(String.format(MESSAGE_UNKNOWN_FIELD, prefixes.getFirst().group(1)));
+        }
         if (ParserUtil.isIndexLike(trimmedArgs)) {
             return new DeleteCommand(ParserUtil.parseIndex(trimmedArgs));
         }
-        return new DeleteCommand(parseName(trimmedArgs));
-    }
-
-    /** Parses a full contact name, showing the delete usage if it is missing or invalid. */
-    private Name parseName(String name) throws ParseException {
-        try {
-            return ParserUtil.parseName(name);
-        } catch (ParseException pe) {
-            throw new ParseException(
-                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE), pe);
-        }
+        ParserUtil.rejectMultipleIndices(trimmedArgs);
+        return new DeleteCommand(ParserUtil.parseName(trimmedArgs));
     }
 }

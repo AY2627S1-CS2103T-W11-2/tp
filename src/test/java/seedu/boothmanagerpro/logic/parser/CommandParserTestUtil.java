@@ -53,6 +53,9 @@ public class CommandParserTestUtil {
         for (String index : List.of("2147483648", "99999999999999", "+2147483648", "+99999999999999")) {
             assertParseFailure(parser, index + suffix, ParserUtil.MESSAGE_INDEX_TOO_LARGE);
         }
+        for (String index : List.of("1 2", "1 2 3")) {
+            assertParseFailure(parser, index + suffix, ParserUtil.MESSAGE_MULTIPLE_INDICES);
+        }
     }
 
     /**

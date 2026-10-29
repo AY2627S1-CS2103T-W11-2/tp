@@ -48,9 +48,13 @@ public class UpdateCommandParser implements Parser<UpdateCommand> {
         validateStructure(fields);
         ContactUpdate changes = parseChanges(fields);
         String target = fields.getPreamble();
-        UpdateCommand command = ParserUtil.isIndexLike(target)
-                ? new UpdateCommand(ParserUtil.parseIndex(target), changes)
-                : new UpdateCommand(ParserUtil.parseName(target), changes);
+        UpdateCommand command;
+        if (ParserUtil.isIndexLike(target)) {
+            command = new UpdateCommand(ParserUtil.parseIndex(target), changes);
+        } else {
+            ParserUtil.rejectMultipleIndices(target);
+            command = new UpdateCommand(ParserUtil.parseName(target), changes);
+        }
         logger.fine("Successfully parsed UpdateCommand targeting: " + target);
         return command;
     }

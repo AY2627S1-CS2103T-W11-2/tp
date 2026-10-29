@@ -396,8 +396,8 @@ Format: `delete NAME` or `delete INDEX`
   then delete the intended contact by its displayed index.
 * Alternatively, deletes the contact at the specified `INDEX`.
 * The index refers to the index number shown in the current numbered command results.
-* The index **must be an unsigned positive integer** 1, 2, 3, …​ `delete 0` or `delete -1` shows `Index must be a positive integer.`, `delete +1` shows `Index must be an unsigned positive integer (e.g. 1, not +1).`, and an index too large to be a list position, such as `delete 99999999999999`, shows `Index is too large. Use a number shown in the current list, find or view results.`
-* Don't include `n/`: `delete n/Alex Yeoh` shows `Don't include n/ for delete. Use: delete NAME or delete INDEX`.
+* The index **must be an unsigned positive integer** 1, 2, 3, …​ `delete 0` or `delete -1` shows `Index must be a positive integer.`, `delete +1` shows `Index must be an unsigned positive integer (e.g. 1, not +1).`, an index too large to be a list position, such as `delete 99999999999999`, shows `Index is too large. Use a number shown in the current list, find or view results.`, and multiple indices such as `delete 1 2` show `Specify only one displayed index at a time.`
+* Don't include field prefixes: `delete n/Alex Yeoh` shows `Don't include n/ for delete. Use: delete NAME or delete INDEX`, and other prefixes such as `delete 1 t/vip` show `Unexpected field prefix: t/. Use: delete NAME or delete INDEX`. Invalid names show the standard name constraint message.
 
 Examples:
 
