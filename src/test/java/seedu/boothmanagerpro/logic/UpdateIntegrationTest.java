@@ -170,6 +170,13 @@ public class UpdateIntegrationTest {
         assertEquals(2, saved().size());
     }
 
+    @Test
+    public void update_companyWithFinalPeriod_doesNotDuplicatePunctuation() throws Exception {
+        assertEquals("Updated Alicia Tan at Acme Inc.",
+                logic.execute("update 1 c/Acme Inc.").getFeedbackToUser());
+        assertEquals("Acme Inc.", saved().getFirst().getCompany().orElseThrow().value);
+    }
+
     private List<Person> saved() throws Exception {
         return storage.readAddressBook().orElseThrow().getPersonList();
     }
