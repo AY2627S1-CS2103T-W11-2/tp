@@ -22,6 +22,7 @@ import seedu.boothmanagerpro.logic.LogicManager;
 import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.model.AddressBook;
 import seedu.boothmanagerpro.model.ModelManager;
+import seedu.boothmanagerpro.testutil.IntegrationTestFixture;
 
 /** Exercises malformed saved data and recovery through the real storage and command layers. */
 public class StorageRecoveryTest {
@@ -171,8 +172,8 @@ public class StorageRecoveryTest {
     }
 
     private StorageManager storage(Path path) {
-        return new StorageManager(new JsonAddressBookStorage(path), new JsonUserPrefsStorage(
-                folder.resolve("preferences.json")));
+        return IntegrationTestFixture.createStorage(new JsonAddressBookStorage(path),
+                folder.resolve("preferences.json"));
     }
 
     private List<Path> backups() throws IOException {

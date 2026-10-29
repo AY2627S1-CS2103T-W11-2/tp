@@ -62,6 +62,11 @@ public class AddCommand extends Command {
         toAdd = person;
     }
 
+    @Override
+    public boolean modifiesAddressBook() {
+        return true;
+    }
+
     /**
      * Checks all stored contacts, including those hidden by a filter, before adding the contact.
      * A duplicate error identifies the existing record and leaves the model unchanged.
@@ -93,7 +98,15 @@ public class AddCommand extends Command {
 
         model.addPerson(toAdd);
         logger.info("Successfully added exhibitor contact: " + formatIdentity(toAdd));
-        return new CommandResult(String.format(MESSAGE_SUCCESS, formatIdentity(toAdd)));
+        return new CommandResult(formatSuccessMessage(toAdd));
+    }
+
+    /** Formats the addition success message, avoiding double full stops if the company ends with a period. */
+    public static String formatSuccessMessage(Person person) {
+        String identity = formatIdentity(person);
+        return identity.endsWith(".")
+                ? "Added " + identity
+                : String.format(MESSAGE_SUCCESS, identity);
     }
 
     /** Finds every existing match in one pass over the full collection, independently of the UI filter. */

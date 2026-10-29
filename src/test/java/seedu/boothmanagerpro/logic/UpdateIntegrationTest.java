@@ -17,8 +17,7 @@ import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.storage.JsonAddressBookStorage;
-import seedu.boothmanagerpro.storage.JsonUserPrefsStorage;
-import seedu.boothmanagerpro.storage.StorageManager;
+import seedu.boothmanagerpro.testutil.IntegrationTestFixture;
 import seedu.boothmanagerpro.testutil.PersonBuilder;
 
 /** Exercises real command routing, partial updates, duplicate checks and persistence together. */
@@ -33,8 +32,7 @@ public class UpdateIntegrationTest {
     public void setUp() throws Exception {
         model = new ModelManager();
         storage = new JsonAddressBookStorage(folder.resolve("contacts.json"));
-        logic = new LogicManager(model, new StorageManager(storage,
-                new JsonUserPrefsStorage(folder.resolve("prefs.json"))));
+        logic = IntegrationTestFixture.createLogic(model, storage, folder.resolve("prefs.json"));
         logic.execute("add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567 "
                 + "m/email s/In progress f/20261025 t/old");
         logic.execute("add n/Ben Lim c/GreenWorks e/ben@example.com p/98765432");

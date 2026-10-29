@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static seedu.boothmanagerpro.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import seedu.boothmanagerpro.commons.core.LogsCenter;
@@ -48,6 +49,11 @@ public class UpdateCommand extends Command {
     }
 
     @Override
+    public boolean modifiesAddressBook() {
+        return true;
+    }
+
+    @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
         logger.fine("Executing UpdateCommand targeting: " + (index != null ? index.getOneBased() : name));
@@ -56,23 +62,27 @@ public class UpdateCommand extends Command {
         rejectDuplicates(model, original, updated);
         model.setPerson(original, updated);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        logger.info("Successfully updated contact: " + AddCommand.formatIdentity(updated));
-        return new CommandResult("Updated " + AddCommand.formatIdentity(updated) + ".");
+        String identity = AddCommand.formatIdentity(updated);
+        logger.info("Successfully updated contact: " + identity);
+        return new CommandResult("Updated " + identity + (identity.endsWith(".") ? "" : "."));
     }
 
     /** Resolves ambiguity without selecting an arbitrary matching contact. */
     private Person resolveTarget(Model model) throws CommandException {
         if (index != null) {
+            assert index.getZeroBased() >= 0 : "Target index must be non-negative";
             List<Person> displayed = model.getFilteredPersonList();
             if (index.getZeroBased() >= displayed.size()) {
                 logger.warning("UpdateCommand failed: invalid displayed index " + index.getOneBased());
                 throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
             }
+            assert index.getZeroBased() < displayed.size() : "Resolved index must be within list bounds";
             Person target = displayed.get(index.getZeroBased());
             logger.fine("Resolved target contact by index " + index.getOneBased() + ": "
                     + AddCommand.formatIdentity(target));
             return target;
         }
+        assert name != null : "Target name cannot be null when index is null";
         List<Person> matches = model.getAddressBook().getPersonList().stream()
                 .filter(person -> person.getName().fullName.equalsIgnoreCase(name.fullName)).toList();
         if (matches.isEmpty()) {
@@ -97,5 +107,18 @@ public class UpdateCommand extends Command {
                 throw new CommandException(String.format(MESSAGE_DUPLICATE, AddCommand.formatIdentity(other)));
             }
         }
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+        if (!(other instanceof UpdateCommand otherUpdateCommand)) {
+            return false;
+        }
+        return Objects.equals(index, otherUpdateCommand.index)
+                && Objects.equals(name, otherUpdateCommand.name)
+                && changes.equals(otherUpdateCommand.changes);
     }
 }

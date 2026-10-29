@@ -60,6 +60,11 @@ public class StorageManager implements Storage {
     }
 
     @Override
+    public boolean isAddressBookRecoveryPending() {
+        return addressBookStorage.isRecoveryPending();
+    }
+
+    @Override
     public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
         logger.fine("Attempting to write to data file: " + addressBookStorage.getAddressBookFilePath());
         addressBookStorage.saveAddressBook(addressBook);

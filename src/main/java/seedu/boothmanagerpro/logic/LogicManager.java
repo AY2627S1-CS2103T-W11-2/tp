@@ -55,7 +55,7 @@ public class LogicManager implements Logic {
     }
 
     /**
-     * Executes a command or resolves a pending numbered view choice without saving read-only view requests.
+     * Executes a command or resolves a pending numbered view choice, saving only address-book mutations.
      * A successfully parsed command cancels the previous pending choice, even if execution fails.
      * If saving fails or execution fails, any changes made to the in-memory model are rolled back
      * to prevent unpersisted state from leaking or being persisted later.
@@ -85,6 +85,9 @@ public class LogicManager implements Logic {
         if (command instanceof ViewCommand) {
             return recordViewChoices(commandResult);
         }
+        if (!command.modifiesAddressBook() && !storage.isAddressBookRecoveryPending()) {
+            return commandResult;
+        }
         saveOrRollback(previousAddressBook, previousPredicate);
         return commandResult;
     }
@@ -108,6 +111,9 @@ public class LogicManager implements Logic {
     private CommandResult recordViewChoices(CommandResult commandResult) {
         pendingViewChoices = commandResult.getViewChoices();
         pendingViewPrompt = commandResult.getFeedbackToUser();
+        if (!pendingViewChoices.isEmpty()) {
+            assert !pendingViewPrompt.isBlank() : "Selection prompt must not be empty when view choices exist";
+        }
         logger.fine("View request completed; pending choices: " + pendingViewChoices.size());
         return commandResult;
     }
@@ -173,6 +179,7 @@ public class LogicManager implements Logic {
 
     /** Returns the valid-range error followed by the pending prompt, so the user can see the choices to retry. */
     private CommandException createInvalidSelectionException() {
+        assert !pendingViewPrompt.isBlank() : "Pending view prompt should not be blank";
         return new CommandException(String.format(MESSAGE_VIEW_SELECTION, pendingViewChoices.size())
                 + "\n" + pendingViewPrompt);
     }

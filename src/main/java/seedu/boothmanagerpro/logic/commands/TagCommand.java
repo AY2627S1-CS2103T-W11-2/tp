@@ -46,6 +46,11 @@ public class TagCommand extends Command {
     }
 
     @Override
+    public boolean modifiesAddressBook() {
+        return true;
+    }
+
+    @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
         Person original = resolveTarget(model);
@@ -74,12 +79,15 @@ public class TagCommand extends Command {
     /** Resolves ambiguity without selecting an arbitrary matching contact. */
     private Person resolveTarget(Model model) throws CommandException {
         if (index != null) {
+            assert index.getZeroBased() >= 0 : "Target index must be non-negative";
             List<Person> displayed = model.getFilteredPersonList();
             if (index.getZeroBased() >= displayed.size()) {
                 throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
             }
+            assert index.getZeroBased() < displayed.size() : "Resolved index must be within list bounds";
             return displayed.get(index.getZeroBased());
         }
+        assert name != null : "Target name cannot be null when index is null";
         List<Person> matches = model.getAddressBook().getPersonList().stream()
                 .filter(person -> person.getName().fullName.equalsIgnoreCase(name.fullName)).toList();
         if (matches.isEmpty()) {

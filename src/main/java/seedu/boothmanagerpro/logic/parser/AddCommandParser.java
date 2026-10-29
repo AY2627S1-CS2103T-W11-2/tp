@@ -97,7 +97,7 @@ public class AddCommandParser implements Parser<AddCommand> {
         Name name = parseValue(PREFIX_NAME, fields.getValue(PREFIX_NAME).orElseThrow(), Name::new);
         Company company = parseValue(PREFIX_COMPANY, fields.getValue(PREFIX_COMPANY).orElseThrow(), Company::new);
         Email email = parseValue(PREFIX_EMAIL, fields.getValue(PREFIX_EMAIL).orElseThrow(), Email::new);
-        Phone phone = parseValue(PREFIX_PHONE, fields.getValue(PREFIX_PHONE).orElseThrow(), Phone::new);
+        Phone phone = ContactFieldParser.parsePhone(fields.getValue(PREFIX_PHONE).orElseThrow());
         Optional<ContactMethod> method = Optional.empty();
         if (fields.getValue(PREFIX_METHOD).isPresent()) {
             method = Optional.of(parseValue(PREFIX_METHOD, fields.getValue(PREFIX_METHOD).orElseThrow(),

@@ -44,6 +44,17 @@ public class AddCommandTest {
     }
 
     @Test
+    public void execute_companyEndingWithPeriod_noDoubleFullStop() throws Exception {
+        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded();
+        Person personWithPeriod = new PersonBuilder().withCompany("Acme Pte. Ltd.").build();
+
+        CommandResult commandResult = new AddCommand(personWithPeriod).execute(modelStub);
+
+        assertEquals("Added " + AddCommand.formatIdentity(personWithPeriod),
+                commandResult.getFeedbackToUser());
+    }
+
+    @Test
     public void execute_duplicatePerson_throwsCommandException() {
         Person validPerson = new PersonBuilder().build();
         AddCommand addCommand = new AddCommand(validPerson);

@@ -48,6 +48,13 @@ public interface Storage {
     Optional<ReadOnlyAddressBook> readAddressBook() throws DataLoadingException;
 
     /**
+     * Returns whether a failed address-book load still requires a protected recovery save.
+     */
+    default boolean isAddressBookRecoveryPending() {
+        return false;
+    }
+
+    /**
      * Saves the given {@link ReadOnlyAddressBook} to the storage.
      * @param addressBook cannot be null.
      * @throws IOException if there was any problem writing to the file.
