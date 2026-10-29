@@ -97,6 +97,12 @@ deactivate Person
 ContactUpdate --> UpdateCommand : updated
 deactivate ContactUpdate
 
+UpdateCommand -> UpdateCommand : isUnchanged(original, updated)
+activate UpdateCommand
+note right of UpdateCommand : Fails with a "no changes" error\nif every value is unchanged
+UpdateCommand --> UpdateCommand : false
+deactivate UpdateCommand
+
 UpdateCommand -> UpdateCommand : rejectDuplicates(m, original, updated)
 activate UpdateCommand
 

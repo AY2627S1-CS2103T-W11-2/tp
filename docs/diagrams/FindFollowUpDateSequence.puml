@@ -13,6 +13,8 @@ participant ":LogicManager" as LogicManager LOGIC_COLOR
 participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
 participant ":FindCommandParser" as FindCommandParser LOGIC_COLOR
 participant "f:FindCommand" as FindCommand LOGIC_COLOR
+participant "<<class>>\nCommandResult" as CommandResultClass LOGIC_COLOR
+participant "r:CommandResult" as CommandResult LOGIC_COLOR
 end box
 
 box Model MODEL_COLOR_T1
@@ -51,6 +53,17 @@ FindCommand -> Model : getFilteredPersonList()
 activate Model
 Model --> FindCommand : matches
 deactivate Model
+
+FindCommand -> CommandResultClass : showingContacts(feedback, matches)
+activate CommandResultClass
+create CommandResult
+CommandResultClass -> CommandResult : CommandResult(...)
+activate CommandResult
+CommandResult --> CommandResultClass : r
+deactivate CommandResult
+CommandResultClass --> FindCommand : r
+deactivate CommandResultClass
+
 FindCommand --> LogicManager : r
 deactivate FindCommand
 

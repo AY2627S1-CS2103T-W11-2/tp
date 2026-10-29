@@ -68,7 +68,7 @@ activate Model
 Model --> ListCommand : contacts
 deactivate Model
 
-ListCommand -> CommandResultClass : showingContacts(feedback, contacts)
+ListCommand -> CommandResultClass : showingContactList(feedback, contacts)
 activate CommandResultClass
 create CommandResult
 CommandResultClass -> CommandResult : CommandResult(...)

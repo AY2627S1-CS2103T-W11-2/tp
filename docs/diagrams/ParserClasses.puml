@@ -13,6 +13,7 @@ Class AddressBookParser
 Class XYZCommandParser
 Class CliSyntax
 Class ParserUtil
+Class ContactFieldParser
 Class ArgumentMultimap
 Class ArgumentTokenizer
 Class Prefix
@@ -32,6 +33,9 @@ ArgumentTokenizer .left.> ArgumentMultimap
 XYZCommandParser ..> CliSyntax
 CliSyntax ..> Prefix
 XYZCommandParser ..> ParserUtil
+XYZCommandParser ..> ContactFieldParser
+ContactFieldParser ..> ParserUtil
+ContactFieldParser ..> Prefix
 ParserUtil .down.> Prefix
 ArgumentTokenizer .down.> Prefix
 XYZCommand -up-|> Command
