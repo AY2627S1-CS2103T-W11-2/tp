@@ -85,12 +85,21 @@ public class LogicManager implements Logic {
 
         CommandResult commandResult = executeOrRollback(
                 command, previousAddressBook, previousPredicate, previousComparator);
+
         if (command instanceof ViewCommand) {
-            return recordViewChoices(commandResult);
+            pendingViewChoices = commandResult.getViewChoices();
+            pendingViewPrompt = commandResult.getFeedbackToUser();
+            if (!pendingViewChoices.isEmpty()) {
+                assert !pendingViewPrompt.isBlank() : "Selection prompt must not be empty when view choices exist";
+            }
+            logger.fine("View request completed; pending choices: " + pendingViewChoices.size());
+            return commandResult;
         }
+
         if (!command.modifiesAddressBook() && !storage.isAddressBookRecoveryPending()) {
             return commandResult;
         }
+
         saveOrRollback(previousAddressBook, previousPredicate, previousComparator);
         return commandResult;
     }
@@ -107,19 +116,6 @@ public class LogicManager implements Logic {
             rollbackModel(previousAddressBook, previousPredicate, previousComparator);
             throw e;
         }
-    }
-
-    /**
-     * Stores any pending numbered view choices from {@code commandResult} without writing to disk.
-     */
-    private CommandResult recordViewChoices(CommandResult commandResult) {
-        pendingViewChoices = commandResult.getViewChoices();
-        pendingViewPrompt = commandResult.getFeedbackToUser();
-        if (!pendingViewChoices.isEmpty()) {
-            assert !pendingViewPrompt.isBlank() : "Selection prompt must not be empty when view choices exist";
-        }
-        logger.fine("View request completed; pending choices: " + pendingViewChoices.size());
-        return commandResult;
     }
 
     /**
