@@ -112,7 +112,7 @@ public class JsonAddressBookStorage {
             try (FileChannel lockChannel = openLockChannel(normalisedPath);
                     FileLock ignored = lockChannel.lock()) {
                 FileState currentFileState = FileState.capture(normalisedPath);
-                if (lastKnownFileState != null && !lastKnownFileState.equals(currentFileState)) {
+                if (lastKnownFileState != null && !lastKnownFileState.hasSameContents(currentFileState)) {
                     throw new ConcurrentDataModificationException();
                 }
 
@@ -182,15 +182,8 @@ public class JsonAddressBookStorage {
                     : new FileState(false, new byte[0]);
         }
 
-        @Override
-        public boolean equals(Object other) {
-            return other == this || other instanceof FileState state
-                    && exists == state.exists && Arrays.equals(contents, state.contents);
-        }
-
-        @Override
-        public int hashCode() {
-            return 31 * Boolean.hashCode(exists) + Arrays.hashCode(contents);
+        private boolean hasSameContents(FileState other) {
+            return exists == other.exists && Arrays.equals(contents, other.contents);
         }
     }
 

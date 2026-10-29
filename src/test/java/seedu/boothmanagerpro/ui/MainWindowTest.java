@@ -39,6 +39,7 @@ import javafx.stage.Window;
 import seedu.boothmanagerpro.MainApp;
 import seedu.boothmanagerpro.logic.LogicManager;
 import seedu.boothmanagerpro.logic.commands.CommandResult;
+import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.UserPrefs;
 import seedu.boothmanagerpro.model.util.SampleDataUtil;
@@ -322,6 +323,32 @@ public class MainWindowTest {
             enterCommand(root, "exit");
             assertFalse(window.getRoot().isShowing());
             assertTrue(Window.getWindows().isEmpty());
+        });
+    }
+
+    @Test
+    public void handleHelp_logicFailure_displaysAndHandlesError() throws Exception {
+        runOnFxThread(() -> {
+            StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath()),
+                    new JsonUserPrefsStorage(testFolder.resolve("preferences.json")));
+            LogicManager failingLogic = new LogicManager(new ModelManager(), storage) {
+                @Override
+                public CommandResult execute(String commandText) throws CommandException {
+                    throw new CommandException("Help is temporarily unavailable.");
+                }
+            };
+            Stage stage = new Stage();
+            stage.setOpacity(0);
+            MainWindow window = new MainWindow(stage, failingLogic, dataPath());
+            try {
+                assertEquals(stage, window.getPrimaryStage());
+                window.fillInnerParts();
+                window.handleHelp();
+                assertEquals("Help is temporarily unavailable.", output(stage.getScene().getRoot()));
+            } finally {
+                stage.hide();
+            }
+            return null;
         });
     }
 
@@ -670,6 +697,7 @@ public class MainWindowTest {
             Stage stage = new Stage();
             stage.setOpacity(0);
             MainWindow window = new MainWindow(stage, new LogicManager(model, storage), dataPath());
+            assertEquals(stage, window.getPrimaryStage());
             if (startupWarning.isEmpty()) {
                 window.fillInnerParts();
             } else {

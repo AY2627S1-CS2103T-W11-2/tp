@@ -9,6 +9,7 @@ import static seedu.boothmanagerpro.testutil.TypicalPersons.IDA;
 import static seedu.boothmanagerpro.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -87,6 +88,39 @@ public class JsonAddressBookStorageTest {
     }
 
     @Test
+    public void saveAddressBook_differentPath_success() throws Exception {
+        Path configuredPath = testFolder.resolve("configured.json");
+        Path alternatePath = testFolder.resolve("alternate.json");
+        AddressBook original = getTypicalAddressBook();
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(configuredPath);
+
+        storage.saveAddressBook(original, alternatePath);
+
+        ReadOnlyAddressBook readBack = new JsonAddressBookStorage(alternatePath)
+                .readAddressBook().orElseThrow();
+        assertEquals(original, new AddressBook(readBack));
+        assertFalse(Files.exists(configuredPath));
+    }
+
+    @Test
+    public void readAddressBook_lockDirectoryCannotBeCreated_throwsDataLoadingException() throws Exception {
+        Path unusableTemporaryDirectory = testFolder.resolve("not-a-directory");
+        Files.writeString(unusableTemporaryDirectory, "file blocks child directory creation");
+        String originalTemporaryDirectory = System.getProperty("java.io.tmpdir");
+        System.setProperty("java.io.tmpdir", unusableTemporaryDirectory.toString());
+        try {
+            JsonAddressBookStorage storage = new JsonAddressBookStorage(testFolder.resolve("addressbook.json"));
+            assertThrows(DataLoadingException.class, storage::readAddressBook);
+        } finally {
+            if (originalTemporaryDirectory == null) {
+                System.clearProperty("java.io.tmpdir");
+            } else {
+                System.setProperty("java.io.tmpdir", originalTemporaryDirectory);
+            }
+        }
+    }
+
+    @Test
     public void saveAddressBook_nullAddressBook_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> saveAddressBook(null, "SomeFile.json"));
     }
@@ -128,5 +162,18 @@ public class JsonAddressBookStorageTest {
 
         ReadOnlyAddressBook dataOnDisk = new JsonAddressBookStorage(filePath).readAddressBook().orElseThrow();
         assertEquals(firstSessionData, new AddressBook(dataOnDisk));
+    }
+
+    @Test
+    public void saveAddressBook_fileDeletedSinceRead_throwsConcurrentDataModificationException() throws Exception {
+        Path filePath = testFolder.resolve("DeletedAddressBook.json");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+        storage.saveAddressBook(new AddressBook());
+        storage.readAddressBook();
+        Files.delete(filePath);
+
+        assertThrows(ConcurrentDataModificationException.class, () ->
+                storage.saveAddressBook(new AddressBook()));
+        assertFalse(Files.exists(filePath));
     }
 }
