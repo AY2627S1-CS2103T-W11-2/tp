@@ -103,7 +103,8 @@ public class LogicManager implements Logic {
             return commandResult;
         }
 
-        if (!command.modifiesAddressBook() && !storage.isAddressBookRecoveryPending()) {
+        // Read-only commands never save, so a data file that failed to load stays untouched until data changes.
+        if (!command.modifiesAddressBook()) {
             return commandResult;
         }
 

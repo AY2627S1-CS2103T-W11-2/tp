@@ -35,7 +35,7 @@ public class JsonAdaptedPersonTest {
 
     private static final String INVALID_NAME = "R!chel";
     private static final String INVALID_PHONE = "+651234";
-    private static final String INVALID_ADDRESS = " ";
+    private static final String INVALID_ADDRESS = "a".repeat(201);
     private static final String INVALID_EMAIL = "example.com";
     private static final String INVALID_TAG = "friend/invalid";
 
@@ -197,6 +197,24 @@ public class JsonAdaptedPersonTest {
                 new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, INVALID_ADDRESS, VALID_TAGS);
         String expectedMessage = Address.MESSAGE_CONSTRAINTS;
         assertThrows(IllegalValueException.class, expectedMessage, person::toModelType);
+    }
+
+    @Test
+    public void toModelType_addressWithSurroundingOrInnerWhitespace_isNormalised() throws Exception {
+        for (String address : new String[]{"  123 Main St", "\n123 Main St\n", "123\n Main\tSt  "}) {
+            JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, address,
+                    VALID_TAGS);
+            assertEquals(new Address("123 Main St"), person.toModelType().getAddress());
+        }
+    }
+
+    @Test
+    public void toModelType_blankAddress_defaultsToNotProvided() throws Exception {
+        for (String address : new String[]{"", " ", "\n\t"}) {
+            JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, address,
+                    VALID_TAGS);
+            assertEquals(new Address("Not provided"), person.toModelType().getAddress());
+        }
     }
 
     @Test

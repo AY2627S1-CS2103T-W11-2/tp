@@ -136,14 +136,19 @@ class JsonAdaptedPerson {
         return new Email(email);
     }
 
+    /**
+     * Converts the hidden legacy address, which users cannot see or edit in the app. Like other fields, surrounding
+     * whitespace is removed; line breaks and repeated spaces become single spaces, and a blank value uses the default.
+     */
     private Address getModelAddress() throws IllegalValueException {
-        if (address == null) {
+        String normalised = address == null ? "" : address.strip().replaceAll("\\s+", " ");
+        if (normalised.isEmpty()) {
             return new Address(DEFAULT_ADDRESS);
         }
-        if (!Address.isValidAddress(address)) {
+        if (!Address.isValidAddress(normalised)) {
             throw new IllegalValueException(Address.MESSAGE_CONSTRAINTS);
         }
-        return new Address(address);
+        return new Address(normalised);
     }
 
     private Set<Tag> getModelTags() throws IllegalValueException {

@@ -44,10 +44,13 @@ public class AtomicFileWriterTest {
     }
 
     @Test
-    public void write_missingParent_doesNotCreateDestination() {
-        Path target = folder.resolve("missing/contacts.json");
-        assertThrows(IOException.class, () -> AtomicFileWriter.write(target, "replacement"));
-        assertEquals(false, Files.exists(target));
+    public void write_missingParents_createsFoldersAndFile() throws Exception {
+        Path target = folder.resolve("missing/nested/preferences.json");
+        AtomicFileWriter.write(target, "replacement");
+        assertEquals("replacement", Files.readString(target));
+        try (var files = Files.list(target.getParent())) {
+            assertEquals(List.of(target), files.toList(), "No temporary file is left behind");
+        }
     }
 
     @Test

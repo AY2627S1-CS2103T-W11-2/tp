@@ -38,6 +38,23 @@ public class StartupRecoveryTest {
     }
 
     @Test
+    public void initPrefs_nullGuiSettings_usesDefaultsAndWritesValidPreferences() throws Exception {
+        Path path = folder.resolve("preferences.json");
+        Files.writeString(path, "{\"guiSettings\": null}");
+        JsonUserPrefsStorage storage = new JsonUserPrefsStorage(path);
+        assertEquals(new UserPrefs(), new MainApp().initPrefs(storage));
+        assertEquals(new UserPrefs(), storage.readUserPrefs().orElseThrow());
+    }
+
+    @Test
+    public void initPrefs_nestedMissingFolder_createsPreferencesFile() throws Exception {
+        Path path = folder.resolve("config/nested/preferences.json");
+        JsonUserPrefsStorage storage = new JsonUserPrefsStorage(path);
+        assertEquals(new UserPrefs(), new MainApp().initPrefs(storage));
+        assertEquals(new UserPrefs(), storage.readUserPrefs().orElseThrow());
+    }
+
+    @Test
     public void initPrefs_nullPreferences_usesDefaultsAndWritesValidPreferences() throws Exception {
         Path path = folder.resolve("preferences.json");
         Files.writeString(path, "null");

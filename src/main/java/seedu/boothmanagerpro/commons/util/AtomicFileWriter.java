@@ -24,6 +24,7 @@ final class AtomicFileWriter {
                 throw new AccessDeniedException(target.toString());
             }
         }
+        FileUtil.createParentDirsOfFile(target);
         Path temporary = Files.createTempFile(target.getParent(), ".boothmanagerpro-save-", ".tmp");
         try {
             Files.writeString(temporary, content, StandardCharsets.UTF_8);

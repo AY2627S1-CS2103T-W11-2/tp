@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static seedu.boothmanagerpro.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.io.IOException;
@@ -23,6 +24,7 @@ import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.model.AddressBook;
 import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.testutil.IntegrationTestFixture;
+import seedu.boothmanagerpro.testutil.PersonBuilder;
 
 /** Exercises malformed saved data and recovery through the real storage and command layers. */
 public class StorageRecoveryTest {
@@ -88,22 +90,27 @@ public class StorageRecoveryTest {
 
     @Test
     public void save_backupFails_blocksWriteAndAllowsRetry() throws Exception {
-        Path path = folder.resolve("contacts.json");
+        Path directory = Files.createDirectory(folder.resolve("data"));
+        Path path = directory.resolve("contacts.json");
         Files.writeString(path, "broken file");
         JsonAddressBookStorage storage = new JsonAddressBookStorage(path);
         assertThrows(DataLoadingException.class, storage::readAddressBook);
-        Files.delete(path);
-        IOException error = assertThrows(IOException.class, () -> storage.saveAddressBook(new AddressBook()));
-        assertTrue(error.getMessage().contains("No data was saved"));
-        assertFalse(Files.exists(path));
-        assertTrue(backups().isEmpty(), "Remove incomplete backup files");
-        Files.writeString(path, "broken file");
+        assumeTrue(directory.toFile().setWritable(false) && !Files.isWritable(directory),
+                "The backup can only be made to fail where folder permissions are enforced");
+        try {
+            IOException error = assertThrows(IOException.class, () -> storage.saveAddressBook(new AddressBook()));
+            assertTrue(error.getMessage().contains("No data was saved"));
+        } finally {
+            directory.toFile().setWritable(true);
+        }
+        assertEquals("broken file", Files.readString(path));
+        assertTrue(backupsIn(directory).isEmpty(), "Remove incomplete backup files");
         storage.saveAddressBook(new AddressBook());
-        assertEquals("broken file", Files.readString(backups().getFirst()));
+        assertEquals("broken file", Files.readString(backupsIn(directory).getFirst()));
     }
 
     @Test
-    public void save_backupDirectoryMissing_preservesProtectionUntilRetry() throws Exception {
+    public void save_dataFolderDeletedAfterFailedLoad_reportsChangeWithoutBackupUntilRestored() throws Exception {
         Path directory = Files.createDirectory(folder.resolve("data"));
         Path path = directory.resolve("contacts.json");
         Files.writeString(path, "broken file");
@@ -111,17 +118,52 @@ public class StorageRecoveryTest {
         assertThrows(DataLoadingException.class, storage::readAddressBook);
         Files.delete(path);
         Files.delete(directory);
-        IOException error = assertThrows(IOException.class, () -> storage.saveAddressBook(new AddressBook()));
-        assertTrue(error.getMessage().contains("No data was saved"));
-        assertFalse(Files.exists(directory), "A failed backup must not create replacement data");
+        assertThrows(ConcurrentDataModificationException.class, () -> storage.saveAddressBook(new AddressBook()));
+        assertFalse(Files.exists(directory), "A rejected save must not create replacement data");
         Files.createDirectory(directory);
         Files.writeString(path, "broken file");
         storage.saveAddressBook(new AddressBook());
-        try (var files = Files.list(directory)) {
-            Path backup = files.filter(file -> file.getFileName().toString().contains(".recovery-"))
-                    .findFirst().orElseThrow();
-            assertEquals("broken file", Files.readString(backup));
-        }
+        assertEquals("broken file", Files.readString(backupsIn(directory).getFirst()));
+    }
+
+    @Test
+    public void save_fileRepairedOutsideAppAfterFailedLoad_rejectsSaveWithoutBackup() throws Exception {
+        Path path = folder.resolve("contacts.json");
+        Files.writeString(path, "broken file");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(path);
+        assertThrows(DataLoadingException.class, storage::readAddressBook);
+        String repaired = JsonUtil.toJsonString(new JsonSerializableAddressBook(getTypicalAddressBook()));
+        Files.writeString(path, repaired);
+        assertThrows(ConcurrentDataModificationException.class, () -> storage.saveAddressBook(new AddressBook()));
+        assertEquals(repaired, Files.readString(path));
+        assertTrue(backups().isEmpty(), "A rejected save must not back up the repaired file");
+    }
+
+    @Test
+    public void execute_exitAfterFileRepairedOutsideApp_closesWithoutSavingOrBackup() throws Exception {
+        Path path = folder.resolve("contacts.json");
+        Files.writeString(path, "broken file");
+        StorageManager storage = storage(path);
+        assertThrows(DataLoadingException.class, storage::readAddressBook);
+        String repaired = JsonUtil.toJsonString(new JsonSerializableAddressBook(getTypicalAddressBook()));
+        Files.writeString(path, repaired);
+        assertTrue(new LogicManager(new ModelManager(), storage).execute("exit").isExit());
+        assertEquals(repaired, Files.readString(path));
+        assertTrue(backups().isEmpty());
+    }
+
+    @Test
+    public void save_firstSaveFails_leavesNoEmptyDataFile() throws Exception {
+        Path path = folder.resolve("data").resolve("contacts.json");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(path);
+        assertTrue(storage.readAddressBook().isEmpty());
+        AddressBook unwritable = new AddressBook();
+        // A lone surrogate cannot be encoded as UTF-8, so the write fails after the data folder is created.
+        unwritable.addPerson(new PersonBuilder().withTags(String.valueOf((char) 0xD800)).build());
+        assertThrows(IOException.class, () -> storage.saveAddressBook(unwritable));
+        assertFalse(Files.exists(path), "A failed first save must not leave an empty data file");
+        storage.saveAddressBook(getTypicalAddressBook());
+        assertEquals(getTypicalAddressBook(), storage.readAddressBook().orElseThrow());
     }
 
     @Test
@@ -148,27 +190,69 @@ public class StorageRecoveryTest {
     }
 
     @Test
-    public void execute_listAfterFailedLoad_preservesOriginalBeforeSaving() throws Exception {
+    public void execute_readOnlyCommandsAfterFailedLoad_leaveFileUntouched() throws Exception {
         Path path = folder.resolve("contacts.json");
         Files.writeString(path, "null");
         StorageManager storage = storage(path);
         assertThrows(DataLoadingException.class, storage::readAddressBook);
-        new LogicManager(new ModelManager(), storage).execute("list");
+        LogicManager logic = new LogicManager(new ModelManager(), storage);
+        for (String command : List.of("list", "list o/name", "find Alex", "help", "exit")) {
+            logic.execute(command);
+        }
+        assertEquals("null", Files.readString(path));
+        assertTrue(backups().isEmpty(), "Read-only commands must not save or back up the data file");
+        assertTrue(storage.isAddressBookRecoveryPending());
+    }
+
+    @Test
+    public void execute_mutatingCommandAfterFailedLoad_preservesOriginalBeforeSaving() throws Exception {
+        Path path = folder.resolve("contacts.json");
+        Files.writeString(path, "null");
+        StorageManager storage = storage(path);
+        assertThrows(DataLoadingException.class, storage::readAddressBook);
+        new LogicManager(new ModelManager(), storage).execute("clear confirm");
         assertEquals("null", Files.readString(backups().getFirst()));
         assertEquals(new AddressBook(), storage.readAddressBook().orElseThrow());
     }
 
     @Test
-    public void execute_backupFails_reportsSaveErrorWithoutCreatingDataFile() throws Exception {
-        Path path = folder.resolve("contacts.json");
+    public void execute_readOnlyCommandsAfterFailedLoadInReadOnlyFolder_succeed() throws Exception {
+        Path directory = Files.createDirectory(folder.resolve("data"));
+        Path path = directory.resolve("contacts.json");
         Files.writeString(path, "null");
         StorageManager storage = storage(path);
         assertThrows(DataLoadingException.class, storage::readAddressBook);
-        Files.delete(path);
-        LogicManager logic = new LogicManager(new ModelManager(), storage);
-        CommandException error = assertThrows(CommandException.class, () -> logic.execute("list"));
-        assertTrue(error.getMessage().contains("No data was saved"));
-        assertFalse(Files.exists(path));
+        assumeTrue(directory.toFile().setWritable(false) && !Files.isWritable(directory),
+                "Folder permissions must be enforced for this check");
+        try {
+            LogicManager logic = new LogicManager(new ModelManager(), storage);
+            for (String command : List.of("list", "help", "exit")) {
+                logic.execute(command);
+            }
+        } finally {
+            directory.toFile().setWritable(true);
+        }
+        assertEquals("null", Files.readString(path));
+    }
+
+    @Test
+    public void execute_backupFails_reportsSaveErrorWithoutCreatingDataFile() throws Exception {
+        Path directory = Files.createDirectory(folder.resolve("data"));
+        Path path = directory.resolve("contacts.json");
+        Files.writeString(path, "null");
+        StorageManager storage = storage(path);
+        assertThrows(DataLoadingException.class, storage::readAddressBook);
+        assumeTrue(directory.toFile().setWritable(false) && !Files.isWritable(directory),
+                "The backup can only be made to fail where folder permissions are enforced");
+        try {
+            LogicManager logic = new LogicManager(new ModelManager(), storage);
+            CommandException error = assertThrows(CommandException.class, () -> logic.execute("clear confirm"));
+            assertTrue(error.getMessage().contains("No data was saved"));
+        } finally {
+            directory.toFile().setWritable(true);
+        }
+        assertEquals("null", Files.readString(path));
+        assertTrue(backupsIn(directory).isEmpty());
     }
 
     private StorageManager storage(Path path) {
@@ -177,7 +261,11 @@ public class StorageRecoveryTest {
     }
 
     private List<Path> backups() throws IOException {
-        try (var paths = Files.list(folder)) {
+        return backupsIn(folder);
+    }
+
+    private List<Path> backupsIn(Path directory) throws IOException {
+        try (var paths = Files.list(directory)) {
             return paths.filter(path -> path.getFileName().toString().contains(".recovery-")).toList();
         }
     }
