@@ -26,7 +26,11 @@ import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 import seedu.boothmanagerpro.model.Model;
 import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.UserPrefs;
+import seedu.boothmanagerpro.model.person.Company;
 import seedu.boothmanagerpro.model.person.ContactMatchesFieldsPredicate;
+import seedu.boothmanagerpro.model.person.Email;
+import seedu.boothmanagerpro.model.person.Name;
+import seedu.boothmanagerpro.model.tag.Tag;
 
 /** Exercises field parsing, matching, and model interaction together. */
 public class FindFieldsTest {
@@ -49,7 +53,7 @@ public class FindFieldsTest {
 
     @Test
     public void parse_invalidFields_rejectsInput() {
-        for (String input : List.of("s/new", "x/foo", "n/Alice Pauline x/foo")) {
+        for (String input : List.of("s/new", "s/", "x/foo", "x/ ", "n/Alice Pauline x/foo")) {
             assertParseFailure(parser, input, FindCommandParser.MESSAGE_UNSUPPORTED_FIELD);
         }
         for (String input : List.of("c/", "n/", "e/ ", "p/ ", "t/", "n/Alice Pauline t/")) {
@@ -59,14 +63,19 @@ public class FindFieldsTest {
     }
 
     @Test
-    public void parse_invalidValues_rejectsInput() throws Exception {
-        for (String input : List.of("c/" + "A".repeat(101), "p/1234\t567", "p/12", "p/abc",
-                "e/not-an-email", "n/@", "t/tag/with/slash")) {
-            assertThrows(ParseException.class, () -> parser.parse(input));
-        }
+    public void parse_invalidValues_rejectsInput() {
+        assertParseFailure(parser, "n/@", "Invalid value for n/: " + Name.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "c/" + "A".repeat(101), "Invalid value for c/: " + Company.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "e/not-an-email", "Invalid value for e/: " + Email.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "p/1234\t567",
+                "Invalid value for p/: Phone number can only contain digits, spaces, hyphens, and a + at the start.");
+        assertParseFailure(parser, "p/abc",
+                "Invalid value for p/: Phone number can only contain digits, spaces, hyphens, and a + at the start.");
         assertParseFailure(parser, "p/(65) 6123-4567",
-                "Phone number can only contain digits, spaces, hyphens, and a + at the start.");
-        assertParseFailure(parser, "p/12", "Phone number must contain 7 to 15 digits, optionally starting with +.");
+                "Invalid value for p/: Phone number can only contain digits, spaces, hyphens, and a + at the start.");
+        assertParseFailure(parser, "p/12",
+                "Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +.");
+        assertParseFailure(parser, "t/tag/with/slash", "Invalid value for t/: " + Tag.MESSAGE_CONSTRAINTS);
     }
 
     @Test

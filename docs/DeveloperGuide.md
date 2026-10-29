@@ -404,8 +404,9 @@ whole name word, whereas stored company and tag spelling is preserved and matche
 applies the predicate to the full address book through `Model#updateFilteredPersonList` and returns
 `CommandResult.showingContacts(...)`, rendering numbered `ContactCard`s directly without requiring a preliminary `list`.
 
-For follow-up date criteria, `FindCommandParser` reuses `FollowUpDate` via `ContactFieldParser#parseValue` to reject
-invalid calendar dates before updating the filter. `ContactMatchesFieldsPredicate` compares the canonical `YYYYMMDD`
+For prefixed criteria (`n/`, `c/`, `e/`, `p/`, `t/`, and `f/`), `FindCommandParser` validates values through
+`ContactFieldParser#parseValue` and `ContactFieldParser#parsePhone` so invalid field values consistently name the
+offending prefix (`Invalid value for <prefix>: ...`) before updating the filter. `ContactMatchesFieldsPredicate` compares the canonical `YYYYMMDD`
 date string (`FollowUpDate#toIsoDate()`) against each contact's optional follow-up date; contacts without a follow-up
 date never match. Repeated `f/` values are deduplicated and combined with OR, while `f/` combined with `n/`, `c/`,
 `t/`, or another field uses AND. Existing `SortedList` order and displayed indices are preserved, and date updates or
@@ -955,6 +956,7 @@ Start with the sample data and run `list` first. Each command below is rejected 
 | View with invalid slash in name | `view n/John/Doe` | `Names must be 1 to 80 characters and contain a letter. Use only letters, spaces, hyphens, apostrophes, full stops, or s/o and d/o between words.` |
 | Phone with a disallowed character | `add n/Chris Tan c/Example Ltd e/chris@example.com p/(65) 6123-4567` | `Invalid value for p/: Phone number can only contain digits, spaces, hyphens, and a + at the start.` |
 | Phone with too few digits | `add n/Chris Tan c/Example Ltd e/chris@example.com p/123` | `Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +.` |
+| Invalid field value in find | `find e/bad`, `find p/123` | `Invalid value for e/: Email address is invalid.` / `Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +.` |
 
 ### Deleting a contact
 
