@@ -101,7 +101,7 @@ The `UI` component,
 | `MainWindow.fxml` / `BoothManagerPro.css` | Command-driven layout, colours, spacing, and a single output area that fills available space. |
 | `ContactCard.fxml` / `ContactCard` | A static, read-only card for one contact, shown by `ResultDisplay` when a `CommandResult` carries contacts to show. The enquiry status appears as a badge beside the name; `ContactCard` adds a `status-*` style class (e.g. `status-in-progress`) to the badge and card, and `BoothManagerPro.css` colours both. |
 | `CommandBox` | Typed input through `Logic.execute()` with `Tab` autocomplete; successful input clears, failed input remains editable. |
-| `ResultDisplay` | Summary heading, scrollable static `ContactCard` container (with an optional total label for `list`), read-only `TextArea` output, and error styling. Each result replaces the previous output. |
+| `ResultDisplay` | Summary heading, scrollable static `ContactCard` container (with virtualized batch loading for performance at scale and an optional total label for `list`), read-only `TextArea` output, and error styling. Each result replaces the previous output. |
 
 - Startup shows only a ready prompt; contacts are loaded into the model without being displayed.
 - There are no separate persistent contact-list or details side panels, no contact-selection listeners, and no visibility flag; `ContactCard`s are static and non-selectable.
@@ -130,11 +130,13 @@ How the `Logic` component works:
 
 1. `LogicManager` passes `delete 1` to `AddressBookParser`. It creates a `DeleteCommandParser`, which parses the
    argument as an `Index` and creates a `DeleteCommand`.
+1. `LogicManager` snapshots the state of the model before command execution: `previousAddressBook`, `previousPredicate`, and `previousComparator`.
 1. `LogicManager` executes the `DeleteCommand` with `Model`.
 1. `DeleteCommand` obtains the filtered and sorted contact list from `Model`, resolves the one-based displayed index
    to `personToDelete`, and asks `Model` to delete that `Person`.
 1. `DeleteCommand` creates and returns a `CommandResult` containing the deleted contact's details.
 1. `LogicManager` obtains the updated address book from `Model` and asks `Storage` to save it.
+1. If command execution fails (throwing `CommandException` or a `RuntimeException`) or disk persistence fails (throwing `IOException` or `AccessDeniedException`), `LogicManager` executes `rollbackModel(...)` to revert in-memory contacts, the filter predicate, and the display comparator to their prior snapshot.
 1. After persistence succeeds, `LogicManager` returns the `CommandResult` to its caller.
 
 Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
@@ -155,8 +157,9 @@ The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list, wrapped in a _sorted_ view that `list o/FIELD` can reorder. It exposes this view as an unmodifiable `ObservableList<Person>` used by commands for filtering, numbered output, and indexed updates, tag toggling, and deletion.
+* provides `getPersonListComparator()` so other components (such as `LogicManager`) can inspect the active sort comparator (or `null` when displaying stored order) to preserve or roll back the display ordering.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
-* does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
+* does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components).
 
 
 ### Storage component
@@ -168,13 +171,10 @@ The `Model` component,
 The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
-
-Invalid JSON objects and null contact/tag entries produce controlled loading errors. `MainApp` falls back to an empty contact collection and passes a visible loading warning to the UI; invalid preferences fall back to defaults. Optional legacy contact fields retain their existing defaults.
-
-`JsonAddressBookStorage` records failed loads using `DataFileRecovery`. Before the first subsequent save to that path, it copies the original bytes to a unique `.recovery-` JSON file in the same directory. Backup failure blocks the save and retains recovery protection for a retry. A successful backup or a successful reload clears that protection. Recovery files are never automatically loaded or overwritten; users must close the app and repair/restore data manually. This protection does not coordinate concurrent app instances.
-* depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
-* records the address book file state loaded by the current session and uses an inter-process lock while saving. If
-  another window or process changes the file, a stale save is rejected instead of overwriting the newer data.
+* depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`).
+* safeguards contact data through automated corruption recovery and inter-process concurrency control:
+  * **Corrupted data recovery:** Invalid JSON objects or corrupt entries produce controlled loading errors with a visible UI warning. `JsonAddressBookStorage` records failed loads using `DataFileRecovery`. Before any subsequent save to that path, it creates a unique `.recovery-<timestamp>.json` backup of the original unreadable file bytes. Backup failure blocks saving to prevent accidental data loss. Recovery files are never automatically overwritten or loaded.
+  * **Concurrency protection:** `JsonAddressBookStorage` records the file state (content hash, modification time, and size) loaded by the current session. When saving, an OS-level file lock (`FileLock`) in the temporary directory coordinates across processes, and if another application instance has modified the file, stale saves are rejected with an error rather than silently overwriting the newer data.
 
 ### Common classes
 
@@ -202,7 +202,7 @@ same one-based indices accepted by `update`, `tag`, and `delete`. Empty `list` a
 `CommandResult` carries `feedbackToUser`, an `exit` flag, an immutable `viewChoices` snapshot when awaiting a numbered
 `view` reply, an immutable `contactsToShow` snapshot, and `numberedContacts` / `showingContactTotal` flags. `MainWindow`
 passes `feedbackToUser` and the contact snapshot to `ResultDisplay`: when `contactsToShow` is non-empty, `ResultDisplay`
-renders scrollable static `ContactCard`s beneath its summary heading (plus the total count below `list` cards);
+renders scrollable static `ContactCard`s beneath its summary heading (loaded in virtualized batches to maintain responsive rendering with 1,000+ contacts, plus the total count below `list` cards);
 otherwise, it shows the read-only `TextArea`. Each command replaces the previous output rather than appending a command
 history transcript.
 
@@ -249,7 +249,7 @@ All contact workflows share `Person` and its validated value objects.
 | Email / phone | Stored lowercase email and normalised phone; search validates through the same value objects as `add`. |
 | Contact method | `Optional<ContactMethod>`; `email`, `phone`, or `other`. An absent method is shown as `Not specified`. Not a search criterion. |
 | Follow-up date | `Optional<FollowUpDate>`; validated and stored in JSON as `YYYYMMDD`, formatted as `d MMM uuuu` (e.g. `25 Oct 2026`) for display, and shown as `None` when absent. |
-| Tags | Exact duplicates collapse on `add`. Search ignores case and matches whole tags. `add`, `update`, `tag`, storage, and command feedback preserve stored order. Empty tags show `None` in text and `No tags` on cards. |
+| Tags | Exact duplicates collapse on `add`. Search ignores case and matches whole tags. `add`, `update`, `tag`, storage, and command feedback preserve stored order. Empty tags show `None` in text and on cards. |
 | Storage | JSON stores `company`, `contactMethod`, `enquiryStatus`, and `followUpDate`; absent optional fields become empty optionals or default to `Needs follow-up`. The legacy address remains for compatibility. |
 
 | Feature | Selection / result |
@@ -278,7 +278,7 @@ covers same-name contacts at different companies, numbered replies, and cancella
 3. Immutable `ContactUpdate` represents partial changes. An absent optional preserves the value; a present empty contact method, date, or tag set explicitly clears it. Tags are defensively copied.
 4. `UpdateCommand` resolves an exact case-insensitive full name across all contacts or a one-based index in the current displayed list. Missing or ambiguous targets fail before mutation.
 5. The command constructs a replacement `Person` via `ContactUpdate#applyTo` and checks every other contact for duplicate email or name/company, including hidden records. Target resolution, duplicate warnings, and successful updates are logged via `LogsCenter`. Only then does it call `Model#setPerson` and reset the filter.
-6. `LogicManager` persists the updated address book through `Storage#saveAddressBook` (rolling back the in-memory model and filter if saving fails), and the UI displays a concise confirmation. Subsequent `view`, `list`, and `find` commands display the updated attributes on `ContactCard`s.
+6. `LogicManager` persists the updated address book through `Storage#saveAddressBook` (rolling back the in-memory model, filter, and display ordering if saving fails), and the UI displays a concise confirmation. Subsequent `view`, `list`, and `find` commands display the updated attributes on `ContactCard`s.
 
 The sequence diagram below illustrates a successful `update` request, showing both index-based and name-based target resolution.
 
@@ -309,7 +309,7 @@ Legacy address is preserved. Supplied tags replace the tag set; a sole blank `t/
 2. The parser rejects unknown prefixes, preambles, repeated non-tag fields, and missing required prefixes.
 3. Value objects validate fields, normalise Unicode and whitespace in names/companies/tags, lowercase email, and remove phone spaces/hyphens. Repeated tags are ignored.
 4. `AddCommand` checks the complete address book for matching email or name/company, logging execution, duplicate rejections, and successful additions via `LogsCenter`, then adds the contact or reports the existing match.
-5. `LogicManager` saves through `JsonAddressBookStorage` before returning the success result, rolling back the in-memory model and filter if saving fails.
+5. `LogicManager` saves through `JsonAddressBookStorage` before returning the success result, rolling back the in-memory model, filter, and display ordering if saving fails.
 6. The result contains a concise identity confirmation. `MainWindow` displays it in `ResultDisplay` and focuses command input. `CommandBox` clears successful input and retains failed input. A later `view`, `find`, or `list` displays the saved contact as a `ContactCard`.
 
 Enquiry fields:
@@ -377,6 +377,8 @@ Status uses workflow order rather than alphabetical order, which would place `Co
 The comparator stays on the `SortedList` until the next plain `list`. Filters from `find` and `view`, and the filter
 reset after `add`, `update`, and `tag`, apply beneath it, so their results keep the chosen order.
 
+If a command or save fails, `LogicManager`'s rollback mechanism restores the active comparator or default stored order (retrieved via `Model#getPersonListComparator()`), ensuring failed commands do not corrupt or unintentionally reset the user's active display order.
+
 **Design considerations**
 
 * **Alternative 1 (current choice):** Sort a view of the filtered list.
@@ -397,8 +399,8 @@ whole name words (`n/`), and complete company (`c/`), email (`e/`), phone (`p/`)
 
 `FindCommandParser` routes unprefixed queries to `NameContainsKeywordsPredicate` for compatibility, and builds a
 `ContactMatchesFieldsPredicate` when field prefixes are supplied. It rejects empty arguments, unprefixed text preceding
-field prefixes, blank field values, and unsupported prefixes such as `s/` and `m/` (enquiry-status filtering remains
-planned). Name, company, and tag criteria apply NFC Unicode normalisation and per-code-point case folding consistent
+field prefixes, blank field values, and unsupported prefixes such as `s/` and `m/` (enquiry-status filtering is
+planned as a future enhancement; see [Appendix: Planned Enhancements](#appendix-planned-enhancements)). Name, company, and tag criteria apply NFC Unicode normalisation and per-code-point case folding consistent
 with `String#equalsIgnoreCase`. Name criteria collapse repeated whitespace and match either the complete name or any
 whole name word, whereas stored company and tag spelling is preserved and matched as complete values. `FindCommand`
 applies the predicate to the full address book through `Model#updateFilteredPersonList` and returns
@@ -478,20 +480,20 @@ Planned requirements for BoothManagerPro; implementation status is tracked separ
 | US-08 | `**` | first-time organiser | see features and usage instructions | I know how to begin. |
 | US-09 | `**` | organiser | update contact details | my records stay accurate. |
 | US-10 | `**` | organiser | find contacts by full names or whole name words, company, email, or phone | I can locate contacts quickly. |
-| US-11 | `**` | organiser | filter contacts by enquiry status | I can review each enquiry stage. |
+| US-11 | `**` | organiser | filter contacts by enquiry status `[Coming soon]` | I can review each enquiry stage. |
 | US-12 | `**` | organiser | combine search fields and alternatives | I can narrow my results. |
 | US-13 | `**` | organiser | set enquiry status to Needs follow-up, In progress, Completed, or Cancelled | I can track progress. |
 | US-14 | `**` | organiser | set a next follow-up date | I know when to contact someone again. |
-| US-15 | `**` | organiser | view due or overdue follow-ups | I can prioritise outreach. |
+| US-15 | `**` | organiser | view due or overdue follow-ups `[Coming soon]` | I can prioritise outreach. |
 | US-16 | `**` | organiser | tag contacts by industry, priority, or need | I can group exhibitors. |
 | US-17 | `**` | organiser | filter contacts by tags | I can retrieve relevant groups. |
 | US-18 | `**` | organiser | record a preferred contact method | I can use the appropriate channel. |
 | US-36 | `**` | organiser | sort the contact list by name, company, or enquiry status | I can scan contacts in a predictable order and see who needs follow-up first. |
 
 - **US-05:** Duplicates share a normalised email or a name-and-company combination.
-- **US-11:** Enquiry-status filtering is planned. `list o/status` sorts all contacts by status; it does not filter them.
+- **US-11:** Enquiry-status filtering is planned (`[Coming soon]`; see [Appendix: Planned Enhancements](#appendix-planned-enhancements)). `list o/status` sorts all contacts by status; it does not filter them.
 - **US-12:** Repeated values within a field use OR; different fields use AND.
-- **US-15:** `find f/YYYYMMDD` matches one exact follow-up date, including a date supplied by the user for today. It does not automatically select today or include earlier dates. Automatic due or overdue filtering remains planned.
+- **US-15:** `find f/YYYYMMDD` matches one exact follow-up date, including a date supplied by the user for today. It does not automatically select today or include earlier dates. Automatic due or overdue filtering remains planned (`[Coming soon]`; see [Appendix: Planned Enhancements](#appendix-planned-enhancements)).
 
 #### Considered user stories
 
@@ -532,7 +534,7 @@ A contact represents an exhibitor or an exhibitor representative.
 
 UC01–UC08 describe the implemented contact-management workflows. Refer to the [User Guide](UserGuide.md) for supported commands.
 **Interaction rule:** All contact actions use typed commands. `list`, `find`, and `view` show matching contacts as static, non-interactive cards in the single output area; other results are text. There are no separate contact panels and no automatic startup listing.
-**Guarantee:** Input-validation, target-resolution, and duplicate rejections leave contacts unchanged. If saving to disk fails, BoothManagerPro reports the storage error and rolls back the in-memory contacts and filter to their previous state. A stale session cannot overwrite an address book file changed by another window or process.
+**Guarantee:** Input-validation, target-resolution, and duplicate rejections leave contacts unchanged. If saving to disk fails, BoothManagerPro reports the storage error and rolls back the in-memory contacts, filter, and display ordering to their previous state. A stale session cannot overwrite an address book file changed by another window or process.
 
 #### UC01: Add an exhibitor contact
 
@@ -873,7 +875,7 @@ Use a separate test data folder with no Alicia Tan or Ben Lim records. Run each 
 | Check | Command / action | Expected result |
 | --- | --- | --- |
 | Full record and normalisation | `add n/Alicia Tan c/TechNova Pte Ltd e/ALICIA@example.com p/+65 9123-4567 m/EMAIL t/technology t/technology t/high-priority` | Contact added; a subsequent `view n/Alicia Tan` card shows `alicia@example.com`, `+6591234567`, `email`, and each tag once. |
-| Optional fields omitted | `add n/Ben Lim c/GreenWorks e/ben@example.com p/87654321` | Contact added; a subsequent `view n/Ben Lim` card shows status `Needs follow-up`, method `Not specified`, follow-up date `None`, and `No tags`. |
+| Optional fields omitted | `add n/Ben Lim c/GreenWorks e/ben@example.com p/87654321` | Contact added; a subsequent `view n/Ben Lim` card shows status `Needs follow-up`, method `Not specified`, follow-up date `None`, and `None` for tags. |
 | Duplicate email, even when hidden | Run `find Ben`, then `add n/Another Person c/Another Company e/ALICIA@example.com p/98765432` | Rejected; identifies Alicia Tan at TechNova Pte Ltd. |
 | Duplicate name and company | `add n/alicia tan c/technova pte ltd e/different@example.com p/98765432` | Rejected despite different email and letter case. |
 | Missing field | `add n/Chris Tan e/chris@example.com p/98765432` | Missing-required-field error; no contact added. |
@@ -1009,7 +1011,106 @@ Start with the sample data and run `list` first. Each command below is rejected 
 1. Missing-field data file
 
    1. Close BoothManagerPro and edit `data/addressbook.json` so one contact omits optional exhibitor fields (`"company": null`, `"contactMethod": null`, and remove `"enquiryStatus"` and `"followUpDate"`), keeping valid `name`, `phone`, `email`, and `address`. Relaunch and run `list`.<br>
-      Expected: The contact loads normally with `Company not specified`, `Contact method: Not specified`, `Needs follow-up`, and `Follow-up date: None`.
+      Expected: The contact loads normally with `Not specified` for company, `Contact method: Not specified`, `Needs follow-up`, and `Follow-up date: None`.
 
    1. Close BoothManagerPro, remove a required field such as `"email"` or `"name"` from a contact in `data/addressbook.json`, and relaunch.<br>
       Expected: Loading fails safely with the same warning banner and empty contact list as a corrupted file, preserving the original file in a `.recovery-` backup before the next save.
+
+1. Concurrent sessions and stale file detection
+
+   1. Open two separate terminal windows pointing to the same folder containing `boothmanagerpro.jar` and `data/addressbook.json`.
+   1. Launch BoothManagerPro in Terminal 1 and Terminal 2 (`java -jar boothmanagerpro.jar`). Both sessions load the same initial contact data.
+   1. In Terminal 1, execute `add n/John Doe c/Acme Corp e/john@example.com p/98765432`.<br>
+      Expected: Contact is added and saved successfully to `data/addressbook.json`.
+   1. In Terminal 2, attempt to execute any mutating command, e.g. `add n/Jane Doe c/Beta Corp e/jane@example.com p/91234567`.<br>
+      Expected: BoothManagerPro detects that `data/addressbook.json` was updated by an external session, rejects the save with an error message indicating file state divergence, and rolls back the in-memory mutation so Terminal 1's saved data is never overwritten.
+
+--------------------------------------------------------------------------------------------------------------------
+
+## **Appendix: Planned Enhancements**
+
+The features and improvements below represent acknowledged limitations, unfulfilled edge cases, or future enhancements identified during development and internal alpha testing. They are planned for future milestone releases beyond `v1.5` and are formally documented here for tester and developer reference.
+
+### 1. Filtering contacts by enquiry status (`find s/STATUS`)
+
+* **Current behavior:** `find` currently supports filtering by name (`n/`), company (`c/`), email (`e/`), phone (`p/`), tags (`t/`), and follow-up date (`f/YYYYMMDD`). Users can sort contacts in status order using `list o/status`, but filtering by enquiry status (e.g. `find s/In progress` or `find s/Needs follow-up`) is not yet supported and is rejected as an unsupported prefix.
+* **Proposed enhancement:** Extend `FindCommandParser` and `ContactMatchesFieldsPredicate` to accept `s/STATUS` (case-insensitive keyword matching against `EnquiryStatus` labels), allowing organizers to filter contacts specifically in `Needs follow-up`, `In progress`, `Completed`, or `Cancelled` stages.
+
+### 2. Relative follow-up date and range search (`find f/today`, `find f/due`, `find f/overdue`, and date ranges)
+
+* **Current behavior:** `find f/YYYYMMDD` strictly matches an exact calendar date. To find contacts due today, organizers must manually look up and enter today's calendar date. The app does not automatically identify overdue follow-ups or allow date range queries.
+* **Proposed enhancement:** Add semantic date keywords (`find f/today`, `find f/due`, `find f/overdue`) that compare stored follow-up dates against `LocalDate.now()`, as well as date ranges (e.g. `find f/before:YYYYMMDD` or `find f/after:YYYYMMDD`), allowing organizers to prioritize time-sensitive follow-ups without manual date entry.
+
+### 3. Reversible command execution (`undo` and `redo`)
+
+* **Current behavior:** Commands that mutate contact data (`add`, `delete`, `update`, `tag`, `clear confirm`) immediately save to disk. There is no `undo` or `redo` command; an unintended deletion or clear requires manual re-entry or file restoration.
+* **Proposed enhancement:** Implement an undo/redo command history stack in `LogicManager`. Each mutating command will store a state diff or model snapshot, enabling `undo` to revert the last mutating operation and `redo` to reapply it, while keeping `data/addressbook.json` synchronized.
+
+### 4. Contact data export and import (CSV and JSON)
+
+* **Current behavior:** Contacts are stored and loaded exclusively from `data/addressbook.json`. Organizers cannot directly import contacts from external registration spreadsheets (such as convention registration forms) or export filtered contacts to share with other event staff.
+* **Proposed enhancement:** Introduce `export FILENAME.csv` and `import FILENAME.csv` commands. The export command will write the current filtered list to a standard CSV file, and the import command will parse rows, validate fields with the existing value objects, and skip or report duplicate entries.
+
+### 5. Smarter prefix-aware autocomplete for reordered inputs
+
+* **Current behavior:** `CommandBox` Tab autocomplete checks the last textual prefix in a fixed canonical sequence (`n/` → `c/` → `e/` → `p/`). If an organizer enters fields in a non-canonical order (e.g. `add c/Acme n/Alicia Tan` and presses Tab), the completion logic appends `c/` because `n/` was the last prefix found, resulting in a duplicate prefix error.
+* **Proposed enhancement:** Update autocomplete to parse the command buffer into recognized prefix tokens, identifying which required fields are already present and proposing only the next *unsupplied* prefix.
+
+### 6. Case-insensitive tag matching and search
+
+* **Current behavior:** Tag toggling via `tag` uses case-sensitive matching (`Tag#equals`), so `VIP` and `vip` can coexist as distinct tags on the same contact. Meanwhile, name, company, email, and find queries use case-insensitive matching.
+* **Proposed enhancement:** Standardize tag equality to case-insensitive comparison (folding case or storing lowercase tags while preserving display casing), preventing accidental creation of casing variations of the same conceptual tag.
+
+### 7. Direct contact archiving (`archive`)
+
+* **Current behavior:** Contacts whose enquiries are finished (`Completed` or `Cancelled`) must either remain in the main address book or be permanently removed with `delete`.
+* **Proposed enhancement:** Add an `archive NAME_OR_INDEX` command that moves inactive contacts from `data/addressbook.json` into an `archive.json` file. An accompanying `list archive` command will allow viewing archived contacts without cluttering active convention workflows.
+
+### 8. Double-click launch warning and write-protection detection
+
+* **Current behavior:** If the user attempts to launch `boothmanagerpro.jar` by double-clicking in an OS environment with an incompatible default file association or runs the JAR in a write-protected directory, the application may fail to start or report an unhandled file access error without clear graphical user guidance.
+* **Proposed enhancement:** Add a lightweight pre-launch check that displays an explicit JavaFX dialog or alert prompt if write permissions are absent in the working directory, providing instructions to launch via terminal or grant folder permissions.
+
+--------------------------------------------------------------------------------------------------------------------
+
+## **Appendix: Effort**
+
+BoothManagerPro is a brownfield evolution of AddressBook-Level 3 (AB3). While AB3 provided a foundational four-component architecture (`Ui`, `Logic`, `Model`, `Storage`), converting it into a specialized convention exhibitor management tool required substantial architectural refactoring, domain redesign, GUI restructuring, and transactional persistence enhancements.
+
+### 1. Scope of transformation
+
+| Dimension | AddressBook-Level 3 (AB3) | BoothManagerPro |
+| --- | --- | --- |
+| **Domain focus** | Generic personal address book (`Person`, `Address`). | Convention exhibitor management with representative details (`Company`, `ContactMethod`, `EnquiryStatus` workflow states, `FollowUpDate`). |
+| **User interface** | Split-panel layout: left master contact list, right detail card panel. Persistent contact list shown on startup. | Terminal-style single output area (`ResultDisplay`). Startup displays only a ready prompt; `list`, `find`, and `view` render static `ContactCard`s directly in the output area. No persistent side panels. |
+| **Interaction model** | Mouse-assisted selections and listeners. | Strictly keyboard-driven: `Tab` autocomplete/focus shifting, `Enter` execution, `F1` help, `Ctrl+L`/`Cmd+L` focus return. |
+| **Targeting** | Index-only targeting based on current list order. | Dual targeting: operations (`update`, `tag`, `delete`) accept either displayed indices or exact case-insensitive full names. |
+| **View workflow** | Passive panel selection. | Multi-turn disambiguation: multiple matches display numbered text options and await a numbered selection across execution turns. |
+| **Search capabilities** | Keyword matching on names only. | Multi-prefix search (`n/`, `c/`, `e/`, `p/`, `t/`, `f/`) with disjunctive (OR) within fields, conjunctive (AND) across fields, and calendar date matching. |
+| **List ordering** | Static stored order only. | On-demand multi-criteria sorting (`list o/name`, `list o/company`, `list o/status`) using dynamic `SortedList` views with index stability. |
+| **Data integrity & recovery** | Overwrites file on save; corrupt loads yield empty book. | Automatic byte-level recovery backups (`.recovery-*.json`), transactional rollback on execution/storage failure, and multi-instance process file locking. |
+
+### 2. Key architectural and implementation challenges
+
+1. **Transactional command execution and display order rollback:**
+   * In AB3, command failures could leave the in-memory model in an inconsistent state relative to storage.
+   * In BoothManagerPro, `LogicManager` snapshots `previousAddressBook`, `previousPredicate`, and `previousComparator` before executing any command. If command execution fails or disk persistence is blocked (e.g. `IOException`, `AccessDeniedException`), `rollbackModel` reverts the address book, filter, and display sorting order seamlessly, ensuring atomic command semantics.
+
+2. **Multi-process concurrency and data corruption recovery:**
+   * Desktop applications often face edge cases where users open multiple instances or edit data files externally.
+   * `JsonAddressBookStorage` integrates OS-level `FileLock` coordination in the temporary directory to serialize concurrent writes and maintains file state fingerprints (hash, size, timestamp) to detect and reject stale writes.
+   * When loading invalid or corrupted JSON files, `DataFileRecovery` automatically creates a byte-for-byte backup (`.recovery-<timestamp>.json`) before permitting subsequent saves, safeguarding user data against permanent loss.
+
+3. **Dynamic sorting with index stability:**
+   * Wrapping a JavaFX `FilteredList` inside a `SortedList` required ensuring that one-based displayed indices remain consistent across all commands (`delete`, `tag`, `update`) without mutating the stored order of contacts on disk.
+   * Custom `Comparator<Person>` implementations were developed for names, companies, and workflow statuses, using unique email tie-breaking to ensure deterministic index ordering.
+
+4. **Multi-match interactive view command:**
+   * Supporting interactive disambiguation for `view n/NAME` required `LogicManager` to store ephemeral `pendingViewChoices` across commands without coupling UI state to storage or disk writes. Invalid numeric replies redisplay the prompt with valid ranges, while subsequent valid commands clear the pending selection cleanly.
+
+### 3. Testing and quality assurance
+
+* **Automated test suite:** Over 600 unit, integration, and regression tests were developed to ensure code reliability across all layers.
+* **Component-level testing:** Rigorous unit tests verify domain constraints (`CompanyTest`, `FollowUpDateTest`, `EnquiryStatusTest`, `ContactUpdateTest`), parser error boundaries (`ParserUtilTest`, `AddCommandParserTest`), and command logic (`UpdateCommandTest`, `TagCommandTest`).
+* **Headless GUI verification:** `MainWindowTest` exercises JavaFX FXML rendering, keyboard focus transitions, `ContactCard` generation, and command output display in headless test environments.
+* **Regression and persistence coverage:** Integration tests (`UpdateIntegrationTest`, `TagIntegrationTest`, `FindFollowUpDateIntegrationTest`, `LogicManagerTest`) rigorously verify rollback guarantees, corruption recovery backups, and concurrency rejection.

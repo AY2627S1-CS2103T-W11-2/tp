@@ -5,8 +5,6 @@ title: About Us
 
 We are a team based in the [School of Computing, National University of Singapore](https://www.comp.nus.edu.sg).
 
-You can reach us at the email `seer[at]comp.nus.edu.sg`
-
 ## Project team
 
 ### Jenna Ng
@@ -14,19 +12,30 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 <img src="images/jennangke.png" width="200px">
 
 [[github](https://github.com/jennangke)]
+[[portfolio](team/jennangke.md)]
+
+* Role: Developer
+* Responsibilities: Logic & parser error handling
 
 ### Rhineson Kok
 
 <img src="images/rhinesonn.png" width="200px">
 
-[[github](https://github.com/rhinesonn)] 
+[[github](https://github.com/rhinesonn)]
+[[portfolio](team/rhinesonn.md)]
+
+* Role: Team Lead & Developer
+* Responsibilities: Architecture, UI integration & Developer Guide
 
 ### Cedric Cheng
 
 <img src="images/seadrickbug.png" width="200px">
 
-[[github](http://github.com/seadrickbug)] 
-[[portfolio](team/johndoe.md)]
+[[github](https://github.com/seadrickbug)]
+[[portfolio](team/seadrickbug.md)]
+
+* Role: Developer
+* Responsibilities: UI & help system
 
 ### Gerard Lum
 
@@ -34,16 +43,17 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[homepage](https://www.linkedin.com/in/gerardlumkaien/)]
 [[github](https://github.com/gerardlke)]
-[[portfolio](team/johndoe.md)]
+[[portfolio](team/gerardlke.md)]
 
 * Role: Developer
-* Responsibilities: Backend
+* Responsibilities: Model & data management
 
 ### Li Wenze
 
 <img src="images/legned-wenze.png" width="200px">
 
 [[github](https://github.com/legned-wenze)]
+[[portfolio](team/legned-wenze.md)]
 
 * Role: Developer
-* Responsibilities: UI mockup and non-functional requirements
+* Responsibilities: Storage recovery & state management
