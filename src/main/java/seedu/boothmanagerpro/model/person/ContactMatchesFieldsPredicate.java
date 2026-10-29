@@ -71,7 +71,8 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
             case "t/" -> person.getTags().stream()
                     .anyMatch(tag -> values.contains(normalise(field, tag.tagName)));
             case "f/" -> person.getFollowUpDate()
-                    .map(date -> values.contains(date.toString())).orElse(false);
+                    .map(date -> values.contains(date.toIsoDate())
+                            || values.contains(date.toString().toLowerCase(Locale.ROOT))).orElse(false);
             default -> false;
         };
     }

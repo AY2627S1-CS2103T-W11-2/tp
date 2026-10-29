@@ -63,7 +63,7 @@ public class ViewCommandIntegrationTest {
     }
 
     @Test
-    public void execute_viewSelectionThenEdit_editsOnlySelectedContact() throws Exception {
+    public void execute_viewSelectionThenUpdate_updatesOnlySelectedContact() throws Exception {
         List<Person> contacts = setUpOverlappingViewChoices();
         Person alicia = contacts.get(0);
         Person johnGreenWorks = contacts.get(1);
@@ -73,7 +73,7 @@ public class ViewCommandIntegrationTest {
         assertEquals(ViewCommand.createDetailsResult(johnGreenWorks), logic.execute("2"));
         assertEquals(List.of(johnGreenWorks), model.getFilteredPersonList());
 
-        logic.execute("edit 1 p/90000001");
+        logic.execute("update 1 p/90000001");
 
         Person editedJohn = new PersonBuilder(johnGreenWorks).withPhone("90000001").build();
         assertEquals(List.of(alicia, editedJohn, johnBlueSky), model.getAddressBook().getPersonList());
@@ -131,8 +131,8 @@ public class ViewCommandIntegrationTest {
     }
 
     @Test
-    public void execute_editExistingField_preservesExhibitorFieldsAcrossSave() throws Exception {
-        logic.execute("edit 1 p/91234567");
+    public void execute_updateExistingField_preservesExhibitorFieldsAcrossSave() throws Exception {
+        logic.execute("update 1 p/91234567");
         Person reloaded = addressStorage.readAddressBook().orElseThrow().getPersonList().getFirst();
         assertEquals(first.getCompany(), reloaded.getCompany());
         assertEquals("email", reloaded.getContactMethod().orElseThrow().toString());
@@ -147,8 +147,8 @@ public class ViewCommandIntegrationTest {
     }
 
     @Test
-    public void execute_editToOtherContactsEmail_rejectsDuplicateAndPreservesData() {
-        assertThrows(CommandException.class, () -> logic.execute("edit 1 e/alicia@techindustries.com"));
+    public void execute_updateToOtherContactsEmail_rejectsDuplicateAndPreservesData() {
+        assertThrows(CommandException.class, () -> logic.execute("update 1 e/alicia@techindustries.com"));
         assertEquals(List.of(first, second), model.getAddressBook().getPersonList());
     }
 

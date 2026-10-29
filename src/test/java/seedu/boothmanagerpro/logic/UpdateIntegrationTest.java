@@ -52,9 +52,9 @@ public class UpdateIntegrationTest {
         assertEquals("+6581234567", updated.getPhone().value);
         assertEquals("phone", updated.getContactMethod().orElseThrow().toString());
         assertEquals("Completed", updated.getEnquiryStatus().toString());
-        assertEquals("20280229", updated.getFollowUpDate().orElseThrow().toString());
+        assertEquals("29 Feb 2028", updated.getFollowUpDate().orElseThrow().toString());
         assertEquals("new, priority", Messages.formatTags(updated));
-        assertTrue(logic.execute("view n/Alice Tan").getFeedbackToUser().contains("Follow-up date: 20280229"));
+        assertTrue(logic.execute("view n/Alice Tan").getFeedbackToUser().contains("Follow-up date: 29 Feb 2028"));
     }
 
     @Test

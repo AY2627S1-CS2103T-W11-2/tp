@@ -57,7 +57,8 @@ public class DeleteCommand extends Command {
                 ? findPersonByName(model)
                 : findPersonByIndex(model);
         model.deletePerson(personToDelete);
-        return new CommandResult(String.format(MESSAGE_DELETE_PERSON_SUCCESS, Messages.format(personToDelete)));
+        return new CommandResult(String.format(MESSAGE_DELETE_PERSON_SUCCESS,
+                Messages.formatContactDetails(personToDelete)));
     }
 
     private Person findPersonByIndex(Model model) throws CommandException {

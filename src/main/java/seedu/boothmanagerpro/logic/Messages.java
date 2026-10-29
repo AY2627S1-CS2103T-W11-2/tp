@@ -50,8 +50,6 @@ public class Messages {
                 .append(person.getPhone())
                 .append("; Email: ")
                 .append(person.getEmail())
-                .append("; Address: ")
-                .append(person.getAddress())
                 .append("; Tags: ")
                 .append(formatTags(person));
         return builder.toString();
@@ -73,7 +71,7 @@ public class Messages {
         return person.getFollowUpDate().map(Object::toString).orElse("None");
     }
 
-    /** Numbers text results using the same one-based indices as edit and delete. */
+    /** Numbers text results using the same one-based indices as delete and update. */
     public static String formatNumberedContacts(List<Person> persons) {
         return IntStream.range(0, persons.size())
                 .mapToObj(index -> (index + 1) + ". " + formatContactDetails(persons.get(index)))

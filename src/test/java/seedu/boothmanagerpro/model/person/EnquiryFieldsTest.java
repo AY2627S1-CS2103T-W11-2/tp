@@ -28,8 +28,10 @@ public class EnquiryFieldsTest {
     @Test
     public void date_validatesCalendarAndExactFormat() {
         assertEquals(LocalDate.of(2024, 2, 29), new FollowUpDate(" 20240229 ").value);
-        assertEquals("00010101", new FollowUpDate("00010101").toString());
-        assertEquals("99991231", new FollowUpDate("99991231").toString());
+        assertEquals("1 Jan 0001", new FollowUpDate("00010101").toString());
+        assertEquals("31 Dec 9999", new FollowUpDate("99991231").toString());
+        assertEquals("25 Oct 2026", new FollowUpDate("20261025").toString());
+        assertEquals("20261025", new FollowUpDate("20261025").toIsoDate());
         for (String invalid : new String[]{"", "none", "20230229", "20260431", "20261301", "20260100",
             "2026-10-25", "2026102", "202610250", "20261025T1200", "00000101", "2026 1025"}) {
             assertThrows(IllegalArgumentException.class, () -> new FollowUpDate(invalid));
