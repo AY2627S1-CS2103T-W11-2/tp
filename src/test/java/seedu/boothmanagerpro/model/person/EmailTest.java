@@ -2,9 +2,10 @@ package seedu.boothmanagerpro.model.person;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
-import java.time.Duration;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.boothmanagerpro.testutil.Assert.assertThrows;
+
+import java.time.Duration;
 
 import org.junit.jupiter.api.Test;
 
@@ -56,6 +57,18 @@ public class EmailTest {
         assertFalse(Email.isValidEmail("a@" + "a".repeat(1000) + "!")); // long malformed email
         assertTimeoutPreemptively(Duration.ofMillis(1000), () ->
                 assertFalse(Email.isValidEmail("a@" + "a".repeat(5000) + "!"))); // ReDoS prevention
+
+        // length guardrails (RFC 5321 limits)
+        assertFalse(Email.isValidEmail("a".repeat(65) + "@example.com")); // local part exceeds 64 chars
+        assertTrue(Email.isValidEmail("a".repeat(64) + "@example.com")); // local part exactly 64 chars
+        assertFalse(Email.isValidEmail("a".repeat(1000) + "@example.com")); // excessively long local part
+        assertFalse(Email.isValidEmail("alice@" + "a".repeat(1000) + ".com")); // excessively long domain
+        // Exactly 254 characters: 64 local part + 1 '@' + 185 domain + 4 ".com" = 254
+        String maxEmail = "a".repeat(64) + "@" + "a".repeat(185) + ".com";
+        assertTrue(Email.isValidEmail(maxEmail));
+        // 255 characters exceeds RFC 5321 maximum
+        String overMaxEmail = "a".repeat(64) + "@" + "a".repeat(186) + ".com";
+        assertFalse(Email.isValidEmail(overMaxEmail));
 
         // valid email
         assertTrue(Email.isValidEmail("PeterJack_1190@example.com")); // underscore in local part

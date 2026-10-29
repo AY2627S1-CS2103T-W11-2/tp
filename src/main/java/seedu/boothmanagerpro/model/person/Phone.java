@@ -9,10 +9,10 @@ import static seedu.boothmanagerpro.commons.util.AppUtil.checkArgument;
  */
 public class Phone {
 
-
     public static final String MESSAGE_CONSTRAINTS =
             "Phone number must contain 7 to 15 digits.";
     public static final String VALIDATION_REGEX = "\\+?[0-9]{7,15}";
+    public static final int MAX_INPUT_LENGTH = 30; // Maximum realistic input length including country code and formatting
     public final String value;
 
     /**
@@ -28,9 +28,15 @@ public class Phone {
 
     /**
      * Returns true if a given string is a valid phone number.
+     * Enforces a maximum input length of {@link #MAX_INPUT_LENGTH} to guard against excessively padded inputs.
      */
     public static boolean isValidPhone(String test) {
-        return normalize(test).matches(VALIDATION_REGEX);
+        requireNonNull(test);
+        String trimmed = test.trim();
+        if (trimmed.length() > MAX_INPUT_LENGTH) {
+            return false;
+        }
+        return normalize(trimmed).matches(VALIDATION_REGEX);
     }
 
     /** Removes accepted spaces and hyphens, preserving an optional leading plus. */

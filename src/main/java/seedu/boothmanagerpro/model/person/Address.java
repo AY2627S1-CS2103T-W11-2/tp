@@ -10,6 +10,7 @@ import static seedu.boothmanagerpro.commons.util.AppUtil.checkArgument;
 public class Address {
 
     public static final String MESSAGE_CONSTRAINTS = "Addresses can take any values, and should not be blank";
+    public static final int MAX_LENGTH = 200;
 
     /*
      * The first character of the address must not be a whitespace,
@@ -32,9 +33,15 @@ public class Address {
 
     /**
      * Returns true if a given string is a valid address.
+     * Enforces that the address is non-blank, does not start with whitespace, and contains at most
+     * {@link #MAX_LENGTH} Unicode code points. Supports any language and special characters.
      */
     public static boolean isValidAddress(String test) {
-        return test.matches(VALIDATION_REGEX);
+        requireNonNull(test);
+        String trimmed = test.trim();
+        return !trimmed.isBlank()
+                && test.matches(VALIDATION_REGEX)
+                && trimmed.codePointCount(0, trimmed.length()) <= MAX_LENGTH;
     }
 
     @Override

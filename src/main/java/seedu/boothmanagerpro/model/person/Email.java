@@ -12,6 +12,10 @@ import java.util.Locale;
 public class Email {
 
     public static final String MESSAGE_CONSTRAINTS = "Email address is invalid.";
+    public static final int MAX_LENGTH = 254; // RFC 5321 standard maximum email length
+    public static final int MAX_LOCAL_PART_LENGTH = 64; // RFC 5321 standard maximum local-part length
+    public static final int MAX_DOMAIN_PART_LENGTH = 255; // RFC 5321 standard maximum domain length
+
     private static final String SPECIAL_CHARACTERS = "+_.-";
     // alphanumeric and special characters
     private static final String ALPHANUMERIC_NO_UNDERSCORE_CHAR = "[^\\W_]"; // single alphanumeric character except underscore
@@ -44,9 +48,24 @@ public class Email {
 
     /**
      * Returns true if a given string is a valid email.
+     * Enforces RFC 5321 length guardrails (maximum 254 characters total, 64 characters for the local part,
+     * and 255 characters for the domain part) before evaluating the validation pattern.
      */
     public static boolean isValidEmail(String test) {
-        return VALIDATION_PATTERN.matcher(test.trim()).matches();
+        requireNonNull(test);
+        String trimmed = test.trim();
+        if (trimmed.length() > MAX_LENGTH) {
+            return false;
+        }
+        int atIndex = trimmed.indexOf('@');
+        if (atIndex <= 0 || atIndex > MAX_LOCAL_PART_LENGTH) {
+            return false;
+        }
+        String domain = trimmed.substring(atIndex + 1);
+        if (domain.isEmpty() || domain.length() > MAX_DOMAIN_PART_LENGTH) {
+            return false;
+        }
+        return VALIDATION_PATTERN.matcher(trimmed).matches();
     }
 
     @Override

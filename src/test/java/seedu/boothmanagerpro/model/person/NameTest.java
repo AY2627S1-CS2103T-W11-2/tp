@@ -37,6 +37,11 @@ public class NameTest {
         assertFalse(Name.isValidName("^")); // only non-alphanumeric characters
         assertFalse(Name.isValidName("peter*")); // contains non-alphanumeric characters
 
+        // length guardrails
+        assertFalse(Name.isValidName("A".repeat(81))); // exceeds 80 characters
+        assertFalse(Name.isValidName("A".repeat(1000))); // thousands of characters
+        assertTrue(Name.isValidName("A".repeat(80))); // boundary value exactly 80 characters
+
         // valid name
         assertTrue(Name.isValidName("peter jack")); // alphabets only
         assertFalse(Name.isValidName("12345")); // numbers only
@@ -45,6 +50,12 @@ public class NameTest {
         assertTrue(Name.isValidName("Anne-Marie O'Neil")); // realistic punctuation
         assertTrue(Name.isValidName("Dr. Élodie")); // full stops and accented letters
         assertTrue(Name.isValidName("David Roger Jackson Ray Jr")); // long names
+
+        // different languages
+        assertTrue(Name.isValidName("陈大文")); // Chinese
+        assertTrue(Name.isValidName("山田 太郎")); // Japanese
+        assertTrue(Name.isValidName("Владимир")); // Cyrillic
+        assertTrue(Name.isValidName("Renée O’Connor")); // French diacritic and curly apostrophe
     }
 
     @Test

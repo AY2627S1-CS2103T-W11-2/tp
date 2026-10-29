@@ -9,6 +9,7 @@ import static seedu.boothmanagerpro.commons.util.AppUtil.checkArgument;
  */
 public class Tag {
 
+    public static final int MAX_LENGTH = 30;
     public static final String MESSAGE_CONSTRAINTS = "Tag must be 1 to 30 characters and cannot contain '/'.";
     public static final String VALIDATION_REGEX = "[^/\\r\\n]{1,30}";
 
@@ -28,9 +29,17 @@ public class Tag {
 
     /**
      * Returns true if a given string is a valid tag name.
+     * Enforces that the tag is non-blank, contains no slash or newline characters, and does not exceed
+     * {@link #MAX_LENGTH} Unicode code points. Supports tags in any language.
      */
     public static boolean isValidTagName(String test) {
-        return !test.trim().isBlank() && test.trim().matches(VALIDATION_REGEX);
+        requireNonNull(test);
+        String trimmed = test.trim();
+        return !trimmed.isBlank()
+                && !trimmed.contains("/")
+                && !trimmed.contains("\r")
+                && !trimmed.contains("\n")
+                && trimmed.codePointCount(0, trimmed.length()) <= MAX_LENGTH;
     }
 
     @Override
