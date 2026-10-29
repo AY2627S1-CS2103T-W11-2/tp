@@ -4,7 +4,6 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.List;
 
-import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.ContextMenu;
@@ -117,7 +116,7 @@ public class ResultDisplay extends UiPart<Region> {
 
     private void attachScrollListener() {
         scrollListener = (observable, oldValue, newValue) -> {
-            if (newValue.doubleValue() >= SCROLL_THRESHOLD && loadedCount < currentContacts.size()) {
+            if (newValue.doubleValue() >= SCROLL_THRESHOLD) {
                 loadNextBatch();
             }
         };
@@ -151,14 +150,6 @@ public class ResultDisplay extends UiPart<Region> {
                 contactScroll.vvalueProperty().removeListener(scrollListener);
                 scrollListener = null;
             }
-        } else if (contactScroll.getVvalue() >= SCROLL_THRESHOLD) {
-            Platform.runLater(this::checkAndLoadMore);
-        }
-    }
-
-    private void checkAndLoadMore() {
-        if (loadedCount < currentContacts.size() && contactScroll.getVvalue() >= SCROLL_THRESHOLD) {
-            loadNextBatch();
         }
     }
 

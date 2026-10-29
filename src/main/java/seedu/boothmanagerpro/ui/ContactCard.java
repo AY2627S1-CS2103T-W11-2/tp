@@ -54,6 +54,8 @@ public class ContactCard extends UiPart<Region> {
     @FXML
     private FlowPane tags;
 
+    private ContextMenu cardMenu;
+
     /**
      * Creates a card for {@code person}, prefixed with {@code index} unless it is {@link #NO_INDEX}.
      */
@@ -114,7 +116,7 @@ public class ContactCard extends UiPart<Region> {
         configureCopyableLabel(name, nameValue, "Copy Name", allDetails);
         person.getCompany().ifPresent(c -> configureCopyableLabel(company, c.value, "Copy Company", allDetails));
 
-        ContextMenu cardMenu = new ContextMenu();
+        cardMenu = new ContextMenu();
         MenuItem copyEmailItem = new MenuItem("Copy Email");
         copyEmailItem.setOnAction(event -> copyToClipboard(emailValue));
         MenuItem copyPhoneItem = new MenuItem("Copy Phone");
@@ -124,10 +126,8 @@ public class ContactCard extends UiPart<Region> {
         cardMenu.getItems().addAll(copyEmailItem, copyPhoneItem, copyDetailsItem);
 
         getRoot().setOnContextMenuRequested(event -> {
-            if (!event.isConsumed()) {
-                cardMenu.show(getRoot(), event.getScreenX(), event.getScreenY());
-                event.consume();
-            }
+            cardMenu.show(getRoot(), event.getScreenX(), event.getScreenY());
+            event.consume();
         });
     }
 
@@ -151,6 +151,10 @@ public class ContactCard extends UiPart<Region> {
         });
     }
 
+    ContextMenu getCardContextMenu() {
+        return cardMenu;
+    }
+
     /**
      * Copies {@code text} to the system clipboard.
      */
@@ -158,13 +162,9 @@ public class ContactCard extends UiPart<Region> {
         if (text == null) {
             return;
         }
-        try {
-            Clipboard clipboard = Clipboard.getSystemClipboard();
-            ClipboardContent content = new ClipboardContent();
-            content.putString(text);
-            clipboard.setContent(content);
-        } catch (Exception e) {
-            // Ignored in environments where clipboard is unavailable
-        }
+        Clipboard clipboard = Clipboard.getSystemClipboard();
+        ClipboardContent content = new ClipboardContent();
+        content.putString(text);
+        clipboard.setContent(content);
     }
 }

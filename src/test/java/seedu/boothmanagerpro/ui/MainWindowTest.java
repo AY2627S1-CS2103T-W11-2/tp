@@ -32,11 +32,16 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -48,6 +53,7 @@ import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.UserPrefs;
 import seedu.boothmanagerpro.model.person.Address;
+import seedu.boothmanagerpro.model.person.Company;
 import seedu.boothmanagerpro.model.person.Email;
 import seedu.boothmanagerpro.model.person.EnquiryStatus;
 import seedu.boothmanagerpro.model.person.Name;
@@ -561,6 +567,14 @@ public class MainWindowTest {
             display.showContacts(List.of(ALICE), true, false);
             assertTrue(display.getRoot().lookup("#contactScroll").isVisible());
             display.focus();
+
+            display.setFeedbackToUser("test");
+            assertFalse(display.getRoot().lookup("#contactScroll").isVisible());
+            display.focus();
+
+            ResultDisplay nullCallbackDisplay = new ResultDisplay();
+            nullCallbackDisplay.getRoot().fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.TAB,
+                    false, false, false, false));
             return null;
         });
     }
@@ -669,6 +683,102 @@ public class MainWindowTest {
             display.loadAllRemainingBatches();
             assertEquals(1001, cards.getChildren().size(),
                     "All 1,000 cards plus total label should be loaded");
+            return null;
+        });
+    }
+
+    @Test
+    public void contactCard_copyActionsAndEvents_fullyCovered() throws Exception {
+        runOnFxThread(() -> {
+            Person personWithCompany = new Person(new Name("Alex Yeoh"), new Phone("87438807"),
+                    new Email("alexyeoh@example.com"), new Address("Blk 30"),
+                    Set.of(), Optional.of(new Company("TechNova")), Optional.empty(),
+                    EnquiryStatus.NEEDS_FOLLOW_UP, Optional.empty());
+            ContactCard card = new ContactCard(personWithCompany, 1);
+            Stage stage = new Stage();
+            Scene scene = new Scene(card.getRoot());
+            stage.setScene(scene);
+            stage.show();
+            try {
+                Label email = (Label) card.getRoot().lookup("#email");
+                Label phone = (Label) card.getRoot().lookup("#phone");
+                Label name = (Label) card.getRoot().lookup("#name");
+                Label company = (Label) card.getRoot().lookup("#company");
+
+                for (MenuItem item : email.getContextMenu().getItems()) {
+                    item.fire();
+                }
+                for (MenuItem item : phone.getContextMenu().getItems()) {
+                    item.fire();
+                }
+                for (MenuItem item : name.getContextMenu().getItems()) {
+                    item.fire();
+                }
+                for (MenuItem item : company.getContextMenu().getItems()) {
+                    item.fire();
+                }
+                for (MenuItem item : card.getCardContextMenu().getItems()) {
+                    item.fire();
+                }
+
+                ContextMenuEvent menuEvent = new ContextMenuEvent(ContextMenuEvent.CONTEXT_MENU_REQUESTED,
+                        10, 10, 10, 10, false, null);
+                card.getRoot().getOnContextMenuRequested().handle(menuEvent);
+
+                MouseEvent doublePrimary = new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0,
+                        MouseButton.PRIMARY, 2, false, false, false, false, false, false, false, false, false, false,
+                        null);
+                email.getOnMouseClicked().handle(doublePrimary);
+
+                MouseEvent singlePrimary = new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0,
+                        MouseButton.PRIMARY, 1, false, false, false, false, false, false, false, false, false, false,
+                        null);
+                email.getOnMouseClicked().handle(singlePrimary);
+
+                MouseEvent doubleSecondary = new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0,
+                        MouseButton.SECONDARY, 2, false, false, false, false, false, false, false, false, false, false,
+                        null);
+                email.getOnMouseClicked().handle(doubleSecondary);
+            } finally {
+                stage.hide();
+            }
+
+            return null;
+        });
+    }
+
+    @Test
+    public void resultDisplay_scrollListenerAndCleanup_fullyCovered() throws Exception {
+        runOnFxThread(() -> {
+            List<Person> fifty = new ArrayList<>();
+            for (int i = 0; i < 50; i++) {
+                fifty.add(new Person(new Name("Person"), new Phone("91234567"),
+                        new Email("person" + i + "@example.com"), new Address("Blk 123"),
+                        Set.of(), Optional.empty(), Optional.empty(),
+                        EnquiryStatus.NEEDS_FOLLOW_UP, Optional.empty()));
+            }
+
+            ResultDisplay display = new ResultDisplay();
+            ScrollPane contactScroll = (ScrollPane) display.getRoot().lookup("#contactScroll");
+            contactScroll.getContextMenu().getItems().getFirst().fire();
+
+            display.showContacts(fifty, true, true);
+            assertEquals(ResultDisplay.getBatchSize(), display.getLoadedCount());
+
+            // Scroll below threshold: no extra batch
+            contactScroll.setVvalue(0.1);
+            assertEquals(ResultDisplay.getBatchSize(), display.getLoadedCount());
+
+            // Scroll above threshold: loads next batch
+            contactScroll.setVvalue(0.85);
+            assertEquals(50, display.getLoadedCount());
+
+            // Cleanup while scrollListener is active
+            display.showContacts(fifty, true, true);
+            assertEquals(ResultDisplay.getBatchSize(), display.getLoadedCount());
+            display.setFeedbackToUser("Clearing results");
+            assertEquals(0, display.getLoadedCount());
+
             return null;
         });
     }
