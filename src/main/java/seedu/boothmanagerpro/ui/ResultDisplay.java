@@ -4,6 +4,8 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.List;
 
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
@@ -31,6 +33,14 @@ public class ResultDisplay extends UiPart<Region> {
     /** Longest heading summary shown, including the ellipsis, so long first lines do not wrap the heading. */
     private static final int MAX_SUMMARY_LENGTH = 90;
     private static final String ELLIPSIS = "...";
+    private static final int BATCH_SIZE = 25;
+    private static final double SCROLL_THRESHOLD = 0.7;
+
+    private List<Person> currentContacts = List.of();
+    private boolean isCurrentNumbered;
+    private boolean isCurrentShowingTotal;
+    private int loadedCount = 0;
+    private ChangeListener<Number> scrollListener;
 
     @FXML
     private TextArea resultDisplay;
@@ -73,6 +83,7 @@ public class ResultDisplay extends UiPart<Region> {
     /** Shows feedback with a distinct error state when a command fails. */
     public void setFeedbackToUser(String feedbackToUser, boolean isError) {
         requireNonNull(feedbackToUser);
+        cleanupBatchState();
         showErrorStyle(isError);
         resultDisplay.setText(feedbackToUser);
         showCards(false);
@@ -83,23 +94,90 @@ public class ResultDisplay extends UiPart<Region> {
 
     /**
      * Shows {@code contacts} as static cards in place of the text output, which keeps the same feedback.
-     * Numbered cards use the one-based indices accepted by update and delete. The total is shown below the cards
-     * only when {@code isShowingTotal}, since other results already state their count in the heading.
+     * Numbered cards use the one-based indices accepted by update and delete. For large results, cards
+     * are loaded in virtualized batches to avoid UI freezes at scale.
      */
     public void showContacts(List<Person> contacts, boolean isNumbered, boolean isShowingTotal) {
         requireNonNull(contacts);
+        cleanupBatchState();
+        this.currentContacts = contacts;
+        this.isCurrentNumbered = isNumbered;
+        this.isCurrentShowingTotal = isShowingTotal;
         contactCards.getChildren().clear();
-        for (int i = 0; i < contacts.size(); i++) {
-            int index = isNumbered ? i + 1 : ContactCard.NO_INDEX;
-            contactCards.getChildren().add(new ContactCard(contacts.get(i), index).getRoot());
+
+        loadNextBatch();
+
+        if (loadedCount < currentContacts.size()) {
+            attachScrollListener();
         }
-        if (isShowingTotal) {
-            Label total = new Label(String.format(ListCommand.MESSAGE_TOTAL, contacts.size()));
-            total.getStyleClass().add(TOTAL_STYLE_CLASS);
-            contactCards.getChildren().add(total);
-        }
+
         contactScroll.setVvalue(0);
         showCards(!contacts.isEmpty());
+    }
+
+    private void attachScrollListener() {
+        scrollListener = (observable, oldValue, newValue) -> {
+            if (newValue.doubleValue() >= SCROLL_THRESHOLD && loadedCount < currentContacts.size()) {
+                loadNextBatch();
+            }
+        };
+        contactScroll.vvalueProperty().addListener(scrollListener);
+    }
+
+    private void cleanupBatchState() {
+        if (scrollListener != null) {
+            contactScroll.vvalueProperty().removeListener(scrollListener);
+            scrollListener = null;
+        }
+        currentContacts = List.of();
+        loadedCount = 0;
+    }
+
+    private void loadNextBatch() {
+        int target = Math.min(loadedCount + BATCH_SIZE, currentContacts.size());
+        for (int i = loadedCount; i < target; i++) {
+            int index = isCurrentNumbered ? i + 1 : ContactCard.NO_INDEX;
+            contactCards.getChildren().add(new ContactCard(currentContacts.get(i), index).getRoot());
+        }
+        loadedCount = target;
+
+        if (loadedCount >= currentContacts.size()) {
+            if (isCurrentShowingTotal) {
+                Label total = new Label(String.format(ListCommand.MESSAGE_TOTAL, currentContacts.size()));
+                total.getStyleClass().add(TOTAL_STYLE_CLASS);
+                contactCards.getChildren().add(total);
+            }
+            if (scrollListener != null) {
+                contactScroll.vvalueProperty().removeListener(scrollListener);
+                scrollListener = null;
+            }
+        } else if (contactScroll.getVvalue() >= SCROLL_THRESHOLD) {
+            Platform.runLater(this::checkAndLoadMore);
+        }
+    }
+
+    private void checkAndLoadMore() {
+        if (loadedCount < currentContacts.size() && contactScroll.getVvalue() >= SCROLL_THRESHOLD) {
+            loadNextBatch();
+        }
+    }
+
+    static int getBatchSize() {
+        return BATCH_SIZE;
+    }
+
+    int getLoadedCount() {
+        return loadedCount;
+    }
+
+    VBox getContactCards() {
+        return contactCards;
+    }
+
+    void loadAllRemainingBatches() {
+        while (loadedCount < currentContacts.size()) {
+            loadNextBatch();
+        }
     }
 
     /** Focuses the currently active result output component. */

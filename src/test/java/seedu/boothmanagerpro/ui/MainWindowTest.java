@@ -11,6 +11,7 @@ import static seedu.boothmanagerpro.testutil.TypicalPersons.ALICE;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -642,6 +643,32 @@ public class MainWindowTest {
             assertEquals("Not specified", company.getText());
             assertEquals(1, tags.getChildren().size());
             assertEquals("None", ((Label) tags.getChildren().getFirst()).getText());
+            return null;
+        });
+    }
+
+    @Test
+    public void showContacts_oneThousandContacts_rendersIncrementallyWithoutLag() throws Exception {
+        runOnFxThread(() -> {
+            List<Person> oneThousand = new ArrayList<>();
+            for (int i = 0; i < 1000; i++) {
+                oneThousand.add(new Person(new Name("Contact Person"), new Phone("91234567"),
+                        new Email("contact" + i + "@example.com"), new Address("Blk 123"),
+                        Set.of(), Optional.empty(), Optional.empty(),
+                        EnquiryStatus.NEEDS_FOLLOW_UP, Optional.empty()));
+            }
+            ResultDisplay display = new ResultDisplay();
+            long start = System.currentTimeMillis();
+            display.showContacts(oneThousand, true, true);
+            long elapsed = System.currentTimeMillis() - start;
+            assertTrue(elapsed < 500, "Initial display of 1,000 contacts took " + elapsed + "ms, expected < 500ms");
+            VBox cards = display.getContactCards();
+            assertEquals(ResultDisplay.getBatchSize(), cards.getChildren().size(),
+                    "Initial batch should match BATCH_SIZE");
+
+            display.loadAllRemainingBatches();
+            assertEquals(1001, cards.getChildren().size(),
+                    "All 1,000 cards plus total label should be loaded");
             return null;
         });
     }

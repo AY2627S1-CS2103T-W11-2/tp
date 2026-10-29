@@ -101,7 +101,7 @@ The `UI` component,
 | `MainWindow.fxml` / `BoothManagerPro.css` | Command-driven layout, colours, spacing, and a single output area that fills available space. |
 | `ContactCard.fxml` / `ContactCard` | A static, read-only card for one contact, shown by `ResultDisplay` when a `CommandResult` carries contacts to show. The enquiry status appears as a badge beside the name; `ContactCard` adds a `status-*` style class (e.g. `status-in-progress`) to the badge and card, and `BoothManagerPro.css` colours both. |
 | `CommandBox` | Typed input through `Logic.execute()` with `Tab` autocomplete; successful input clears, failed input remains editable. |
-| `ResultDisplay` | Summary heading, scrollable static `ContactCard` container (with an optional total label for `list`), read-only `TextArea` output, and error styling. Each result replaces the previous output. |
+| `ResultDisplay` | Summary heading, scrollable static `ContactCard` container (with virtualized batch loading for performance at scale and an optional total label for `list`), read-only `TextArea` output, and error styling. Each result replaces the previous output. |
 
 - Startup shows only a ready prompt; contacts are loaded into the model without being displayed.
 - There are no separate persistent contact-list or details side panels, no contact-selection listeners, and no visibility flag; `ContactCard`s are static and non-selectable.
@@ -202,7 +202,7 @@ same one-based indices accepted by `update`, `tag`, and `delete`. Empty `list` a
 `CommandResult` carries `feedbackToUser`, an `exit` flag, an immutable `viewChoices` snapshot when awaiting a numbered
 `view` reply, an immutable `contactsToShow` snapshot, and `numberedContacts` / `showingContactTotal` flags. `MainWindow`
 passes `feedbackToUser` and the contact snapshot to `ResultDisplay`: when `contactsToShow` is non-empty, `ResultDisplay`
-renders scrollable static `ContactCard`s beneath its summary heading (plus the total count below `list` cards);
+renders scrollable static `ContactCard`s beneath its summary heading (loaded in virtualized batches to maintain responsive rendering with 1,000+ contacts, plus the total count below `list` cards);
 otherwise, it shows the read-only `TextArea`. Each command replaces the previous output rather than appending a command
 history transcript.
 
