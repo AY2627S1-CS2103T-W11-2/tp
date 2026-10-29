@@ -81,21 +81,42 @@ public class LogicManager implements Logic {
         ReadOnlyAddressBook previousAddressBook = new AddressBook(model.getAddressBook());
         Predicate<? super Person> previousPredicate = model.getFilteredPersonListPredicate();
 
-        CommandResult commandResult;
+        CommandResult commandResult = executeOrRollback(command, previousAddressBook, previousPredicate);
+        if (command instanceof ViewCommand) {
+            return recordViewChoices(commandResult);
+        }
+        saveOrRollback(previousAddressBook, previousPredicate);
+        return commandResult;
+    }
+
+    /**
+     * Executes {@code command} against the model, rolling back any partial model changes on failure.
+     */
+    private CommandResult executeOrRollback(Command command, ReadOnlyAddressBook previousAddressBook,
+            Predicate<? super Person> previousPredicate) throws CommandException {
         try {
-            commandResult = command.execute(model);
+            return command.execute(model);
         } catch (CommandException | RuntimeException e) {
             rollbackModel(previousAddressBook, previousPredicate);
             throw e;
         }
+    }
 
-        if (command instanceof ViewCommand) {
-            pendingViewChoices = commandResult.getViewChoices();
-            pendingViewPrompt = commandResult.getFeedbackToUser();
-            logger.fine("View request completed; pending choices: " + pendingViewChoices.size());
-            return commandResult;
-        }
+    /**
+     * Stores any pending numbered view choices from {@code commandResult} without writing to disk.
+     */
+    private CommandResult recordViewChoices(CommandResult commandResult) {
+        pendingViewChoices = commandResult.getViewChoices();
+        pendingViewPrompt = commandResult.getFeedbackToUser();
+        logger.fine("View request completed; pending choices: " + pendingViewChoices.size());
+        return commandResult;
+    }
 
+    /**
+     * Persists the updated address book, rolling back the in-memory model if saving fails.
+     */
+    private void saveOrRollback(ReadOnlyAddressBook previousAddressBook,
+            Predicate<? super Person> previousPredicate) throws CommandException {
         try {
             storage.saveAddressBook(model.getAddressBook());
         } catch (AccessDeniedException e) {
@@ -105,8 +126,6 @@ public class LogicManager implements Logic {
             rollbackModel(previousAddressBook, previousPredicate);
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
         }
-
-        return commandResult;
     }
 
     /**
