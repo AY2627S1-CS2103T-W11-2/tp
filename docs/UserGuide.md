@@ -52,7 +52,7 @@ BoothManagerPro is a desktop contact manager for **convention organisers followi
 
 ### Working through commands
 
-* Type a command and press **Enter**. Command words and prefixes are case-sensitive: use `list`, not `List`.
+* Type a command and press **Enter**. Command words are case-insensitive (for example, `list` or `LIST`), while field prefixes use lowercase letters (for example, `n/`, `c/`, `t/`).
 * The command box starts with keyboard focus. Press **Ctrl+L** on Windows/Linux or **Command+L** on macOS to return to it. Use `help` or **F1** for the guide, and `exit` to close the app.
 * Press **Tab** to complete an unambiguous command word, field prefix, contact method, enquiry status, or list sort
   field. It also supplies the next required `add` prefix, `view n/`, `find n/`, `list o/`, or the first `tag t/` after
@@ -86,8 +86,8 @@ BoothManagerPro is a desktop contact manager for **convention organisers followi
 * Prefixed fields can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help` and `exit`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`. The exception is `list`, which accepts only an optional `o/name`, `o/company`, or `o/status` and rejects anything else.
+* Extraneous parameters are rejected across all commands.<br>
+  For example, `help 123`, `exit 123`, and `list 123` all show an invalid command format error (`list` accepts only an optional `o/name`, `o/company`, or `o/status`).
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>
@@ -306,7 +306,7 @@ Format: `update NAME_OR_INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD
 - Empty `f/` clears the date. Other blank fields are rejected. Status may be changed to any of the four supported values; there is no enforced transition order.
 - Unknown prefixes, invalid values, missing/ambiguous targets, and duplicate email or name/company combinations are rejected without changing contacts or saved data. Duplicate checks include hidden contacts.
 - Don't put `n/` before the contact: `update n/Alicia Tan s/Completed` shows `Don't include n/ for update. Use: update NAME_OR_INDEX FIELD... (n/ only sets a new name, e.g. update Alicia Tan n/Alicia Lim)`.
-- An index of `0` or below shows `Index must be a positive integer.`; an index too large to be a list position, such as `99999999999999`, shows `Index is too large. Use a number shown in the current list, find or view results.`
+- An index of `0` or below shows `Index must be a positive integer.`; a leading `+` such as `+1` shows `Index must be an unsigned positive integer (e.g. 1, not +1).`; an index too large to be a list position, such as `99999999999999` or `+99999999999999`, shows `Index is too large. Use a number shown in the current list, find or view results.`
 - Success prints `Updated NAME at COMPANY.`, clears the filter and command input, and retains keyboard focus. Run `list` or `find` before reusing an index, or `view n/NAME` to check details.
 - Updating contact details does not change any postal address saved in the data file.
 
@@ -406,8 +406,8 @@ Format: `delete NAME` or `delete INDEX`
   then delete the intended contact by its displayed index.
 * Alternatively, deletes the contact at the specified `INDEX`.
 * The index refers to the index number shown in the current numbered command results.
-* The index **must be a positive integer** 1, 2, 3, …​ `delete 0` or `delete -1` shows `Index must be a positive integer.`, and an index too large to be a list position, such as `delete 99999999999999`, shows `Index is too large. Use a number shown in the current list, find or view results.`
-* Don't include `n/`: `delete n/Alex Yeoh` shows `Don't include n/ for delete. Use: delete NAME or delete INDEX`.
+* The index **must be an unsigned positive integer** 1, 2, 3, …​ `delete 0` or `delete -1` shows `Index must be a positive integer.`, `delete +1` shows `Index must be an unsigned positive integer (e.g. 1, not +1).`, an index too large to be a list position, such as `delete 99999999999999`, shows `Index is too large. Use a number shown in the current list, find or view results.`, and multiple indices such as `delete 1 2` show `Specify only one displayed index at a time.`
+* Don't include field prefixes: `delete n/Alex Yeoh` shows `Don't include n/ for delete. Use: delete NAME or delete INDEX`, and other prefixes such as `delete 1 t/vip` show `Unexpected field prefix: t/. Use: delete NAME or delete INDEX`. Invalid names show the standard name constraint message.
 
 Examples:
 

@@ -1,7 +1,11 @@
 package seedu.boothmanagerpro.logic.parser;
 
 import static seedu.boothmanagerpro.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_COMPANY;
+import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_FOLLOW_UP;
+import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.boothmanagerpro.logic.parser.ContactFieldParser.parseValue;
 
 import java.util.HashMap;
@@ -9,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.regex.MatchResult;
 
@@ -17,8 +22,11 @@ import seedu.boothmanagerpro.logic.commands.FindCommand;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 import seedu.boothmanagerpro.model.person.Company;
 import seedu.boothmanagerpro.model.person.ContactMatchesFieldsPredicate;
+import seedu.boothmanagerpro.model.person.Email;
 import seedu.boothmanagerpro.model.person.FollowUpDate;
+import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.NameContainsKeywordsPredicate;
+import seedu.boothmanagerpro.model.tag.Tag;
 
 /** Parses legacy name keywords or prefixed name and complete-field criteria. */
 public class FindCommandParser implements Parser<FindCommand> {
@@ -60,34 +68,33 @@ public class FindCommandParser implements Parser<FindCommand> {
     }
 
     private void addCriterion(Map<String, Set<String>> criteria, String field, String value) throws ParseException {
+        switch (field) {
+            case "n/" -> validateCriterion(PREFIX_NAME, value, Name::new);
+            case "c/" -> validateCriterion(PREFIX_COMPANY, value, Company::new);
+            case "e/" -> validateCriterion(PREFIX_EMAIL, value, Email::new);
+            case "p/" -> validatePhoneCriterion(value);
+            case "t/" -> validateCriterion(PREFIX_TAG, value, Tag::new);
+            case "f/" -> validateCriterion(PREFIX_FOLLOW_UP, value, FollowUpDate::new);
+            default -> throw new ParseException(MESSAGE_UNSUPPORTED_FIELD);
+        }
+        String normalised = ContactMatchesFieldsPredicate.normalise(field, value);
+        criteria.computeIfAbsent(field, unused -> new HashSet<>()).add(normalised);
+    }
+
+    private <T> void validateCriterion(Prefix prefix, String value, Function<String, T> constructor)
+            throws ParseException {
+        requireSearchValue(value);
+        parseValue(prefix, value, constructor);
+    }
+
+    private void validatePhoneCriterion(String value) throws ParseException {
+        requireSearchValue(value);
+        ContactFieldParser.parsePhone(value);
+    }
+
+    private void requireSearchValue(String value) throws ParseException {
         if (value.isBlank()) {
             throw new ParseException(MESSAGE_EMPTY_VALUE);
         }
-        String normalised = ContactMatchesFieldsPredicate.normalise(field, value);
-        switch (field) {
-            case "n/":
-                ParserUtil.parseName(value);
-                break;
-            case "c/":
-                if (!Company.isValidCompany(value)) {
-                    throw new ParseException(Company.MESSAGE_CONSTRAINTS);
-                }
-                break;
-            case "e/":
-                ParserUtil.parseEmail(value);
-                break;
-            case "p/":
-                ParserUtil.parsePhone(value);
-                break;
-            case "t/":
-                ParserUtil.parseTag(value);
-                break;
-            case "f/":
-                parseValue(PREFIX_FOLLOW_UP, value, FollowUpDate::new);
-                break;
-            default:
-                throw new ParseException(MESSAGE_UNSUPPORTED_FIELD);
-        }
-        criteria.computeIfAbsent(field, unused -> new HashSet<>()).add(normalised);
     }
 }

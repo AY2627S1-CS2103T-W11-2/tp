@@ -22,6 +22,7 @@ import seedu.boothmanagerpro.logic.commands.HelpCommand;
 import seedu.boothmanagerpro.logic.commands.ListCommand;
 import seedu.boothmanagerpro.logic.commands.TagCommand;
 import seedu.boothmanagerpro.logic.commands.UpdateCommand;
+import seedu.boothmanagerpro.logic.commands.ViewCommand;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.NameContainsKeywordsPredicate;
@@ -79,7 +80,10 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_exit() throws Exception {
         assertTrue(parser.parseCommand(ExitCommand.COMMAND_WORD) instanceof ExitCommand);
-        assertTrue(parser.parseCommand(ExitCommand.COMMAND_WORD + " 3") instanceof ExitCommand);
+        assertTrue(parser.parseCommand(ExitCommand.COMMAND_WORD + "   ") instanceof ExitCommand);
+        assertThrows(ParseException.class,
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, ExitCommand.MESSAGE_USAGE), ()
+                -> parser.parseCommand(ExitCommand.COMMAND_WORD + " 3"));
     }
 
     @Test
@@ -93,7 +97,10 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_help() throws Exception {
         assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD) instanceof HelpCommand);
-        assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD + " 3") instanceof HelpCommand);
+        assertTrue(parser.parseCommand(HelpCommand.COMMAND_WORD + "   ") instanceof HelpCommand);
+        assertThrows(ParseException.class,
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, HelpCommand.MESSAGE_USAGE), ()
+                -> parser.parseCommand(HelpCommand.COMMAND_WORD + " 3"));
     }
 
     @Test
@@ -118,6 +125,16 @@ public class AddressBookParserTest {
     public void parseCommand_unrecognisedInput_throwsParseException() {
         assertThrows(ParseException.class, String.format(MESSAGE_INVALID_COMMAND_FORMAT, HelpCommand.MESSAGE_USAGE), ()
             -> parser.parseCommand(""));
+    }
+
+    @Test
+    public void parseCommand_caseInsensitiveCommandWord_success() throws Exception {
+        assertEquals(new ListCommand(), parser.parseCommand("LIST"));
+        assertEquals(new ListCommand(SortField.NAME), parser.parseCommand("List o/name"));
+        assertTrue(parser.parseCommand("Help") instanceof HelpCommand);
+        assertTrue(parser.parseCommand("eXiT") instanceof ExitCommand);
+        assertEquals(new DeleteCommand(INDEX_FIRST_PERSON), parser.parseCommand("DELETE 1"));
+        assertEquals(new ViewCommand(new Name("Alicia Tan")), parser.parseCommand("View n/Alicia Tan"));
     }
 
     @Test

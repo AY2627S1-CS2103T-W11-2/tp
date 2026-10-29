@@ -40,16 +40,21 @@ public class CommandParserTestUtil {
     }
 
     /**
-     * Asserts that zero, negative and overflowing indices placed before {@code suffix} are rejected with the
+     * Asserts that zero, signed and overflowing indices placed before {@code suffix} are rejected with the
      * specific index messages rather than a name or format error.
      */
     public static void assertInvalidIndexFailure(Parser<? extends Command> parser, String suffix) {
-        for (String index : List.of("0", "-1", "+1", "000")) {
-            assertParseFailure(parser, index + suffix, "Index must be a positive integer.");
+        for (String index : List.of("0", "-1", "+0", "000")) {
+            assertParseFailure(parser, index + suffix, ParserUtil.MESSAGE_INVALID_INDEX);
         }
-        for (String index : List.of("2147483648", "99999999999999")) {
-            assertParseFailure(parser, index + suffix,
-                    "Index is too large. Use a number shown in the current list, find or view results.");
+        for (String index : List.of("+1", "+001")) {
+            assertParseFailure(parser, index + suffix, ParserUtil.MESSAGE_UNSIGNED_INDEX);
+        }
+        for (String index : List.of("2147483648", "99999999999999", "+2147483648", "+99999999999999")) {
+            assertParseFailure(parser, index + suffix, ParserUtil.MESSAGE_INDEX_TOO_LARGE);
+        }
+        for (String index : List.of("1 2", "1 2 3")) {
+            assertParseFailure(parser, index + suffix, ParserUtil.MESSAGE_MULTIPLE_INDICES);
         }
     }
 

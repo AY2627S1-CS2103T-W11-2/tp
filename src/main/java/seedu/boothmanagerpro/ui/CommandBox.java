@@ -12,6 +12,7 @@ import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javafx.application.Platform;
@@ -149,8 +150,9 @@ public class CommandBox extends UiPart<Region> {
             return true;
         }
 
+        String lowerTrimmed = trimmedInput.toLowerCase(Locale.ROOT);
         List<String> matches = COMMAND_WORDS.stream()
-                .filter(command -> command.startsWith(trimmedInput))
+                .filter(command -> command.startsWith(lowerTrimmed))
                 .toList();
 
         if (matches.size() == 1) {
@@ -164,10 +166,11 @@ public class CommandBox extends UiPart<Region> {
      * A prefix is only advanced after the current field has a value.
      */
     private boolean autocompleteAddField(String input) {
-        if (input.equals(AddCommand.COMMAND_WORD)) {
+        if (input.equalsIgnoreCase(AddCommand.COMMAND_WORD)) {
             return setCommandText(AddCommand.COMMAND_WORD + " " + ADD_REQUIRED_PREFIXES.getFirst());
         }
-        if (!input.startsWith(AddCommand.COMMAND_WORD + " ")) {
+        String commandPrefix = AddCommand.COMMAND_WORD + " ";
+        if (!input.regionMatches(true, 0, commandPrefix, 0, commandPrefix.length())) {
             return false;
         }
 
@@ -205,15 +208,15 @@ public class CommandBox extends UiPart<Region> {
 
     /** Adds the name prefix while the user is building a view or find command. */
     private boolean autocompleteNameField(String input) {
-        if (input.equals(ViewCommand.COMMAND_WORD) || input.equals(FindCommand.COMMAND_WORD)) {
-            return setCommandText(input + " " + PREFIX_NAME);
+        if (input.equalsIgnoreCase(ViewCommand.COMMAND_WORD) || input.equalsIgnoreCase(FindCommand.COMMAND_WORD)) {
+            return setCommandText(input.toLowerCase(Locale.ROOT) + " " + PREFIX_NAME);
         }
         return false;
     }
 
     /** Adds the optional sort prefix when a user explicitly requests completion after {@code list}. */
     private boolean autocompleteListField(String input) {
-        if (input.equals(ListCommand.COMMAND_WORD)) {
+        if (input.equalsIgnoreCase(ListCommand.COMMAND_WORD)) {
             return setCommandText(ListCommand.COMMAND_WORD + " " + PREFIX_ORDER);
         }
         return false;
@@ -227,7 +230,7 @@ public class CommandBox extends UiPart<Region> {
             return false;
         }
 
-        String commandWord = input.substring(0, firstSpace);
+        String commandWord = input.substring(0, firstSpace).toLowerCase(Locale.ROOT);
         List<String> supportedPrefixes = COMMAND_PREFIXES.getOrDefault(commandWord, List.of());
         String partialPrefix = input.substring(lastSpace + 1);
         List<String> matches = supportedPrefixes.stream()
@@ -246,7 +249,7 @@ public class CommandBox extends UiPart<Region> {
             return false;
         }
 
-        String commandWord = input.substring(0, firstSpace);
+        String commandWord = input.substring(0, firstSpace).toLowerCase(Locale.ROOT);
         List<String> supportedPrefixes = COMMAND_PREFIXES.getOrDefault(commandWord, List.of());
         for (Map.Entry<String, List<String>> entry : PREFIX_VALUES.entrySet()) {
             String prefix = entry.getKey();
@@ -268,7 +271,8 @@ public class CommandBox extends UiPart<Region> {
     /** Adds the first required tag prefix after a tag command target has been entered. */
     private boolean autocompleteTagField(String input) {
         String commandPrefix = TagCommand.COMMAND_WORD + " ";
-        if (!input.startsWith(commandPrefix) || input.contains(" " + PREFIX_TAG)) {
+        if (!input.regionMatches(true, 0, commandPrefix, 0, commandPrefix.length())
+                || input.contains(" " + PREFIX_TAG)) {
             return false;
         }
         return setCommandText(input + " " + PREFIX_TAG);

@@ -7,7 +7,7 @@ import java.util.function.Function;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 import seedu.boothmanagerpro.model.person.Phone;
 
-/** Shared field conversion for add and update; validation remains owned by model value types. */
+/** Shared field conversion for add, update, tag, and find; validation remains owned by model value types. */
 final class ContactFieldParser {
     static final String MESSAGE_EMPTY_FIELD = "Empty field: %s. Supply a value after this prefix.";
     static final String MESSAGE_INVALID_VALUE = "Invalid value for %s: %s";

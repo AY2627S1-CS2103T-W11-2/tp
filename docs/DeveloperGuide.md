@@ -406,8 +406,9 @@ whole name word, whereas stored company and tag spelling is preserved and matche
 applies the predicate to the full address book through `Model#updateFilteredPersonList` and returns
 `CommandResult.showingContacts(...)`, rendering numbered `ContactCard`s directly without requiring a preliminary `list`.
 
-For follow-up date criteria, `FindCommandParser` reuses `FollowUpDate` via `ContactFieldParser#parseValue` to reject
-invalid calendar dates before updating the filter. `ContactMatchesFieldsPredicate` compares the canonical `YYYYMMDD`
+For prefixed criteria (`n/`, `c/`, `e/`, `p/`, `t/`, and `f/`), `FindCommandParser` validates values through
+`ContactFieldParser#parseValue` and `ContactFieldParser#parsePhone` so invalid field values consistently name the
+offending prefix (`Invalid value for <prefix>: ...`) before updating the filter. `ContactMatchesFieldsPredicate` compares the canonical `YYYYMMDD`
 date string (`FollowUpDate#toIsoDate()`) against each contact's optional follow-up date; contacts without a follow-up
 date never match. Repeated `f/` values are deduplicated and combined with OR, while `f/` combined with `n/`, `c/`,
 `t/`, or another field uses AND. Existing `SortedList` order and displayed indices are preserved, and date updates or
@@ -945,14 +946,20 @@ Start with the sample data and run `list` first. Each command below is rejected 
 | Check | Command | Expected message |
 | --- | --- | --- |
 | Index of zero or below | `delete 0`, `delete -1`, `update -1 s/Completed`, `tag 0 t/vip` | `Index must be a positive integer.` |
-| Index too large | `delete 99999999999999`, `update 99999999999999 s/Completed`, `tag 99999999999999 t/vip` | `Index is too large. Use a number shown in the current list, find or view results.` |
+| Leading `+` on positive index | `delete +1`, `update +1 s/Completed`, `tag +1 t/vip` | `Index must be an unsigned positive integer (e.g. 1, not +1).` |
+| Index too large | `delete 99999999999999`, `delete +99999999999999`, `update 99999999999999 s/Completed`, `tag 99999999999999 t/vip` | `Index is too large. Use a number shown in the current list, find or view results.` |
+| Multiple indices | `delete 1 2`, `update 1 2 s/Completed`, `tag 1 2 t/vip` | `Specify only one displayed index at a time.` |
 | `n/` before a delete target | `delete n/Alex Yeoh` | `Don't include n/ for delete. Use: delete NAME or delete INDEX` |
+| Unexpected prefix in delete | `delete 1 t/vip`, `delete c/TechNova` | `Unexpected field prefix: <prefix>. Use: delete NAME or delete INDEX` |
 | `n/` before an update target | `update n/Alex Yeoh s/Completed` | `Don't include n/ for update. Use: update NAME_OR_INDEX FIELD... (n/ only sets a new name, e.g. update Alicia Tan n/Alicia Lim)` |
 | `n/` before a tag target | `tag n/Alex Yeoh t/vip` | `Don't include n/ for tag. Use: tag NAME_OR_INDEX t/TAG [t/TAG]...` |
 | View without a prefix | `view alex` | `view needs the n/ prefix before the name. Use: view n/NAME, e.g. view n/Alicia Tan` |
 | View with an empty name | `view n/` | `Name cannot be empty. Use: view n/NAME, e.g. view n/Alicia Tan` |
+| View with invalid slash in name | `view n/John/Doe` | `Names must be 1 to 80 characters and contain a letter. Use only letters, spaces, hyphens, apostrophes, full stops, or s/o and d/o between words.` |
 | Phone with a disallowed character | `add n/Chris Tan c/Example Ltd e/chris@example.com p/(65) 6123-4567` | `Invalid value for p/: Phone number can only contain digits, spaces, hyphens, and a + at the start.` |
 | Phone with too few digits | `add n/Chris Tan c/Example Ltd e/chris@example.com p/123` | `Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +.` |
+| Invalid field value in find | `find e/bad`, `find p/123` | `Invalid value for e/: Email address is invalid.` / `Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +.` |
+| Unexpected parameters on parameterless commands | `help extra`, `exit 1` | `Invalid command format!` followed by the `help` or `exit` usage |
 
 ### Deleting a contact
 

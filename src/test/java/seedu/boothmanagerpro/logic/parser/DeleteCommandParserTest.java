@@ -23,14 +23,32 @@ public class DeleteCommandParserTest {
     public void parse_validArgs_returnsDeleteCommand() {
         assertParseSuccess(parser, "1", new DeleteCommand(INDEX_FIRST_PERSON));
         assertParseSuccess(parser, " Alice Pauline ", new DeleteCommand(new Name("Alice Pauline")));
+        assertParseSuccess(parser, "Raj s/o Kumar", new DeleteCommand(new Name("Raj s/o Kumar")));
     }
 
     @Test
-    public void parse_missingOrInvalidName_showsUsage() {
-        for (String args : new String[]{"", "  ", "Alice!"}) {
+    public void parse_missingTarget_showsUsage() {
+        for (String args : new String[]{"", "  "}) {
             assertParseFailure(parser, args,
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
         }
+    }
+
+    @Test
+    public void parse_invalidName_showsNameConstraints() {
+        for (String args : new String[]{"Alice!", "John123", "...", "A".repeat(81)}) {
+            assertParseFailure(parser, args, Name.MESSAGE_CONSTRAINTS);
+        }
+    }
+
+    @Test
+    public void parse_unexpectedPrefix_failure() {
+        assertParseFailure(parser, "c/TechNova",
+                String.format(DeleteCommandParser.MESSAGE_UNKNOWN_FIELD, "c/"));
+        assertParseFailure(parser, "1 t/vip",
+                String.format(DeleteCommandParser.MESSAGE_UNKNOWN_FIELD, "t/"));
+        assertParseFailure(parser, "Alex Yeoh n/New Name",
+                String.format(DeleteCommandParser.MESSAGE_UNKNOWN_FIELD, "n/"));
     }
 
     @Test
