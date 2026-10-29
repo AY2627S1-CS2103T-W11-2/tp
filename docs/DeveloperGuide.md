@@ -230,7 +230,7 @@ name-and-company prompt plus an immutable `CommandResult.viewChoices` snapshot d
 
 `LogicManager` retains those choices and their prompt for the next numbered reply. Invalid replies report the valid
 range followed by the numbered prompt again, keeping the choices available. A successful selection filters to the
-selected contact and returns `CommandResult.showingContact(...)` to render its `ContactCard`. Another successfully
+selected contact and returns `CommandResult.showingContact(...)` to render its `ContactCard`. Opening `help` (including via `F1`) appends the pending prompt beneath the help text and retains the pending choices, whereas any other successfully
 parsed command clears the pending choices, even if execution fails, whereas invalid command syntax preserves them.
 If the selected record has changed or disappeared, the user must run `view` again. Each `LogicManager` holds its own
 selection state. Viewing and numbered replies bypass storage writes, because neither changes contact data.
@@ -897,6 +897,8 @@ Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibit
 1. With two stored contacts named `Alicia Tan` at different companies and with different emails, run `view n/Alicia Tan`.<br>
    Expected: Numbered company choices appear. Enter `0`, then `3`, then `2`.<br>
    Expected: The invalid replies (`0` and `3`) show `Please enter a number between 1 and 2.` followed by the numbered choices again; `2` displays the second contact's card.
+1. Run `view n/Alicia Tan`, press `F1` (or run `help`), then enter `1`.<br>
+   Expected: Help is shown with the numbered choices preserved at the bottom, and `1` displays the first contact's card.
 1. Run `view n/Alicia Tan`, then `list`, then `2`.<br>
    Expected: `list` cancels the pending choice; the final `2` is rejected as an unknown command rather than treated as a view selection.
 

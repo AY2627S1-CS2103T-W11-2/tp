@@ -260,6 +260,15 @@ public class MainWindowTest {
             assertNoContactPanels(root);
             savePreview(root, 1180, 820, "cli-view.png");
             enterCommand(root, "view n/Alicia Tan");
+            enterCommand(root, "view n/Alicia Tan");
+            input(root).fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.F1,
+                    false, false, false, false));
+            assertTrue(output(root).contains("BoothManagerPro commands"));
+            assertTrue(output(root).contains("1. Alicia Tan at TechNova"));
+            assertTrue(output(root).contains("2. Alicia Tan at Other Ltd"));
+            enterCommand(root, "1");
+            assertTrue(output(root).contains("Email: first@example.com"));
+            enterCommand(root, "view n/Alicia Tan");
             enterCommand(root, "find");
             enterCommand(root, "1");
             assertTrue(output(root).contains("Alicia Tan at TechNova"));
