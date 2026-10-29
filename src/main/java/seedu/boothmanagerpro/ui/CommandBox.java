@@ -1,6 +1,5 @@
 package seedu.boothmanagerpro.ui;
 
-import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_COMPANY;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_FOLLOW_UP;
@@ -28,7 +27,6 @@ import seedu.boothmanagerpro.logic.commands.AddCommand;
 import seedu.boothmanagerpro.logic.commands.ClearCommand;
 import seedu.boothmanagerpro.logic.commands.CommandResult;
 import seedu.boothmanagerpro.logic.commands.DeleteCommand;
-import seedu.boothmanagerpro.logic.commands.EditCommand;
 import seedu.boothmanagerpro.logic.commands.ExitCommand;
 import seedu.boothmanagerpro.logic.commands.FindCommand;
 import seedu.boothmanagerpro.logic.commands.HelpCommand;
@@ -53,7 +51,6 @@ public class CommandBox extends UiPart<Region> {
             AddCommand.COMMAND_WORD,
             ClearCommand.COMMAND_WORD,
             DeleteCommand.COMMAND_WORD,
-            EditCommand.COMMAND_WORD,
             ExitCommand.COMMAND_WORD,
             FindCommand.COMMAND_WORD,
             HelpCommand.COMMAND_WORD,
@@ -70,8 +67,6 @@ public class CommandBox extends UiPart<Region> {
             AddCommand.COMMAND_WORD, List.of(PREFIX_NAME.toString(), PREFIX_COMPANY.toString(),
                     PREFIX_EMAIL.toString(), PREFIX_PHONE.toString(), PREFIX_METHOD.toString(),
                     PREFIX_STATUS.toString(), PREFIX_FOLLOW_UP.toString(), PREFIX_TAG.toString()),
-            EditCommand.COMMAND_WORD, List.of(PREFIX_NAME.toString(), PREFIX_PHONE.toString(),
-                    PREFIX_EMAIL.toString(), PREFIX_ADDRESS.toString(), PREFIX_TAG.toString()),
             FindCommand.COMMAND_WORD, List.of(PREFIX_NAME.toString(), PREFIX_COMPANY.toString(),
                     PREFIX_EMAIL.toString(), PREFIX_PHONE.toString(), PREFIX_TAG.toString(),
                     PREFIX_FOLLOW_UP.toString()),

@@ -36,7 +36,7 @@ public class HelpCommandTest {
                 + "   Description: Toggles one or more tags on a contact using their full name or displayed index.\n"
                 + "   Format:      tag NAME_OR_INDEX t/TAG [t/TAG]...\n"
                 + "   Example:     tag Alicia Tan t/high-priority t/sponsor"));
-        assertTrue(SHOWING_HELP_MESSAGE.contains("11. EXIT\n"
+        assertTrue(SHOWING_HELP_MESSAGE.contains("10. EXIT\n"
                 + "   Description: Closes BoothManagerPro.\n"
                 + "   Format:      exit\n"
                 + "   Example:     exit"));

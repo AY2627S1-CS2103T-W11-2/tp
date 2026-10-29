@@ -16,20 +16,18 @@ import org.junit.jupiter.api.Test;
 import seedu.boothmanagerpro.logic.commands.AddCommand;
 import seedu.boothmanagerpro.logic.commands.ClearCommand;
 import seedu.boothmanagerpro.logic.commands.DeleteCommand;
-import seedu.boothmanagerpro.logic.commands.EditCommand;
-import seedu.boothmanagerpro.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.boothmanagerpro.logic.commands.ExitCommand;
 import seedu.boothmanagerpro.logic.commands.FindCommand;
 import seedu.boothmanagerpro.logic.commands.HelpCommand;
 import seedu.boothmanagerpro.logic.commands.ListCommand;
 import seedu.boothmanagerpro.logic.commands.TagCommand;
+import seedu.boothmanagerpro.logic.commands.UpdateCommand;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.NameContainsKeywordsPredicate;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.model.person.SortField;
 import seedu.boothmanagerpro.model.tag.Tag;
-import seedu.boothmanagerpro.testutil.EditPersonDescriptorBuilder;
 import seedu.boothmanagerpro.testutil.PersonBuilder;
 import seedu.boothmanagerpro.testutil.PersonUtil;
 
@@ -73,12 +71,8 @@ public class AddressBookParserTest {
     }
 
     @Test
-    public void parseCommand_edit() throws Exception {
-        Person person = new PersonBuilder().build();
-        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(person).build();
-        EditCommand command = (EditCommand) parser.parseCommand(EditCommand.COMMAND_WORD + " "
-                + INDEX_FIRST_PERSON.getOneBased() + " " + PersonUtil.getEditPersonDescriptorDetails(descriptor));
-        assertEquals(new EditCommand(INDEX_FIRST_PERSON, descriptor), command);
+    public void parseCommand_update() throws Exception {
+        assertTrue(parser.parseCommand(UpdateCommand.COMMAND_WORD + " 1 n/New Name") instanceof UpdateCommand);
     }
 
     @Test

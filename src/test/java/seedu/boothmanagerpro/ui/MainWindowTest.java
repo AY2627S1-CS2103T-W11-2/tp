@@ -186,8 +186,8 @@ public class MainWindowTest {
             assertEquals(2, foundCards.getChildren().size(), "2 cards and no total, as the heading has the count");
             savePreview(root, 1180, 820, "cli-find.png");
             savePreview(root, 860, 640, "cli-compact.png");
-            enterCommand(root, "edit 2 p/91234567");
-            assertTrue(output(root).startsWith("Edited contact: David Li"));
+            enterCommand(root, "update 2 p/91234567");
+            assertTrue(output(root).startsWith("Updated David Li"));
             enterCommand(root, "find Alex David");
             assertTrue(output(root).contains("Phone: 91234567"));
             enterCommand(root, "delete 2");
@@ -334,7 +334,7 @@ public class MainWindowTest {
 
             commandInput.setText("e");
             pressKey(commandInput, KeyCode.TAB);
-            assertEquals("e", commandInput.getText());
+            assertEquals("exit ", commandInput.getText());
 
             commandInput.setText("not-a-command");
             pressKey(commandInput, KeyCode.TAB);
@@ -420,9 +420,9 @@ public class MainWindowTest {
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("find n/", commandInput.getText());
 
-            commandInput.setText("edit 1 a");
+            commandInput.setText("update 1 c");
             pressKey(commandInput, KeyCode.TAB);
-            assertEquals("edit 1 a/", commandInput.getText());
+            assertEquals("update 1 c/", commandInput.getText());
 
             commandInput.setText("view n");
             pressKey(commandInput, KeyCode.TAB);
