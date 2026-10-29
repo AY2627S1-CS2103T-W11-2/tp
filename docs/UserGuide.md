@@ -337,37 +337,37 @@ tag 1 t/technology t/keynote
 
 ### Finding and filtering contacts: `find`
 
-Use prefixed criteria to match a complete name or a whole name word, and complete values for other fields:
+Use prefixed criteria to match a complete name or a whole name word, full or partial company/email/phone values, and complete method, status, tag, or follow-up date values:
 
-Format: `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG] [f/YYYYMMDD]...`
+Format: `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] [s/STATUS] [t/TAG] [f/YYYYMMDD]...`
 
-* Supply at least one non-empty criterion. Each value must follow the same format as when adding a contact;
-  phone values accept spaces and hyphens, just as `add` does. Tabs inside phone numbers are not accepted.
-* Names, companies, emails, and tags ignore case and surrounding whitespace. Phone comparisons ignore spaces and hyphens.
+* Supply at least one non-empty criterion. Phone search values accept 1 to 15 digits with optional leading `+`, spaces, and hyphens (tabs inside phone numbers are not accepted); email search values accept full or partial email addresses and domains (such as `@technova.com`).
+* Names, companies, emails, methods, statuses, and tags ignore case and surrounding whitespace. Phone comparisons ignore spaces and hyphens.
 * Name criteria (`n/`) match a complete name or a single whole name word, ignoring case and repeated spaces.
   For example, `find n/Alex` matches `Alex Yeo` and `Alex Yeoh`, but not `Alexandra Tan`.
   A multi-word value such as `n/Alex Yeo` must match the complete name.
 * Name, company, and tag searches use Unicode-aware case-insensitive matching. For example, `find n/ipek`
-  matches the word `İpek`, and `find c/οσ` matches the complete company value `ΟΣ`.
+  matches the word `İpek`, and `find c/οσ` matches `ΟΣ` or `ΟΣ Labs`.
 * Repeat a prefix for alternatives (OR). Different fields must all match (AND).
 * Tags match complete tag names; any matching tag satisfies that field.
 * Duplicate criteria have no effect. Results always search all stored contacts, not just the current displayed list.
 * Unknown prefixes and empty/invalid values are rejected without changing the filter or stored contacts.
 * `find` prints the number of matches followed by each matching contact's number, name, company, email, phone, method, enquiry status, follow-up date, and tags. No preliminary `list` command is needed.
 * With no matches, it prints `0 contact(s) found.` and no contact details.
-* Company (`c/`) matches the complete stored company name. Contacts saved without a company do not match this field.
+* Company (`c/`), email (`e/`), and phone (`p/`) match full or partial values (for example, `find c/TechNova` matches `TechNova Solutions`, `find e/@technova.com` matches any `@technova.com` address, and `find p/8743` matches `87438807` or `+6587438807`). Contacts saved without a company do not match `c/`.
+* Contact method (`m/`) matches `email`, `phone`, or `other` (ignoring case); contacts without a specified contact method do not match `m/`.
+* Enquiry status (`s/`) matches `Needs follow-up`, `In progress`, `Completed`, or `Cancelled` (ignoring case).
 * Follow-up date (`f/`) matches the exact stored calendar date in `YYYYMMDD` format, using the same date validation as `add` and `update`. Contacts without a follow-up date do not match. Past dates are accepted; date ranges and overdue searches are not supported.
 * Repeat `f/` to match any of the supplied dates (OR), or combine it with another field to require both (AND). An empty `f/` is invalid in `find`; it does not search for contacts without dates. Invalid dates are rejected without changing the existing results or saved data.
 * To find contacts scheduled for today, supply today's date explicitly, for example `find f/20261029` on 29 October 2026. This matches that date only; it does not include earlier dates or check enquiry status.
-* Enquiry status (`s/`) and contact method (`m/`) are not searchable.
 * `list` restores all contacts. A result count of zero means no contacts matched.
 
 Examples:
 
 * `find n/Alicia Tan` matches the complete name; `find n/Alicia` matches any contact with the whole name word `Alicia`.
 * `find n/Alicia Tan n/Ben Lim t/technology` finds either named contact if it also has the `technology` tag.
-* `find e/alicia@technova.com p/9123-4567` requires both email and phone to match.
-* `find c/TechNova Pte Ltd t/high-priority` requires both company and tag to match.
+* `find e/@technova.com p/9123` finds contacts with a `@technova.com` email whose phone contains `9123`.
+* `find c/TechNova s/In progress m/email` finds contacts at companies containing `TechNova` whose enquiry is in progress and whose contact method is `email`.
 * `find t/technology t/food` returns contacts tagged with either label.
 * `find f/20261025` returns contacts whose follow-up date is 25 October 2026.
 * `find f/20261025 f/20261026 t/high-priority` returns high-priority contacts due on either date.
@@ -453,7 +453,7 @@ Furthermore, certain edits can cause BoothManagerPro to behave in unexpected way
 
 ### Planned features [Coming soon]
 
-Searching enquiry status, reminders, data archiving, CSV import/export, and undo remain planned for future iterations. Exact follow-up-date search is available through `find f/YYYYMMDD`.
+Reminders, data archiving, CSV import/export, and undo remain planned for future iterations. Exact follow-up-date search is available through `find f/YYYYMMDD`.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -479,7 +479,7 @@ Action | Format, Examples
 **Delete** | `delete NAME` or `delete INDEX`<br> e.g., `delete Alex Yeoh`
 **Update** | `update NAME_OR_INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...`<br> e.g., `update Alicia Tan s/Completed f/`
 **Tag** | `tag NAME_OR_INDEX t/TAG [t/TAG]...`<br> e.g., `tag Alicia Tan t/high-priority t/sponsor`
-**Find** | `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG] [f/YYYYMMDD]...` or `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find f/20261025 t/high-priority`
+**Find** | `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] [s/STATUS] [t/TAG] [f/YYYYMMDD]...` or `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find f/20261025 t/high-priority`
 **List** | `list`, `list o/name`, `list o/company`, or `list o/status`<br> e.g., `list o/status`
 **View** | `view n/NAME`<br> e.g., `view n/Alicia Tan`; reply `2` if prompted to choose between matches
 **Help** | `help`

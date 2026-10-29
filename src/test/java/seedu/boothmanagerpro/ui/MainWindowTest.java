@@ -474,6 +474,20 @@ public class MainWindowTest {
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("find f/", commandInput.getText());
 
+            commandInput.setText("find s");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("find s/", commandInput.getText());
+            commandInput.appendText("In");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("find s/In progress", commandInput.getText());
+
+            commandInput.setText("find m");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("find m/", commandInput.getText());
+            commandInput.appendText("em");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("find m/email", commandInput.getText());
+
             commandInput.setText("fi");
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("find ", commandInput.getText());

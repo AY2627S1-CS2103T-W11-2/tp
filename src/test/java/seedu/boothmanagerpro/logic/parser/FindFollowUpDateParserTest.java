@@ -48,6 +48,9 @@ public class FindFollowUpDateParserTest {
             assertParseFailure(parser, input, FindCommandParser.MESSAGE_EMPTY_VALUE);
         }
         assertParseFailure(parser, "Alicia f/20261025", FindCommandParser.MESSAGE_UNPREFIXED_VALUE);
-        assertParseFailure(parser, "f/20261025 s/Completed", FindCommandParser.MESSAGE_UNSUPPORTED_FIELD);
+        assertParseFailure(parser, "f/20261025 x/Completed", FindCommandParser.MESSAGE_UNSUPPORTED_FIELD);
+        assertParseSuccess(parser, "f/20261025 s/Completed m/email", new FindCommand(
+                new ContactMatchesFieldsPredicate(Map.of(
+                        "f/", Set.of("20261025"), "s/", Set.of("completed"), "m/", Set.of("email")))));
     }
 }

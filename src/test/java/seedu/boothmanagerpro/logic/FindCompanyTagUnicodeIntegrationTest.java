@@ -34,13 +34,15 @@ public class FindCompanyTagUnicodeIntegrationTest {
     }
 
     @Test
-    public void find_unicodeCriteria_keepWholeValuesAndOrAndRules() throws Exception {
+    public void find_unicodeCriteria_matchPartialCompanyWholeTagsAndOrAndRules() throws Exception {
         Person person = new PersonBuilder().withCompany("\u039f\u03a3 Labs")
                 .withTags("\u039f\u03a3", "high-priority").build();
         ModelManager model = new ModelManager();
         model.addPerson(person);
         FindCommandParser parser = new FindCommandParser();
         parser.parse("c/\u03bf\u03c3").execute(model);
+        assertEquals(List.of(person), List.copyOf(model.getFilteredPersonList()));
+        parser.parse("c/Absent").execute(model);
         assertEquals(List.of(), List.copyOf(model.getFilteredPersonList()));
         parser.parse("t/\u03bf").execute(model);
         assertEquals(List.of(), List.copyOf(model.getFilteredPersonList()));

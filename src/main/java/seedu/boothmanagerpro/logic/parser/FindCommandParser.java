@@ -4,7 +4,10 @@ import static seedu.boothmanagerpro.logic.Messages.MESSAGE_INVALID_COMMAND_FORMA
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_COMPANY;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_EMAIL;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_FOLLOW_UP;
+import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_METHOD;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_NAME;
+import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_STATUS;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.boothmanagerpro.logic.parser.ContactFieldParser.parseValue;
 
@@ -22,19 +25,30 @@ import seedu.boothmanagerpro.logic.commands.FindCommand;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 import seedu.boothmanagerpro.model.person.Company;
 import seedu.boothmanagerpro.model.person.ContactMatchesFieldsPredicate;
+import seedu.boothmanagerpro.model.person.ContactMethod;
 import seedu.boothmanagerpro.model.person.Email;
+import seedu.boothmanagerpro.model.person.EnquiryStatus;
 import seedu.boothmanagerpro.model.person.FollowUpDate;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.NameContainsKeywordsPredicate;
+import seedu.boothmanagerpro.model.person.Phone;
 import seedu.boothmanagerpro.model.tag.Tag;
 
-/** Parses legacy name keywords or prefixed name and complete-field criteria. */
+/** Parses legacy name keywords or prefixed contact search criteria. */
 public class FindCommandParser implements Parser<FindCommand> {
     public static final String MESSAGE_UNSUPPORTED_FIELD =
-            "Unsupported search field. Use n/, c/, e/, p/, t/, or f/. Status search is not available yet.";
+            "Unsupported search field. Use n/, c/, e/, p/, m/, s/, f/, or t/.";
     public static final String MESSAGE_EMPTY_VALUE = "Search values cannot be empty.";
     public static final String MESSAGE_UNPREFIXED_VALUE =
-            "Every exact-match search value must use a supported field prefix.";
+            "Every field search value must use a supported field prefix.";
+    public static final String MESSAGE_INVALID_EMAIL_SEARCH =
+            "Email search value is invalid. Supply a full or partial email or domain "
+            + "(e.g. alicia@technova.com or @technova.com).";
+    public static final String MESSAGE_INVALID_PHONE_SEARCH =
+            "Phone search value must contain 1 to 15 digits, optionally starting with +.";
+    private static final String EMAIL_SEARCH_REGEX = "[A-Za-z0-9+_.-]*(?:@[A-Za-z0-9.-]*)?";
+    private static final String PHONE_CHARACTERS_REGEX = "\\+?[0-9 -]*";
+    private static final String PHONE_SEARCH_DIGITS_REGEX = "\\+?[0-9]{1,15}";
     private static final Logger logger = LogsCenter.getLogger(FindCommandParser.class);
 
     @Override
@@ -71,8 +85,10 @@ public class FindCommandParser implements Parser<FindCommand> {
         switch (field) {
             case "n/" -> validateCriterion(PREFIX_NAME, value, Name::new);
             case "c/" -> validateCriterion(PREFIX_COMPANY, value, Company::new);
-            case "e/" -> validateCriterion(PREFIX_EMAIL, value, Email::new);
+            case "e/" -> validateEmailCriterion(value);
             case "p/" -> validatePhoneCriterion(value);
+            case "m/" -> validateCriterion(PREFIX_METHOD, value, ContactMethod::fromString);
+            case "s/" -> validateCriterion(PREFIX_STATUS, value, EnquiryStatus::fromString);
             case "t/" -> validateCriterion(PREFIX_TAG, value, Tag::new);
             case "f/" -> validateCriterion(PREFIX_FOLLOW_UP, value, FollowUpDate::new);
             default -> throw new ParseException(MESSAGE_UNSUPPORTED_FIELD);
@@ -87,9 +103,27 @@ public class FindCommandParser implements Parser<FindCommand> {
         parseValue(prefix, value, constructor);
     }
 
+    private void validateEmailCriterion(String value) throws ParseException {
+        requireSearchValue(value);
+        String trimmed = value.strip();
+        if (trimmed.length() > Email.MAX_LENGTH || trimmed.equals("@") || !trimmed.matches(EMAIL_SEARCH_REGEX)) {
+            throw new ParseException(String.format(
+                    ContactFieldParser.MESSAGE_INVALID_VALUE, PREFIX_EMAIL, MESSAGE_INVALID_EMAIL_SEARCH));
+        }
+    }
+
     private void validatePhoneCriterion(String value) throws ParseException {
         requireSearchValue(value);
-        ContactFieldParser.parsePhone(value);
+        String trimmed = value.strip();
+        if (!trimmed.matches(PHONE_CHARACTERS_REGEX)) {
+            throw new ParseException(String.format(
+                    ContactFieldParser.MESSAGE_INVALID_VALUE, PREFIX_PHONE, ParserUtil.MESSAGE_PHONE_CHARACTERS));
+        }
+        String normalised = Phone.normalize(trimmed);
+        if (trimmed.length() > Phone.MAX_INPUT_LENGTH || !normalised.matches(PHONE_SEARCH_DIGITS_REGEX)) {
+            throw new ParseException(String.format(
+                    ContactFieldParser.MESSAGE_INVALID_VALUE, PREFIX_PHONE, MESSAGE_INVALID_PHONE_SEARCH));
+        }
     }
 
     private void requireSearchValue(String value) throws ParseException {

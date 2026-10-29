@@ -12,7 +12,8 @@ import seedu.boothmanagerpro.commons.util.StringUtil;
 import seedu.boothmanagerpro.model.tag.Tag;
 
 /**
- * Matches full names or name words and complete other fields, with OR within a field and AND across fields.
+ * Matches full names or name words, partial or full companies/emails/phones, and complete methods/statuses/tags/dates,
+ * with OR within a field and AND across fields.
  * Criteria are copied so that changes to the caller's collections cannot affect a search.
  */
 public class ContactMatchesFieldsPredicate implements Predicate<Person> {
@@ -72,9 +73,14 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
         return switch (field) {
             case "n/" -> matchesName(person.getName().fullName, values);
             case "c/" -> person.getCompany()
-                    .map(company -> values.contains(normalise(field, company.value))).orElse(false);
-            case "e/" -> values.contains(normalise(field, person.getEmail().value));
-            case "p/" -> values.contains(normalise(field, person.getPhone().value));
+                    .map(company -> containsAnySubstring(normalise(field, company.value), values))
+                    .orElse(false);
+            case "e/" -> containsAnySubstring(normalise(field, person.getEmail().value), values);
+            case "p/" -> containsAnySubstring(normalise(field, person.getPhone().value), values);
+            case "m/" -> person.getContactMethod()
+                    .map(method -> values.contains(normalise(field, method.toString())))
+                    .orElse(false);
+            case "s/" -> values.contains(normalise(field, person.getEnquiryStatus().toString()));
             case "t/" -> person.getTags().stream()
                     .anyMatch(tag -> values.contains(normalise(field, tag.tagName)));
             case "f/" -> person.getFollowUpDate()
@@ -82,6 +88,10 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
                             || values.contains(date.toString().toLowerCase(Locale.ROOT))).orElse(false);
             default -> false;
         };
+    }
+
+    private static boolean containsAnySubstring(String fieldValue, Set<String> queries) {
+        return queries.stream().anyMatch(fieldValue::contains);
     }
 
     private boolean matchesName(String fullName, Set<String> values) {

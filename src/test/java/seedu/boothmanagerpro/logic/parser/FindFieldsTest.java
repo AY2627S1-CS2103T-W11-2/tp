@@ -28,9 +28,12 @@ import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.UserPrefs;
 import seedu.boothmanagerpro.model.person.Company;
 import seedu.boothmanagerpro.model.person.ContactMatchesFieldsPredicate;
-import seedu.boothmanagerpro.model.person.Email;
+import seedu.boothmanagerpro.model.person.ContactMethod;
+import seedu.boothmanagerpro.model.person.EnquiryStatus;
 import seedu.boothmanagerpro.model.person.Name;
+import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.model.tag.Tag;
+import seedu.boothmanagerpro.testutil.PersonBuilder;
 
 /** Exercises field parsing, matching, and model interaction together. */
 public class FindFieldsTest {
@@ -53,10 +56,10 @@ public class FindFieldsTest {
 
     @Test
     public void parse_invalidFields_rejectsInput() {
-        for (String input : List.of("s/new", "s/", "x/foo", "x/ ", "n/Alice Pauline x/foo")) {
+        for (String input : List.of("x/foo", "x/ ", "a/123", "o/name", "n/Alice Pauline x/foo")) {
             assertParseFailure(parser, input, FindCommandParser.MESSAGE_UNSUPPORTED_FIELD);
         }
-        for (String input : List.of("c/", "n/", "e/ ", "p/ ", "t/", "n/Alice Pauline t/")) {
+        for (String input : List.of("c/", "n/", "e/ ", "p/ ", "m/", "s/ ", "t/", "n/Alice Pauline t/")) {
             assertParseFailure(parser, input, FindCommandParser.MESSAGE_EMPTY_VALUE);
         }
         assertParseFailure(parser, "Alice n/Alice Pauline", FindCommandParser.MESSAGE_UNPREFIXED_VALUE);
@@ -66,15 +69,22 @@ public class FindFieldsTest {
     public void parse_invalidValues_rejectsInput() {
         assertParseFailure(parser, "n/@", "Invalid value for n/: " + Name.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "c/" + "A".repeat(101), "Invalid value for c/: " + Company.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, "e/not-an-email", "Invalid value for e/: " + Email.MESSAGE_CONSTRAINTS);
+        for (String badEmail : List.of("e/@", "e/bad email", "e/a@@b.com", "e/a!b", "e/" + "a".repeat(255))) {
+            assertParseFailure(parser, badEmail,
+                    "Invalid value for e/: " + FindCommandParser.MESSAGE_INVALID_EMAIL_SEARCH);
+        }
         assertParseFailure(parser, "p/1234\t567",
                 "Invalid value for p/: Phone number can only contain digits, spaces, hyphens, and a + at the start.");
         assertParseFailure(parser, "p/abc",
                 "Invalid value for p/: Phone number can only contain digits, spaces, hyphens, and a + at the start.");
         assertParseFailure(parser, "p/(65) 6123-4567",
                 "Invalid value for p/: Phone number can only contain digits, spaces, hyphens, and a + at the start.");
-        assertParseFailure(parser, "p/12",
-                "Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +.");
+        for (String badPhone : List.of("p/+", "p/---", "p/1234567890123456", "p/" + "1  ".repeat(11))) {
+            assertParseFailure(parser, badPhone,
+                    "Invalid value for p/: " + FindCommandParser.MESSAGE_INVALID_PHONE_SEARCH);
+        }
+        assertParseFailure(parser, "m/fax", "Invalid value for m/: " + ContactMethod.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "s/new", "Invalid value for s/: " + EnquiryStatus.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "t/tag/with/slash", "Invalid value for t/: " + Tag.MESSAGE_CONSTRAINTS);
     }
 
@@ -147,10 +157,63 @@ public class FindFieldsTest {
     }
 
     @Test
+    public void execute_partialCompanyEmailPhoneAndStatusMethodFilters_matchExpectedContacts() throws Exception {
+        Person alicia = new PersonBuilder().withName("Alicia Tan").withCompany("TechNova Solutions")
+                .withEmail("alicia@technova.com").withPhone("87438807")
+                .withContactMethod("email").withEnquiryStatus("In progress").build();
+        Person ben = new PersonBuilder().withName("Ben Lim").withCompany("TechNova Pte Ltd")
+                .withEmail("ben@technova.com").withPhone("+6591234567")
+                .withContactMethod("phone").withEnquiryStatus("Completed").build();
+        Person chloe = new PersonBuilder().withName("Chloe Ng").withCompany("GreenWorks")
+                .withEmail("chloe@greenworks.org").withPhone("98765432")
+                .withEnquiryStatus("Needs follow-up").build();
+        Model model = new ModelManager();
+        model.addPerson(alicia);
+        model.addPerson(ben);
+        model.addPerson(chloe);
+
+        // Partial company search
+        parser.parse("c/TechNova").execute(model);
+        assertEquals(List.of(alicia, ben), model.getFilteredPersonList());
+        parser.parse("c/Solutions").execute(model);
+        assertEquals(List.of(alicia), model.getFilteredPersonList());
+
+        // Domain and partial email search
+        parser.parse("e/@technova.com").execute(model);
+        assertEquals(List.of(alicia, ben), model.getFilteredPersonList());
+        parser.parse("e/alicia@").execute(model);
+        assertEquals(List.of(alicia), model.getFilteredPersonList());
+        parser.parse("e/greenworks").execute(model);
+        assertEquals(List.of(chloe), model.getFilteredPersonList());
+
+        // Partial phone search (including country code, spaces, and hyphens)
+        parser.parse("p/8743").execute(model);
+        assertEquals(List.of(alicia), model.getFilteredPersonList());
+        parser.parse("p/+65 9123").execute(model);
+        assertEquals(List.of(ben), model.getFilteredPersonList());
+        parser.parse("p/9123-45").execute(model);
+        assertEquals(List.of(ben), model.getFilteredPersonList());
+
+        // Enquiry status (s/) and contact method (m/) filters with OR/AND and absent-method handling
+        parser.parse("s/in progress").execute(model);
+        assertEquals(List.of(alicia), model.getFilteredPersonList());
+        parser.parse("s/In progress s/Completed").execute(model);
+        assertEquals(List.of(alicia, ben), model.getFilteredPersonList());
+        parser.parse("m/EMAIL").execute(model);
+        assertEquals(List.of(alicia), model.getFilteredPersonList());
+        parser.parse("m/email m/phone").execute(model);
+        assertEquals(List.of(alicia, ben), model.getFilteredPersonList());
+        parser.parse("c/TechNova s/Completed m/phone").execute(model);
+        assertEquals(List.of(ben), model.getFilteredPersonList());
+        parser.parse("s/Cancelled").execute(model);
+        assertTrue(model.getFilteredPersonList().isEmpty());
+    }
+
+    @Test
     public void parse_invalidInputPreservesExistingResultsAndContacts() throws Exception {
         Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         parser.parse("n/Alice Pauline").execute(model);
-        for (String input : List.of("n/", "e/not-an-email", "x/test", "s/new")) {
+        for (String input : List.of("n/", "e/bad email", "x/test", "s/new", "m/fax")) {
             assertThrows(ParseException.class, () -> parser.parse(input).execute(model));
             assertEquals(List.of(ALICE), model.getFilteredPersonList());
             assertEquals(getTypicalAddressBook(), model.getAddressBook());

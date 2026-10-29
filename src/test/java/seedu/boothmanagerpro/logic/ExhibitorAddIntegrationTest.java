@@ -124,6 +124,8 @@ public class ExhibitorAddIntegrationTest {
         assertEquals("TechNova Pte Ltd", contact.getCompany().orElseThrow().value);
         assertEquals(ContactMethod.EMAIL, contact.getContactMethod().orElseThrow());
         logic.execute("find c/TechNova");
+        assertEquals(1, model.getFilteredPersonList().size());
+        logic.execute("find c/MissingCo");
         assertTrue(model.getFilteredPersonList().isEmpty());
         logic.execute("find c/TechNova Pte Ltd c/Other Ltd");
         assertEquals(2, model.getFilteredPersonList().size());

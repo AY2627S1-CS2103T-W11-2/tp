@@ -247,7 +247,7 @@ All contact workflows share `Person` and its validated value objects.
 | Name | `Name` owns validation: 1-80 Unicode code points, at least one letter, supported punctuation, and `s/o` or `d/o` between words. `view` uses the same validator as `add` and prefixed `find`. |
 | Company | `Optional<Company>`; required by `add`, absent in legacy records. `find c/` matches the complete value ignoring case. |
 | Email / phone | Stored lowercase email and normalised phone; search validates through the same value objects as `add`. |
-| Contact method | `Optional<ContactMethod>`; `email`, `phone`, or `other`. An absent method is shown as `Not specified`. Not a search criterion. |
+| Contact method | `Optional<ContactMethod>`; `email`, `phone`, or `other`. An absent method is shown as `Not specified` and does not match `find m/`. |
 | Follow-up date | `Optional<FollowUpDate>`; validated and stored in JSON as `YYYYMMDD`, formatted as `d MMM uuuu` (e.g. `25 Oct 2026`) for display, and shown as `None` when absent. |
 | Tags | Case-insensitive duplicates collapse on `add` and `update` while preserving display casing; consecutive spaces collapse. Search ignores case and matches whole tags. `add`, `update`, `tag`, storage, and command feedback preserve stored order. Empty tags show `None` in text and on cards. |
 | Storage | JSON stores `company`, `contactMethod`, `enquiryStatus`, and `followUpDate`; absent optional fields become empty optionals or default to `Needs follow-up`. The legacy address remains for compatibility. |
@@ -258,7 +258,7 @@ All contact workflows share `Person` and its validated value objects.
 | Delete | Full-name match across all records, or index in the displayed list. Ambiguous names require an index; feedback prints the deleted contact's exhibitor details without its legacy address. |
 | View | Whole-name keywords with OR; a unique exact full name shows that contact's card directly, otherwise multiple matches prompt for a numbered selection. |
 | List | Restores every contact and displays numbered `ContactCard`s plus total; optionally sorts by name, company, or enquiry status (`o/name`, `o/company`, `o/status`); rejects other arguments. |
-| Find | Full names or whole name words and complete other field values, OR within each field and AND across fields; unprefixed keywords retain name-word matching. |
+| Find | Full names or whole name words (`n/`), partial or full company/email/phone values (`c/`, `e/`, `p/`), and complete method, status, tag, and follow-up date values (`m/`, `s/`, `t/`, `f/`), OR within each field and AND across fields; unprefixed keywords retain name-word matching. |
 
 `update` preserves unmodified fields, rejects unsupported prefixes, and replaces tags in input order; `tag` toggles
 individual tags while preserving all other fields. `Messages.formatContactDetails()` supplies the shared text format,
@@ -394,20 +394,20 @@ If a command or save fails, `LogicManager`'s rollback mechanism restores the act
 ### Finding and filtering contacts
 
 `find` supports legacy unprefixed name keywords (`find KEYWORD...`) as well as prefixed criteria for full names or
-whole name words (`n/`), and complete company (`c/`), email (`e/`), phone (`p/`), tag (`t/`), and follow-up date
-(`f/YYYYMMDD`) values, with OR within a field and AND across fields.
+whole name words (`n/`), partial or complete company (`c/`), email (`e/`), and phone (`p/`) values, and complete
+contact method (`m/`), enquiry status (`s/`), tag (`t/`), and follow-up date (`f/YYYYMMDD`) values, with OR within a
+field and AND across fields.
 
 `FindCommandParser` routes unprefixed queries to `NameContainsKeywordsPredicate` for compatibility, and builds a
 `ContactMatchesFieldsPredicate` when field prefixes are supplied. It rejects empty arguments, unprefixed text preceding
-field prefixes, blank field values, and unsupported prefixes such as `s/` and `m/` (enquiry-status filtering is
-planned as a future enhancement; see [Appendix: Planned Enhancements](#appendix-planned-enhancements)). Name, company, and tag criteria apply NFC Unicode normalisation and per-code-point case folding consistent
+field prefixes, blank field values, and unsupported prefixes. Name, company, and tag criteria apply NFC Unicode normalisation and per-code-point case folding consistent
 with `String#equalsIgnoreCase`. Name criteria collapse repeated whitespace and match either the complete name or any
-whole name word, whereas stored company and tag spelling is preserved and matched as complete values. `FindCommand`
+whole name word; company, email, and phone criteria match normalised substrings; method, status, tag, and date criteria
+match complete values. `FindCommand`
 applies the predicate to the full address book through `Model#updateFilteredPersonList` and returns
 `CommandResult.showingContacts(...)`, rendering numbered `ContactCard`s directly without requiring a preliminary `list`.
 
-For prefixed criteria (`n/`, `c/`, `e/`, `p/`, `t/`, and `f/`), `FindCommandParser` validates values through
-`ContactFieldParser#parseValue` and `ContactFieldParser#parsePhone` so invalid field values consistently name the
+For prefixed criteria (`n/`, `c/`, `e/`, `p/`, `m/`, `s/`, `t/`, and `f/`), `FindCommandParser` validates values so invalid field values consistently name the
 offending prefix (`Invalid value for <prefix>: ...`) before updating the filter. `ContactMatchesFieldsPredicate` compares the canonical `YYYYMMDD`
 date string (`FollowUpDate#toIsoDate()`) against each contact's optional follow-up date; contacts without a follow-up
 date never match. Repeated `f/` values are deduplicated and combined with OR, while `f/` combined with `n/`, `c/`,
@@ -932,11 +932,11 @@ Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibit
    * `add n/Ben Lim c/GreenWorks e/ben@example.com p/93456789 t/booth`
 1. Whole-word vs full-name matching: Run `find n/Alex`, then `find n/Alex Yeo`.<br>
    Expected: Both match only `Alex Yeo` (`Alexandra Tan` is not matched by whole-word `Alex`).
-1. Complete field matching: Run `find c/technova`, `find e/BEN@example.com`, `find p/9123-4567`, and `find t/VIP`.<br>
-   Expected: `c/technova` and `t/VIP` return the two `TechNova` contacts; `e/` returns `Ben Lim`; `p/` returns `Alex Yeo`. Partial `find c/Tech` returns `0 contact(s) found.`
+1. Partial and complete field matching: Run `find c/Tech`, `find e/@example.com`, `find p/9123`, `find s/Needs follow-up`, and `find t/VIP`.<br>
+   Expected: `c/Tech` and `t/VIP` return the two `TechNova` contacts; `e/@example.com` and `s/Needs follow-up` return all three contacts; `p/9123` returns `Alex Yeo`.
 1. Exact follow-up date and OR/AND combinations: Run `find f/20261025`, then `find f/20261025 f/20261026`, then `find f/20261025 f/20261026 t/booth`.<br>
    Expected: First returns `Alex Yeo` (1 match; undated `Ben Lim` never matches `f/`); second returns both dated contacts (OR within `f/`); third returns only `Alexandra Tan` (AND across `f/` and `t/`).
-1. Invalid search inputs: With the 1-contact result above displayed, try `find`, `find f/`, `find f/20230229`, `find f/2026-10-25`, `find s/In progress`, and `find Alex t/vip`.<br>
+1. Invalid search inputs: With the 1-contact result above displayed, try `find`, `find f/`, `find f/20230229`, `find f/2026-10-25`, `find s/Unknown`, `find x/test`, and `find Alex t/vip`.<br>
    Expected: Each command shows an error without modifying saved contacts or the current filtered index set.
 
 ### Testing parser error messages
@@ -958,7 +958,7 @@ Start with the sample data and run `list` first. Each command below is rejected 
 | View with invalid slash in name | `view n/John/Doe` | `Names must be 1 to 80 characters and contain a letter. Use only letters, spaces, hyphens, apostrophes, full stops, or s/o and d/o between words.` |
 | Phone with a disallowed character | `add n/Chris Tan c/Example Ltd e/chris@example.com p/(65) 6123-4567` | `Invalid value for p/: Phone number can only contain digits, spaces, hyphens, and a + at the start.` |
 | Phone with too few digits | `add n/Chris Tan c/Example Ltd e/chris@example.com p/123` | `Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +.` |
-| Invalid field value in find | `find e/bad`, `find p/123` | `Invalid value for e/: Email address is invalid.` / `Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +.` |
+| Invalid field value in find | `find e/bad email`, `find p/+` | `Invalid value for e/: Email search value is invalid. Supply a full or partial email or domain (e.g. alicia@technova.com or @technova.com).` / `Invalid value for p/: Phone search value must contain 1 to 15 digits, optionally starting with +.` |
 | Unexpected parameters on parameterless commands | `help extra`, `exit 1` | `Invalid command format!` followed by the `help` or `exit` usage |
 
 ### Deleting a contact
@@ -1028,37 +1028,32 @@ Start with the sample data and run `list` first. Each command below is rejected 
 
 The features and improvements below represent acknowledged limitations, unfulfilled edge cases, or future enhancements identified during development and internal alpha testing. They are planned for future milestone releases beyond `v1.5` and are formally documented here for tester and developer reference.
 
-### 1. Filtering contacts by enquiry status (`find s/STATUS`)
-
-* **Current behavior:** `find` currently supports filtering by name (`n/`), company (`c/`), email (`e/`), phone (`p/`), tags (`t/`), and follow-up date (`f/YYYYMMDD`). Users can sort contacts in status order using `list o/status`, but filtering by enquiry status (e.g. `find s/In progress` or `find s/Needs follow-up`) is not yet supported and is rejected as an unsupported prefix.
-* **Proposed enhancement:** Extend `FindCommandParser` and `ContactMatchesFieldsPredicate` to accept `s/STATUS` (case-insensitive keyword matching against `EnquiryStatus` labels), allowing organizers to filter contacts specifically in `Needs follow-up`, `In progress`, `Completed`, or `Cancelled` stages.
-
-### 2. Relative follow-up date and range search (`find f/today`, `find f/due`, `find f/overdue`, and date ranges)
+### 1. Relative follow-up date and range search (`find f/today`, `find f/due`, `find f/overdue`, and date ranges)
 
 * **Current behavior:** `find f/YYYYMMDD` strictly matches an exact calendar date. To find contacts due today, organizers must manually look up and enter today's calendar date. The app does not automatically identify overdue follow-ups or allow date range queries.
 * **Proposed enhancement:** Add semantic date keywords (`find f/today`, `find f/due`, `find f/overdue`) that compare stored follow-up dates against `LocalDate.now()`, as well as date ranges (e.g. `find f/before:YYYYMMDD` or `find f/after:YYYYMMDD`), allowing organizers to prioritize time-sensitive follow-ups without manual date entry.
 
-### 3. Reversible command execution (`undo` and `redo`)
+### 2. Reversible command execution (`undo` and `redo`)
 
 * **Current behavior:** Commands that mutate contact data (`add`, `delete`, `update`, `tag`, `clear confirm`) immediately save to disk. There is no `undo` or `redo` command; an unintended deletion or clear requires manual re-entry or file restoration.
 * **Proposed enhancement:** Implement an undo/redo command history stack in `LogicManager`. Each mutating command will store a state diff or model snapshot, enabling `undo` to revert the last mutating operation and `redo` to reapply it, while keeping `data/addressbook.json` synchronized.
 
-### 4. Contact data export and import (CSV and JSON)
+### 3. Contact data export and import (CSV and JSON)
 
 * **Current behavior:** Contacts are stored and loaded exclusively from `data/addressbook.json`. Organizers cannot directly import contacts from external registration spreadsheets (such as convention registration forms) or export filtered contacts to share with other event staff.
 * **Proposed enhancement:** Introduce `export FILENAME.csv` and `import FILENAME.csv` commands. The export command will write the current filtered list to a standard CSV file, and the import command will parse rows, validate fields with the existing value objects, and skip or report duplicate entries.
 
-### 5. Smarter prefix-aware autocomplete for reordered inputs
+### 4. Smarter prefix-aware autocomplete for reordered inputs
 
 * **Current behavior:** `CommandBox` Tab autocomplete checks the last textual prefix in a fixed canonical sequence (`n/` → `c/` → `e/` → `p/`). If an organizer enters fields in a non-canonical order (e.g. `add c/Acme n/Alicia Tan` and presses Tab), the completion logic appends `c/` because `n/` was the last prefix found, resulting in a duplicate prefix error.
 * **Proposed enhancement:** Update autocomplete to parse the command buffer into recognized prefix tokens, identifying which required fields are already present and proposing only the next *unsupplied* prefix.
 
-### 6. Direct contact archiving (`archive`)
+### 5. Direct contact archiving (`archive`)
 
 * **Current behavior:** Contacts whose enquiries are finished (`Completed` or `Cancelled`) must either remain in the main address book or be permanently removed with `delete`.
 * **Proposed enhancement:** Add an `archive NAME_OR_INDEX` command that moves inactive contacts from `data/addressbook.json` into an `archive.json` file. An accompanying `list archive` command will allow viewing archived contacts without cluttering active convention workflows.
 
-### 7. Double-click launch warning and write-protection detection
+### 6. Double-click launch warning and write-protection detection
 
 * **Current behavior:** If the user attempts to launch `boothmanagerpro.jar` by double-clicking in an OS environment with an incompatible default file association or runs the JAR in a write-protected directory, the application may fail to start or report an unhandled file access error without clear graphical user guidance.
 * **Proposed enhancement:** Add a lightweight pre-launch check that displays an explicit JavaFX dialog or alert prompt if write permissions are absent in the working directory, providing instructions to launch via terminal or grant folder permissions.
