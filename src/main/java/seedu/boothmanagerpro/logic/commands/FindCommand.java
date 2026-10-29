@@ -13,16 +13,17 @@ import seedu.boothmanagerpro.model.Model;
 import seedu.boothmanagerpro.model.person.Person;
 
 /**
- * Finds and lists contacts matching name keywords or exact field criteria.
+ * Finds and lists contacts matching name words, full names or complete other field values.
  */
 public class FindCommand extends Command {
     public static final String COMMAND_WORD = "find";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds contacts by name keywords or exact fields "
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds contacts by name words or field criteria "
             + "and displays matching contacts with index numbers.\n"
             + "Parameters: KEYWORD [MORE_KEYWORDS]... or [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG] "
             + "[f/YYYYMMDD]...\n"
-            + "Prefixed values match complete fields. Repeat a prefix for alternatives (OR); "
+            + "Names match a complete name or a whole name word; other fields match complete values. "
+            + "Repeat a prefix for alternatives (OR); "
             + "different fields use AND. Dates match the exact follow-up date; contacts without a date do not match.\n"
             + "Example: " + COMMAND_WORD + " n/Alice Pauline t/friends";
 
