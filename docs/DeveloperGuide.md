@@ -208,6 +208,8 @@ existing `find` command: case-insensitive whole-name keywords combined with OR. 
 `ViewCommandParser` enforces the specified name length and permitted characters, one `n/` field, and no other fields.
 `ViewCommand` searches the full address book using the existing `NameContainsKeywordsPredicate` and updates the
 filtered list to those matches. It leaves stored contacts unchanged. A unique match returns the formatted details as command feedback.
+If exactly one match has a full name equal to the query, ignoring case, `ViewCommand` returns that contact directly
+and filters to it, so overlapping names such as `Alex Yeo` and `Alex Yeoh` can each be viewed without a numbered reply.
 Multiple matches return a numbered name-and-company list plus an immutable `CommandResult.viewChoices` snapshot.
 
 `LogicManager` retains those choices for the next numbered reply. Invalid replies report the valid range and keep
@@ -236,7 +238,7 @@ The five MVP workflows and the inherited edit command use `Person` and its valid
 | --- | --- |
 | Add | Rejects normalised-email or case-insensitive name/company duplicates across all records. |
 | Delete | Full-name match across all records, or index in the displayed list. Ambiguous names require an index; feedback includes company and method. |
-| View | Whole-name keywords with OR; multiple matches require a numbered selection. |
+| View | Whole-name keywords with OR; a unique exact full name shows that contact, otherwise multiple matches require a numbered selection. |
 | List | Restores every contact and displays all exhibitor attributes plus total; optionally sorts by name, company, or enquiry status (`o/name`, `o/company`, `o/status`); rejects other arguments. |
 | Find | Full names or whole name words and complete other field values, OR within each field and AND across fields; unprefixed keywords retain name-word matching. |
 

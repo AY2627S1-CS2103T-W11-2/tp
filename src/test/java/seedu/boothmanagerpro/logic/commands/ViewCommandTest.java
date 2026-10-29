@@ -67,8 +67,8 @@ public class ViewCommandTest {
     }
 
     @Test
-    public void execute_keywordMatchesExactAndLongerNames_likeFind() throws Exception {
-        Person first = new PersonBuilder().withName("rhineson").withEmail("first@example.com").build();
+    public void execute_keywordMatchesLongerNames_likeFind() throws Exception {
+        Person first = new PersonBuilder().withName("rhineson tan").withEmail("first@example.com").build();
         Person second = new PersonBuilder().withName("rhineson kok").withEmail("second@example.com").build();
         Person third = new PersonBuilder().withName("David Lee").withEmail("third@example.com").build();
         model.addPerson(first);
@@ -85,6 +85,24 @@ public class ViewCommandTest {
         assertEquals(3, model.getAddressBook().getPersonList().size());
         assertCommandFailure(new ViewCommand(new Name("rhin")), model,
                 String.format(ViewCommand.MESSAGE_NO_MATCH, "rhin"));
+    }
+
+    @Test
+    public void execute_exactNameOverlapsLongerName_returnsExactContactDetails() throws Exception {
+        Person alexYeo = new PersonBuilder().withName("Alex Yeo").withEmail("yeo@example.com").build();
+        Person alexYeoh = new PersonBuilder().withName("Alex Yeoh").withEmail("yeoh@example.com").build();
+        model.addPerson(alexYeo);
+        model.addPerson(alexYeoh);
+
+        CommandResult result = new ViewCommand(new Name("alex  yeo")).execute(model);
+        assertEquals(ViewCommand.createDetailsResult(alexYeo), result);
+        assertEquals(List.of(alexYeo), model.getFilteredPersonList());
+
+        assertEquals(ViewCommand.createDetailsResult(alexYeoh), new ViewCommand(new Name("Alex Yeoh")).execute(model));
+        assertEquals(List.of(alexYeoh), model.getFilteredPersonList());
+
+        // A partial name still lists every contact sharing the word.
+        assertEquals(List.of(alexYeo, alexYeoh), new ViewCommand(new Name("Alex")).execute(model).getViewChoices());
     }
 
     @Test

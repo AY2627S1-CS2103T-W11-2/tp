@@ -44,6 +44,14 @@ public class ViewCommand extends Command {
         if (matches.isEmpty()) {
             throw new CommandException(String.format(MESSAGE_NO_MATCH, name));
         }
+        // An exact full name picks out its contact, even when other names share a word with it.
+        List<Person> exactMatches = matches.stream()
+                .filter(person -> person.getName().fullName.equalsIgnoreCase(name.fullName)).toList();
+        if (exactMatches.size() == 1) {
+            Person exactMatch = exactMatches.getFirst();
+            model.updateFilteredPersonList(person -> person.equals(exactMatch));
+            return createDetailsResult(exactMatch);
+        }
         model.updateFilteredPersonList(matchesName);
         if (matches.size() == 1) {
             return createDetailsResult(matches.getFirst());
