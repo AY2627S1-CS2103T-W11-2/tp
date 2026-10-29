@@ -83,13 +83,8 @@ public class LogicManager implements Logic {
         Predicate<? super Person> previousPredicate = model.getFilteredPersonListPredicate();
         Comparator<Person> previousComparator = model.getPersonListComparator();
 
-        CommandResult commandResult;
-        try {
-            commandResult = command.execute(model);
-        } catch (CommandException | RuntimeException e) {
-            rollbackModel(previousAddressBook, previousPredicate, previousComparator);
-            throw e;
-        }
+        CommandResult commandResult = executeOrRollback(
+                command, previousAddressBook, previousPredicate, previousComparator);
 
         if (command instanceof ViewCommand) {
             pendingViewChoices = commandResult.getViewChoices();
@@ -105,6 +100,30 @@ public class LogicManager implements Logic {
             return commandResult;
         }
 
+        saveOrRollback(previousAddressBook, previousPredicate, previousComparator);
+        return commandResult;
+    }
+
+    /**
+     * Executes {@code command} against the model, rolling back any partial model changes on failure.
+     */
+    private CommandResult executeOrRollback(Command command, ReadOnlyAddressBook previousAddressBook,
+            Predicate<? super Person> previousPredicate,
+            Comparator<Person> previousComparator) throws CommandException {
+        try {
+            return command.execute(model);
+        } catch (CommandException | RuntimeException e) {
+            rollbackModel(previousAddressBook, previousPredicate, previousComparator);
+            throw e;
+        }
+    }
+
+    /**
+     * Persists the updated address book, rolling back the in-memory model if saving fails.
+     */
+    private void saveOrRollback(ReadOnlyAddressBook previousAddressBook,
+            Predicate<? super Person> previousPredicate,
+            Comparator<Person> previousComparator) throws CommandException {
         try {
             storage.saveAddressBook(model.getAddressBook());
         } catch (AccessDeniedException e) {
@@ -114,8 +133,6 @@ public class LogicManager implements Logic {
             rollbackModel(previousAddressBook, previousPredicate, previousComparator);
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
         }
-
-        return commandResult;
     }
 
     /**

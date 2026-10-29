@@ -2,6 +2,10 @@
 !include style.puml
 title Updating an exhibitor contact - successful request
 skinparam ArrowFontStyle plain
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ParticipantFontColor #FFFFFF
+skinparam SequenceBoxFontColor #222222
 
 box Logic LOGIC_COLOR_T1
 participant ":LogicManager" as LogicManager LOGIC_COLOR
@@ -29,6 +33,10 @@ activate AddressBookParser
 
 create UpdateCommandParser
 AddressBookParser -> UpdateCommandParser : UpdateCommandParser()
+activate UpdateCommandParser
+UpdateCommandParser --> AddressBookParser
+deactivate UpdateCommandParser
+
 AddressBookParser -> UpdateCommandParser : parse(" Alicia Tan s/Completed")
 activate UpdateCommandParser
 
@@ -60,13 +68,13 @@ activate UpdateCommand
 UpdateCommand -> UpdateCommand : resolveTarget(m)
 activate UpdateCommand
 
-alt Target specified by index
+alt target specified by index
     UpdateCommand -> Model : getFilteredPersonList()
     activate Model
     Model --> UpdateCommand : displayed
     deactivate Model
     note right of UpdateCommand : original = displayed[index]
-else Target specified by name
+else target specified by name
     UpdateCommand -> Model : getAddressBook()
     activate Model
     Model --> UpdateCommand : addressBook
@@ -81,7 +89,7 @@ UpdateCommand -> ContactUpdate : applyTo(original)
 activate ContactUpdate
 
 create Person
-ContactUpdate -> Person : Person.createExhibitor(...)
+ContactUpdate -> Person : Person(...)
 activate Person
 Person --> ContactUpdate : updated
 deactivate Person
@@ -113,7 +121,7 @@ Model --> UpdateCommand
 deactivate Model
 
 create CommandResult
-UpdateCommand -> CommandResult
+UpdateCommand -> CommandResult : CommandResult(...)
 activate CommandResult
 
 CommandResult --> UpdateCommand : r
