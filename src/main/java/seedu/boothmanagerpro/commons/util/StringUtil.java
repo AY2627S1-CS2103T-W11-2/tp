@@ -28,11 +28,11 @@ public class StringUtil {
         requireNonNull(sentence);
         requireNonNull(word);
 
-        String preppedWord = Normalizer.normalize(word, Normalizer.Form.NFC).strip();
+        String preppedWord = Normalizer.normalize(word, Normalizer.Form.NFC).strip().replace('\u2019', '\'');
         checkArgument(!preppedWord.isEmpty(), "Word parameter cannot be empty");
         checkArgument(preppedWord.split("(?U)\\s+").length == 1, "Word parameter should be a single word");
 
-        String preppedSentence = Normalizer.normalize(sentence, Normalizer.Form.NFC);
+        String preppedSentence = Normalizer.normalize(sentence, Normalizer.Form.NFC).replace('\u2019', '\'');
         String[] wordsInPreppedSentence = preppedSentence.split("(?U)\\s+");
 
         return Arrays.stream(wordsInPreppedSentence)

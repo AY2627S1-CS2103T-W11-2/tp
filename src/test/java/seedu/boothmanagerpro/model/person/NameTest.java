@@ -29,6 +29,15 @@ public class NameTest {
     }
 
     @Test
+    public void constructor_curlyApostrophe_normalisesToStraightApostrophe() {
+        Name fromCurly = new Name("Anne-Marie O\u2019Neil");
+        Name fromStraight = new Name("Anne-Marie O'Neil");
+        assertEquals("Anne-Marie O'Neil", fromCurly.fullName);
+        assertEquals(fromStraight, fromCurly);
+        assertEquals(fromStraight.hashCode(), fromCurly.hashCode());
+    }
+
+    @Test
     public void isValidName() {
         // null name
         assertThrows(NullPointerException.class, () -> Name.isValidName(null));

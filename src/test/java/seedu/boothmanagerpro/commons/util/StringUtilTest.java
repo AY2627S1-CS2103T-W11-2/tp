@@ -121,6 +121,10 @@ public class StringUtilTest {
 
         // Matches multiple words in sentence
         assertTrue(StringUtil.containsWordIgnoreCase("AAA bBb ccc  bbb", "bbB"));
+
+        // Matches curly and straight apostrophes interchangeably
+        assertTrue(StringUtil.containsWordIgnoreCase("Anne-Marie O\u2019Neil", "O'Neil"));
+        assertTrue(StringUtil.containsWordIgnoreCase("Anne-Marie O'Neil", "O\u2019Neil"));
     }
 
     //---------------- Tests for getDetails --------------------------------------

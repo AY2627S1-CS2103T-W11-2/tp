@@ -22,6 +22,7 @@ public class NameContainsKeywordsPredicate implements Predicate<Person> {
         requireNonNull(keywords);
         this.keywords = keywords.stream()
                 .filter(keyword -> !Name.isPatronymic(keyword))
+                .map(keyword -> keyword.replace('\u2019', '\''))
                 .toList();
     }
 

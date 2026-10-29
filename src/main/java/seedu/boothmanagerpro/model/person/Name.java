@@ -72,6 +72,7 @@ public class Name {
 
     /**
      * Returns a name with Unicode NFC normalisation applied, surrounding whitespace removed,
+     * curly apostrophes ({@code \u2019}) normalised to straight apostrophes ({@code '}),
      * and each run of spaces collapsed to one.
      *
      * <p>NFC (Canonical Decomposition followed by Canonical Composition) converts canonically
@@ -80,7 +81,7 @@ public class Name {
      */
     static String normaliseWhitespace(String name) {
         String nfc = Normalizer.normalize(name, Normalizer.Form.NFC);
-        return nfc.strip().replaceAll(" +", " ");
+        return nfc.strip().replace('\u2019', '\'').replaceAll(" +", " ");
     }
 
     @Override

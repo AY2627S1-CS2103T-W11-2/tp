@@ -95,6 +95,15 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void constructor_curlyApostrophe_normalisesAndMatchesStraightApostrophe() {
+        NameContainsKeywordsPredicate curly = new NameContainsKeywordsPredicate(List.of("O\u2019Neil"));
+        NameContainsKeywordsPredicate straight = new NameContainsKeywordsPredicate(List.of("O'Neil"));
+        assertEquals(straight, curly);
+        assertTrue(curly.test(new PersonBuilder().withName("Anne-Marie O'Neil").build()));
+        assertTrue(straight.test(new PersonBuilder().withName("Anne-Marie O\u2019Neil").build()));
+    }
+
+    @Test
     public void toStringMethod() {
         List<String> keywords = List.of("keyword1", "keyword2");
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(keywords);
