@@ -10,8 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.regex.MatchResult;
 
 import seedu.boothmanagerpro.commons.core.LogsCenter;
 import seedu.boothmanagerpro.logic.commands.FindCommand;
@@ -29,13 +28,6 @@ public class FindCommandParser implements Parser<FindCommand> {
     public static final String MESSAGE_UNPREFIXED_VALUE =
             "Every exact-match search value must use a supported field prefix.";
     private static final Logger logger = LogsCenter.getLogger(FindCommandParser.class);
-    /**
-     * Matches only single-letter prefixes (e.g. {@code c/}, {@code f/}) preceded by whitespace or at the
-     * start of input. Multi-character tokens such as {@code Design/} are never treated as field delimiters,
-     * so slashes embedded in search criteria (e.g. a company name like {@code Acme Design/ Build}) do not
-     * cause spurious unsupported-field errors.
-     */
-    private static final Pattern FIELD_PREFIX = Pattern.compile("(?<!\\S)([a-zA-Z])/");
 
     @Override
     public FindCommand parse(String args) throws ParseException {
@@ -44,26 +36,23 @@ public class FindCommandParser implements Parser<FindCommand> {
         if (trimmedArgs.isEmpty()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }
-        Matcher matcher = FIELD_PREFIX.matcher(trimmedArgs);
-        if (!matcher.find()) {
+        List<MatchResult> matches = ArgumentTokenizer.findSingleLetterPrefixes(trimmedArgs);
+        if (matches.isEmpty()) {
             FindCommand command = new FindCommand(
                     new NameContainsKeywordsPredicate(List.of(trimmedArgs.split("(?U)\\s+"))));
             logger.fine("Contact search parsed successfully.");
             return command;
         }
-        if (matcher.start() != 0) {
+        if (matches.getFirst().start() != 0) {
             throw new ParseException(MESSAGE_UNPREFIXED_VALUE);
         }
 
         Map<String, Set<String>> criteria = new HashMap<>();
-        String field = matcher.group(1) + "/";
-        int valueStart = matcher.end();
-        while (matcher.find()) {
-            addCriterion(criteria, field, trimmedArgs.substring(valueStart, matcher.start()));
-            field = matcher.group(1) + "/";
-            valueStart = matcher.end();
+        for (int i = 0; i < matches.size(); i++) {
+            MatchResult current = matches.get(i);
+            int end = i + 1 < matches.size() ? matches.get(i + 1).start() : trimmedArgs.length();
+            addCriterion(criteria, current.group(1), trimmedArgs.substring(current.end(), end));
         }
-        addCriterion(criteria, field, trimmedArgs.substring(valueStart));
         assert !criteria.isEmpty() : "Parsed field search must contain at least one criterion";
         FindCommand command = new FindCommand(new ContactMatchesFieldsPredicate(criteria));
         logger.fine("Contact search parsed successfully.");

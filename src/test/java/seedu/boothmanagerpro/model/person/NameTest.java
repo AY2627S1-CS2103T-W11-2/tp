@@ -53,11 +53,25 @@ public class NameTest {
         assertTrue(Name.isValidName("Dr. Élodie")); // full stops and accented letters
         assertTrue(Name.isValidName("David Roger Jackson Ray Jr")); // long names
 
-        // different languages
+        // different languages and legal patronymics
         assertTrue(Name.isValidName("陈大文")); // Chinese
         assertTrue(Name.isValidName("山田 太郎")); // Japanese
         assertTrue(Name.isValidName("Владимир")); // Cyrillic
         assertTrue(Name.isValidName("Renée O’Connor")); // French diacritic and curly apostrophe
+        assertTrue(Name.isValidName("Raj s/o Kumar")); // patronymic s/o
+        assertTrue(Name.isValidName("Raj S/O Kumar")); // uppercase S/O
+        assertTrue(Name.isValidName("Priya d/o Raman")); // patronymic d/o
+        assertTrue(Name.isValidName("Dr. Raj s/o M. Kumar")); // titles and initials with s/o
+
+        // invalid slash and patronymic forms
+        assertFalse(Name.isValidName("s/o")); // bare patronymic
+        assertFalse(Name.isValidName("s/o Kumar")); // missing preceding name
+        assertFalse(Name.isValidName("Raj s/o")); // missing following name
+        assertFalse(Name.isValidName("Raj s/o s/o Kumar")); // consecutive patronymics
+        assertFalse(Name.isValidName("--- s/o Kumar")); // no letters before s/o
+        assertFalse(Name.isValidName("Raj s/o ---")); // no letters after s/o
+        assertFalse(Name.isValidName("Raj/Kumar")); // arbitrary slash
+        assertFalse(Name.isValidName("Raj x/o Kumar")); // unsupported slash marker
     }
 
     @Test

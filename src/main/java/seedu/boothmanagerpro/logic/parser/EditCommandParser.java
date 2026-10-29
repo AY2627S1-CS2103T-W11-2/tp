@@ -12,8 +12,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.regex.MatchResult;
 
 import seedu.boothmanagerpro.commons.core.index.Index;
 import seedu.boothmanagerpro.logic.commands.EditCommand;
@@ -26,12 +25,6 @@ import seedu.boothmanagerpro.model.tag.Tag;
  */
 public class EditCommandParser implements Parser<EditCommand> {
     public static final String MESSAGE_UNKNOWN_FIELD = "Unknown field prefix: %s. Use n/, p/, e/, a/, or t/.";
-    /**
-     * Matches only single-letter prefixes (e.g. {@code n/}, {@code p/}) preceded by whitespace or at the
-     * start of input. Multi-character tokens such as {@code Design/} are never treated as field delimiters,
-     * so slashes embedded in field values do not cause spurious unknown-prefix errors.
-     */
-    private static final Pattern FIELD_PREFIX = Pattern.compile("(?<!\\S)([a-zA-Z]/)");
     private static final Set<Prefix> ALLOWED_PREFIXES =
             Set.of(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS, PREFIX_TAG);
 
@@ -42,9 +35,8 @@ public class EditCommandParser implements Parser<EditCommand> {
      */
     public EditCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        Matcher fields = FIELD_PREFIX.matcher(args);
-        while (fields.find()) {
-            Prefix prefix = new Prefix(fields.group(1));
+        for (MatchResult field : ArgumentTokenizer.findSingleLetterPrefixes(args)) {
+            Prefix prefix = new Prefix(field.group(1));
             if (!ALLOWED_PREFIXES.contains(prefix)) {
                 throw new ParseException(String.format(MESSAGE_UNKNOWN_FIELD, prefix));
             }

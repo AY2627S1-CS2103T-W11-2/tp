@@ -19,7 +19,8 @@ public class ViewCommandParser implements Parser<ViewCommand> {
     public static final String MESSAGE_UNKNOWN_FIELD = "Unknown field prefix. Use n/.";
     public static final String MESSAGE_INVALID_NAME = Name.MESSAGE_CONSTRAINTS;
 
-    private static final Pattern FIELD = Pattern.compile("(?:^|\\s)([^\\s/]+/)");
+    private static final Pattern FIELD = Pattern.compile("(?<!\\S)([^\\s/]+/)");
+    private static final Pattern PATRONYMIC_IN_NAME = Pattern.compile("(?<=\\S)\\s+(?i:[sd]/o)\\s+(?=\\S)");
 
     /**
      * Parses exactly one {@code n/} field containing a name query.
@@ -35,15 +36,26 @@ public class ViewCommandParser implements Parser<ViewCommand> {
         }
         Matcher fields = FIELD.matcher(input);
         int nameFields = 0;
+        boolean hasKnownOtherField = false;
+        boolean hasUnknownField = false;
         while (fields.find()) {
-            String prefix = fields.group(1);
-            if (!prefix.equals(PREFIX_NAME.getPrefix())) {
-                if (prefix.matches("[cepmt]/")) {
-                    throw new ParseException(MESSAGE_REQUIRED_NAME);
-                }
-                throw new ParseException(MESSAGE_UNKNOWN_FIELD);
+            if (ArgumentTokenizer.isPatronymicToken(input, fields.start())) {
+                continue;
             }
-            nameFields++;
+            String prefix = fields.group(1);
+            if (prefix.equals(PREFIX_NAME.getPrefix())) {
+                nameFields++;
+            } else if (prefix.matches("[cepmstfa]/")) {
+                hasKnownOtherField = true;
+            } else {
+                hasUnknownField = true;
+            }
+        }
+        if (hasUnknownField || (hasKnownOtherField && nameFields > 0)) {
+            throw new ParseException(MESSAGE_UNKNOWN_FIELD);
+        }
+        if (hasKnownOtherField) {
+            throw new ParseException(MESSAGE_REQUIRED_NAME);
         }
         if (nameFields > 1) {
             throw new ParseException(MESSAGE_DUPLICATE_FIELD);
@@ -52,10 +64,10 @@ public class ViewCommandParser implements Parser<ViewCommand> {
             throw new ParseException(MESSAGE_UNKNOWN_FIELD);
         }
         String name = input.substring(PREFIX_NAME.getPrefix().length()).strip();
-        if (name.contains("/")) {
-            throw new ParseException(MESSAGE_UNKNOWN_FIELD);
-        }
         if (!Name.isValidName(name)) {
+            if (PATRONYMIC_IN_NAME.matcher(name).replaceAll(" ").contains("/")) {
+                throw new ParseException(MESSAGE_UNKNOWN_FIELD);
+            }
             throw new ParseException(MESSAGE_INVALID_NAME);
         }
         return new ViewCommand(new Name(name));
