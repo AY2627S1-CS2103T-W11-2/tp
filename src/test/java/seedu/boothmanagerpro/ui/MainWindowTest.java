@@ -44,8 +44,8 @@ import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.UserPrefs;
 import seedu.boothmanagerpro.model.util.SampleDataUtil;
 import seedu.boothmanagerpro.storage.JsonAddressBookStorage;
-import seedu.boothmanagerpro.storage.JsonUserPrefsStorage;
 import seedu.boothmanagerpro.storage.StorageManager;
+import seedu.boothmanagerpro.testutil.IntegrationTestFixture;
 
 /** Exercises command-only FXML, text results, keyboard controls, and persistence. */
 public class MainWindowTest {
@@ -329,8 +329,8 @@ public class MainWindowTest {
     @Test
     public void handleHelp_logicFailure_displaysAndHandlesError() throws Exception {
         runOnFxThread(() -> {
-            StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath()),
-                    new JsonUserPrefsStorage(testFolder.resolve("preferences.json")));
+            StorageManager storage = IntegrationTestFixture.createStorage(new JsonAddressBookStorage(dataPath()),
+                    testFolder.resolve("preferences.json"));
             LogicManager failingLogic = new LogicManager(new ModelManager(), storage) {
                 @Override
                 public CommandResult execute(String commandText) throws CommandException {
@@ -598,8 +598,8 @@ public class MainWindowTest {
     private void assertFocusReturnKeepsDraft(Consumer<Node> returnFocus) throws Exception {
         String draft = "add n/Draft Tester";
         Stage stage = runOnFxThread(() -> {
-            StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath()),
-                    new JsonUserPrefsStorage(testFolder.resolve("preferences.json")));
+            StorageManager storage = IntegrationTestFixture.createStorage(new JsonAddressBookStorage(dataPath()),
+                    testFolder.resolve("preferences.json"));
             Stage newStage = new Stage();
             newStage.setOpacity(0);
             MainWindow window = new MainWindow(newStage, new LogicManager(new ModelManager(), storage), dataPath());
@@ -642,6 +642,33 @@ public class MainWindowTest {
     }
 
     @Test
+    public void userGuide_examples_generateCurrentScreenshots() throws Exception {
+        withWindow(new ModelManager(), (window, root, storage) -> {
+            savePreview(root, 1180, 820, "ug-startup.png");
+            enterCommand(root, "add n/Alicia Tan c/TechNova Pte Ltd e/alicia@technova.com p/91234567 "
+                    + "m/email t/technology t/high-priority");
+            assertEquals("Added Alicia Tan at TechNova Pte Ltd.", output(root));
+            assertEquals("", input(root).getText());
+            savePreview(root, 1180, 820, "ug-add.png");
+            enterCommand(root, "add n/Ben Lim c/GreenWorks e/ben@example.com p/+65 8765-4321 "
+                    + "s/In progress f/20261025");
+            enterCommand(root, "list");
+            assertEquals(2, storage.readAddressBook().orElseThrow().getPersonList().size());
+            savePreview(root, 1180, 820, "ug-list.png");
+            enterCommand(root, "view n/Alicia Tan");
+            assertTrue(output(root).contains("Alicia Tan"));
+            savePreview(root, 1180, 820, "ug-view.png");
+            enterCommand(root, "find Alicia Ben");
+            assertTrue(output(root).startsWith("2 contact(s) found."));
+            savePreview(root, 1180, 820, "ug-find.png");
+            enterCommand(root, "delete Ben Lim");
+            assertEquals(1, storage.readAddressBook().orElseThrow().getPersonList().size());
+            assertTrue(output(root).contains("Ben Lim"));
+            savePreview(root, 1180, 820, "ug-delete.png");
+        });
+    }
+
+    @Test
     public void startup_loadingFailure_showsWarningAndKeepsCommandsUsable() throws Exception {
         withWindow(new ModelManager(), MainApp.MESSAGE_DATA_LOAD_FAILURE, (window, root, storage) -> {
             assertEquals(MainApp.MESSAGE_DATA_LOAD_FAILURE, output(root));
@@ -655,8 +682,8 @@ public class MainWindowTest {
     @Test
     public void uiManager_start_propagatesRecoveryWarningAndSupportsNormalStartup() throws Exception {
         runOnFxThread(() -> {
-            StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath()),
-                    new JsonUserPrefsStorage(testFolder.resolve("preferences.json")));
+            StorageManager storage = IntegrationTestFixture.createStorage(new JsonAddressBookStorage(dataPath()),
+                    testFolder.resolve("preferences.json"));
             for (String warning : List.of("", MainApp.MESSAGE_DATA_LOAD_FAILURE)) {
                 Stage stage = new Stage();
                 stage.setOpacity(0);
@@ -691,8 +718,8 @@ public class MainWindowTest {
 
     private void withWindow(ModelManager model, String startupWarning, UiAction action) throws Exception {
         runOnFxThread(() -> {
-            StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath()),
-                    new JsonUserPrefsStorage(testFolder.resolve("preferences.json")));
+            StorageManager storage = IntegrationTestFixture.createStorage(new JsonAddressBookStorage(dataPath()),
+                    testFolder.resolve("preferences.json"));
             storage.saveAddressBook(model.getAddressBook());
             Stage stage = new Stage();
             stage.setOpacity(0);

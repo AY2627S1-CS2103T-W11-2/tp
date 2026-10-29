@@ -17,8 +17,7 @@ import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.UserPrefs;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.storage.JsonAddressBookStorage;
-import seedu.boothmanagerpro.storage.JsonUserPrefsStorage;
-import seedu.boothmanagerpro.storage.StorageManager;
+import seedu.boothmanagerpro.testutil.IntegrationTestFixture;
 import seedu.boothmanagerpro.testutil.PersonBuilder;
 
 /** Exercises date searches through command routing, sorted indices, updates and actual JSON storage. */
@@ -124,8 +123,7 @@ public class FindFollowUpDateIntegrationTest {
     }
 
     private LogicManager createLogic(ModelManager target) {
-        return new LogicManager(target, new StorageManager(storage,
-                new JsonUserPrefsStorage(folder.resolve("prefs.json"))));
+        return IntegrationTestFixture.createLogic(target, storage, folder.resolve("prefs.json"));
     }
 
     private void assertNames(String... expected) {

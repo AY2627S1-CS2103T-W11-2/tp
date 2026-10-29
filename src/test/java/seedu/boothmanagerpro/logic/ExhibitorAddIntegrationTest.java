@@ -21,8 +21,7 @@ import seedu.boothmanagerpro.model.person.ContactMethod;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.model.person.exceptions.DuplicatePersonException;
 import seedu.boothmanagerpro.storage.JsonAddressBookStorage;
-import seedu.boothmanagerpro.storage.JsonUserPrefsStorage;
-import seedu.boothmanagerpro.storage.StorageManager;
+import seedu.boothmanagerpro.testutil.IntegrationTestFixture;
 import seedu.boothmanagerpro.testutil.PersonBuilder;
 
 /** Verifies the command-to-disk flow without JavaFX or a display server. */
@@ -40,8 +39,7 @@ public class ExhibitorAddIntegrationTest {
     public void setUp() {
         model = new ModelManager();
         storage = new JsonAddressBookStorage(folder.resolve("contacts.json"));
-        logic = new LogicManager(model, new StorageManager(storage,
-                new JsonUserPrefsStorage(folder.resolve("preferences.json"))));
+        logic = IntegrationTestFixture.createLogic(model, storage, folder.resolve("preferences.json"));
     }
 
     @Test
@@ -328,8 +326,8 @@ public class ExhibitorAddIntegrationTest {
     public void add_normalisedDuplicateAfterReload_rejected() throws Exception {
         logic.execute(ADD + " m/phone");
         ModelManager reloaded = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
-        LogicManager reloadedLogic = new LogicManager(reloaded, new StorageManager(storage,
-                new JsonUserPrefsStorage(folder.resolve("preferences.json"))));
+        LogicManager reloadedLogic = IntegrationTestFixture.createLogic(reloaded, storage,
+                folder.resolve("preferences.json"));
         assertThrows(CommandException.class, () -> reloadedLogic.execute(
                 ADD.replace("alicia@technova.com", "ALICIA@TECHNOVA.COM")));
         assertEquals(1, reloaded.getAddressBook().getPersonList().size());

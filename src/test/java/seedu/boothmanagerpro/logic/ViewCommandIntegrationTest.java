@@ -20,8 +20,7 @@ import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.UserPrefs;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.storage.JsonAddressBookStorage;
-import seedu.boothmanagerpro.storage.JsonUserPrefsStorage;
-import seedu.boothmanagerpro.storage.StorageManager;
+import seedu.boothmanagerpro.testutil.IntegrationTestFixture;
 import seedu.boothmanagerpro.testutil.PersonBuilder;
 
 /**
@@ -46,8 +45,7 @@ public class ViewCommandIntegrationTest {
         addressStorage = new JsonAddressBookStorage(folder.resolve("contacts.json"));
         addressStorage.saveAddressBook(book);
         model = new ModelManager(addressStorage.readAddressBook().orElseThrow(), new UserPrefs());
-        logic = new LogicManager(model, new StorageManager(addressStorage,
-                new JsonUserPrefsStorage(folder.resolve("prefs.json"))));
+        logic = IntegrationTestFixture.createLogic(model, addressStorage, folder.resolve("prefs.json"));
     }
 
     @Test
