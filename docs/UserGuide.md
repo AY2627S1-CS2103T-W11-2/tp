@@ -42,7 +42,7 @@ BoothManagerPro is a desktop contact manager for **convention organisers followi
 
 ### Working through commands
 
-* Type a command and press **Enter**. Command words and prefixes are case-sensitive: use `list`, not `List`.
+* Type a command and press **Enter**. Command words are case-insensitive (for example, `list` or `LIST`), while field prefixes use lowercase letters (for example, `n/`, `c/`, `t/`).
 * The command box starts with keyboard focus. Press **Ctrl+L** on Windows/Linux or **Command+L** on macOS to return to it. Use `help` or **F1** for the guide, and `exit` to close the app.
 * Press **Tab** to complete an unambiguous command word, field prefix, contact method, enquiry status, or list sort
   field. It also supplies the next required `add` prefix, `view n/`, `find n/`, `list o/`, or the first `tag t/` after

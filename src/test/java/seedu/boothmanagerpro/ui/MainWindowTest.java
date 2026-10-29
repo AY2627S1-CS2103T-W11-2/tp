@@ -467,6 +467,38 @@ public class MainWindowTest {
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("update 1 c/", commandInput.getText());
 
+            commandInput.setText("DEL");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("delete ", commandInput.getText());
+
+            commandInput.setText("ADD");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add n/", commandInput.getText());
+
+            commandInput.setText("ADD n/Alicia Tan");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("ADD n/Alicia Tan c/", commandInput.getText());
+
+            commandInput.setText("LIST");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("list o/", commandInput.getText());
+
+            commandInput.setText("FIND");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("find n/", commandInput.getText());
+
+            commandInput.setText("LIST o/st");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("LIST o/status", commandInput.getText());
+
+            commandInput.setText("VIEW n");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("VIEW n/", commandInput.getText());
+
+            commandInput.setText("TAG Alicia Tan");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("TAG Alicia Tan t/", commandInput.getText());
+
             commandInput.setText("view n");
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("view n/", commandInput.getText());
