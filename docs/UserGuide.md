@@ -76,8 +76,8 @@ BoothManagerPro is a desktop contact manager for **convention organisers followi
 * Prefixed fields can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help` and `exit`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`. The exception is `list`, which accepts only an optional `o/name`, `o/company`, or `o/status` and rejects anything else.
+* Extraneous parameters are rejected across all commands.<br>
+  For example, `help 123`, `exit 123`, and `list 123` all show an invalid command format error (`list` accepts only an optional `o/name`, `o/company`, or `o/status`).
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </div>

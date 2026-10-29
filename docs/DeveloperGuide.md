@@ -957,6 +957,7 @@ Start with the sample data and run `list` first. Each command below is rejected 
 | Phone with a disallowed character | `add n/Chris Tan c/Example Ltd e/chris@example.com p/(65) 6123-4567` | `Invalid value for p/: Phone number can only contain digits, spaces, hyphens, and a + at the start.` |
 | Phone with too few digits | `add n/Chris Tan c/Example Ltd e/chris@example.com p/123` | `Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +.` |
 | Invalid field value in find | `find e/bad`, `find p/123` | `Invalid value for e/: Email address is invalid.` / `Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +.` |
+| Unexpected parameters on parameterless commands | `help extra`, `exit 1` | `Invalid command format!` followed by the `help` or `exit` usage |
 
 ### Deleting a contact
 
