@@ -60,13 +60,15 @@ public class FindFieldsTest {
     }
 
     @Test
-    public void execute_exactName_doesNotMatchPartialName() throws Exception {
+    public void execute_name_matchesFullNameOrWholeWordButNotSubstring() throws Exception {
         Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         parser.parse("n/alice pauline").execute(model);
         assertEquals(List.of(ALICE), model.getFilteredPersonList());
         parser.parse("n/Alice   Pauline").execute(model);
         assertEquals(List.of(ALICE), model.getFilteredPersonList());
         parser.parse("n/Alice").execute(model);
+        assertEquals(List.of(ALICE), model.getFilteredPersonList());
+        parser.parse("n/Ali").execute(model);
         assertTrue(model.getFilteredPersonList().isEmpty());
     }
 

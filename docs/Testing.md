@@ -79,9 +79,16 @@ For interactive checks, use the [manual add scenarios](DeveloperGuide.md#testing
 
 `FindFieldsTest` covers empty/overlong company criteria and rejects internal phone tabs consistently with add. `ViewCommandParserTest` checks the shared name validator, including the 80-code-point Unicode boundary.
 
-`FindUnicodeTest` verifies that exact-name and keyword searches agree on Unicode case variants, including Turkish,
-Greek, and supplementary letters. It also checks that full-name matching and same-field OR / cross-field AND rules
-are preserved.
+`FindUnicodeTest` verifies that prefixed-name and keyword searches agree on Unicode case variants, including Turkish,
+Greek, and supplementary letters. It also checks full-name and whole-word matching and same-field OR / cross-field AND.
+
+`FindNameMatchingIntegrationTest` checks that `n/Alex` finds different surnames without matching `Alexandra`,
+full-name queries still select the complete name, combined date/tag criteria retain OR/AND behavior, sorted indices
+update the intended contact, and searches continue to work after storage reload.
+
+`FindCompanyTagUnicodeIntegrationTest` checks Greek sigma, Turkish I and supplementary-letter case variants in company
+and tag searches. It verifies complete-value matching, OR/AND combinations, matching after reload, and preservation
+of stored company/tag spelling and JSON during search.
 
 Manual check in a separate test folder:
 

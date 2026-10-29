@@ -21,7 +21,7 @@ import seedu.boothmanagerpro.model.person.ContactMatchesFieldsPredicate;
 import seedu.boothmanagerpro.model.person.FollowUpDate;
 import seedu.boothmanagerpro.model.person.NameContainsKeywordsPredicate;
 
-/** Parses legacy name keywords or prefixed exact-match contact criteria. */
+/** Parses legacy name keywords or prefixed name and complete-field criteria. */
 public class FindCommandParser implements Parser<FindCommand> {
     public static final String MESSAGE_UNSUPPORTED_FIELD =
             "Unsupported search field. Use n/, c/, e/, p/, t/, or f/. Status search is not available yet.";

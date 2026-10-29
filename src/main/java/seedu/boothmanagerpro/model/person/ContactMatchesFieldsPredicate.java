@@ -1,5 +1,6 @@
 package seedu.boothmanagerpro.model.person;
 
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -7,7 +8,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
- * Matches complete contact fields: alternatives within a field use OR, different fields use AND.
+ * Matches full names or name words and complete other fields, with OR within a field and AND across fields.
  * Criteria are copied so that changes to the caller's collections cannot affect a search.
  */
 public class ContactMatchesFieldsPredicate implements Predicate<Person> {
@@ -19,19 +20,22 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
                 Map.Entry::getKey, entry -> Set.copyOf(entry.getValue())));
     }
 
-    /** Normalises values for exact matching, including spaces and hyphens in phone numbers. */
+    /** Normalises search values, including spaces and hyphens in phone numbers. */
     public static String normalise(String field, String value) {
         if (field.equals("n/")) {
-            return foldName(value);
+            return foldCase(Name.normaliseWhitespace(value));
+        }
+        if (field.equals("c/") || field.equals("t/")) {
+            return foldCase(value.trim());
         }
         String result = value.trim().toLowerCase(Locale.ROOT);
         return field.equals("p/") ? result.replace(" ", "").replace("-", "") : result;
     }
 
-    /** Normalises spaces and folds each name code point using the same case equivalence as String.equalsIgnoreCase. */
-    private static String foldName(String value) {
+    /** Folds code points using the same case equivalence as String.equalsIgnoreCase. */
+    private static String foldCase(String value) {
         StringBuilder folded = new StringBuilder();
-        Name.normaliseWhitespace(value).codePoints().map(Character::toUpperCase).map(Character::toLowerCase)
+        value.codePoints().map(Character::toUpperCase).map(Character::toLowerCase)
                 .forEach(folded::appendCodePoint);
         return folded.toString();
     }
@@ -43,7 +47,7 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
 
     private boolean matches(Person person, String field, Set<String> values) {
         return switch (field) {
-            case "n/" -> values.contains(normalise(field, person.getName().fullName));
+            case "n/" -> matchesName(person.getName().fullName, values);
             case "c/" -> person.getCompany()
                     .map(company -> values.contains(normalise(field, company.value))).orElse(false);
             case "e/" -> values.contains(normalise(field, person.getEmail().value));
@@ -54,6 +58,11 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
                     .map(date -> values.contains(date.toString())).orElse(false);
             default -> false;
         };
+    }
+
+    private boolean matchesName(String fullName, Set<String> values) {
+        String name = normalise("n/", fullName);
+        return values.contains(name) || Arrays.stream(name.split(" ")).anyMatch(values::contains);
     }
 
     @Override
