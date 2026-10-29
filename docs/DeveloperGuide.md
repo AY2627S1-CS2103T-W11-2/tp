@@ -210,6 +210,8 @@ It uses `view n/NAME` and a numbered reply for multiple matches. Matching has be
 existing `find` command: case-insensitive whole-name keywords combined with OR. All results appear in the text output area.
 
 `ViewCommandParser` enforces the specified name length and permitted characters, one `n/` field, and no other fields.
+Like the other parsers, it tokenises the arguments with `ArgumentTokenizer`, then rejects other prefixes, a repeated
+`n/`, text before `n/`, and an empty or invalid name, each with its own message.
 `ViewCommand` searches the full address book using the existing `NameContainsKeywordsPredicate` and updates the
 filtered list to those matches. It leaves stored contacts unchanged. A unique match returns the formatted details as command feedback.
 If exactly one match has a full name equal to the query, ignoring case, `ViewCommand` returns that contact directly
@@ -892,6 +894,22 @@ Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibit
    Expected: The invalid choices show the range 1–2; `2` displays the second contact's details.
 1. Run `view n/Alicia Tan`, then `list`, then `2`.<br>
    Expected: `list` cancels the pending choice; the final number is not treated as a view selection.
+
+### Testing parser error messages
+
+Start with the sample data and run `list` first. Each command below is rejected without changing any contact.
+
+| Check | Command | Expected message |
+| --- | --- | --- |
+| Index of zero or below | `delete 0`, `delete -1`, `update -1 s/Completed`, `tag 0 t/vip` | `Index must be a positive integer.` |
+| Index too large | `delete 99999999999999`, `update 99999999999999 s/Completed`, `tag 99999999999999 t/vip` | `Index is too large. Use a number shown in the current list, find or view results.` |
+| `n/` before a delete target | `delete n/Alex Yeoh` | `Don't include n/ for delete. Use: delete NAME or delete INDEX` |
+| `n/` before an update target | `update n/Alex Yeoh s/Completed` | `Don't include n/ for update. Use: update NAME_OR_INDEX FIELD... (n/ only sets a new name, e.g. update Alicia Tan n/Alicia Lim)` |
+| `n/` before a tag target | `tag n/Alex Yeoh t/vip` | `Don't include n/ for tag. Use: tag NAME_OR_INDEX t/TAG [t/TAG]...` |
+| View without a prefix | `view alex` | `view needs the n/ prefix before the name. Use: view n/NAME, e.g. view n/Alicia Tan` |
+| View with an empty name | `view n/` | `Name cannot be empty. Use: view n/NAME, e.g. view n/Alicia Tan` |
+| Phone with a disallowed character | `add n/Chris Tan c/Example Ltd e/chris@example.com p/(65) 6123-4567` | `Invalid value for p/: Phone number can only contain digits, spaces, hyphens, and a + at the start.` |
+| Phone with too few digits | `add n/Chris Tan c/Example Ltd e/chris@example.com p/123` | `Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +.` |
 
 ### Deleting a contact
 

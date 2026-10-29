@@ -1,8 +1,8 @@
 package seedu.boothmanagerpro.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static seedu.boothmanagerpro.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.boothmanagerpro.testutil.Assert.assertThrows;
 import static seedu.boothmanagerpro.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
@@ -40,9 +40,29 @@ public class ParserUtilTest {
     }
 
     @Test
-    public void parseIndex_outOfRangeInput_throwsParseException() {
-        assertThrows(ParseException.class, MESSAGE_INVALID_INDEX, ()
-            -> ParserUtil.parseIndex(Long.toString(Integer.MAX_VALUE + 1)));
+    public void parseIndex_nonPositiveInput_throwsParseException() {
+        for (String index : new String[]{"0", "-1", "+1", Long.toString(Integer.MIN_VALUE)}) {
+            assertThrows(ParseException.class, "Index must be a positive integer.", () -> ParserUtil.parseIndex(index));
+        }
+    }
+
+    @Test
+    public void parseIndex_tooLargeInput_throwsParseException() {
+        for (String index : new String[]{Long.toString(Integer.MAX_VALUE + 1L), "99999999999999"}) {
+            assertThrows(ParseException.class,
+                    "Index is too large. Use a number shown in the current list, find or view results.", ()
+                    -> ParserUtil.parseIndex(index));
+        }
+    }
+
+    @Test
+    public void isIndexLike() {
+        for (String target : new String[]{"1", " 0 ", "-1", "+1", "99999999999999"}) {
+            assertTrue(ParserUtil.isIndexLike(target));
+        }
+        for (String target : new String[]{"", "Alicia Tan", "1a", "1 2", "- 1"}) {
+            assertFalse(ParserUtil.isIndexLike(target));
+        }
     }
 
     @Test
@@ -85,6 +105,11 @@ public class ParserUtilTest {
     @Test
     public void parsePhone_invalidValue_throwsParseException() {
         assertThrows(ParseException.class, () -> ParserUtil.parsePhone(INVALID_PHONE));
+        assertThrows(ParseException.class,
+                "Phone number can only contain digits, spaces, hyphens, and a + at the start.", ()
+                -> ParserUtil.parsePhone("(65) 6123-4567"));
+        assertThrows(ParseException.class, "Phone number must contain 7 to 15 digits, optionally starting with +.", ()
+                -> ParserUtil.parsePhone("123"));
     }
 
     @Test

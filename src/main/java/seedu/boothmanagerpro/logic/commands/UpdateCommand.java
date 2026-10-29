@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static seedu.boothmanagerpro.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Logger;
 
 import seedu.boothmanagerpro.commons.core.LogsCenter;
@@ -97,5 +98,18 @@ public class UpdateCommand extends Command {
                 throw new CommandException(String.format(MESSAGE_DUPLICATE, AddCommand.formatIdentity(other)));
             }
         }
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+        if (!(other instanceof UpdateCommand otherUpdateCommand)) {
+            return false;
+        }
+        return Objects.equals(index, otherUpdateCommand.index)
+                && Objects.equals(name, otherUpdateCommand.name)
+                && changes.equals(otherUpdateCommand.changes);
     }
 }

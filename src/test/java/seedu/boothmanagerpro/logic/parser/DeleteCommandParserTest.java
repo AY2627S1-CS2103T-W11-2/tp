@@ -1,6 +1,8 @@
 package seedu.boothmanagerpro.logic.parser;
 
 import static seedu.boothmanagerpro.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.boothmanagerpro.logic.parser.CommandParserTestUtil.assertInvalidIndexFailure;
+import static seedu.boothmanagerpro.logic.parser.CommandParserTestUtil.assertNamePrefixFailure;
 import static seedu.boothmanagerpro.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.boothmanagerpro.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.boothmanagerpro.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -24,12 +26,23 @@ public class DeleteCommandParserTest {
     }
 
     @Test
-    public void parse_invalidArgs_throwsParseException() {
-        assertParseFailure(parser, "", String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
-        assertParseFailure(parser, "0", String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
-        assertParseFailure(parser, "999999999999999999999",
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
-        assertParseFailure(parser, "Alice!",
-                String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
+    public void parse_missingOrInvalidName_showsUsage() {
+        for (String args : new String[]{"", "  ", "Alice!"}) {
+            assertParseFailure(parser, args,
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, DeleteCommand.MESSAGE_USAGE));
+        }
+    }
+
+    @Test
+    public void parse_invalidIndex_failure() {
+        assertInvalidIndexFailure(parser, "");
+        assertInvalidIndexFailure(parser, "  ");
+    }
+
+    @Test
+    public void parse_namePrefix_failure() {
+        for (String args : new String[]{"n/Alex Yeoh", " n/1", "n/"}) {
+            assertNamePrefixFailure(parser, args, "delete", "delete NAME or delete INDEX");
+        }
     }
 }
