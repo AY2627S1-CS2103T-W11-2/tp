@@ -275,7 +275,7 @@ covers same-name contacts at different companies, numbered replies, and cancella
 
 1. `AddressBookParser` routes `update` to `UpdateCommandParser`, which validates the target, field cardinality, and supplied values.
 2. `ContactFieldParser` shares prefix-specific validation feedback with `add`; domain value types remain the source of constraints and normalisation.
-3. Immutable `ContactUpdate` represents partial changes. An absent optional preserves the value; a present empty date or tag set explicitly clears it. Tags are defensively copied.
+3. Immutable `ContactUpdate` represents partial changes. An absent optional preserves the value; a present empty contact method, date, or tag set explicitly clears it. Tags are defensively copied.
 4. `UpdateCommand` resolves an exact case-insensitive full name across all contacts or a one-based index in the current displayed list. Missing or ambiguous targets fail before mutation.
 5. The command constructs a replacement `Person` via `ContactUpdate#applyTo` and checks every other contact for duplicate email or name/company, including hidden records. Target resolution, duplicate warnings, and successful updates are logged via `LogsCenter`. Only then does it call `Model#setPerson` and reset the filter.
 6. `LogicManager` persists the updated address book through `Storage#saveAddressBook` (rolling back the in-memory model and filter if saving fails), and the UI displays a concise confirmation. Subsequent `view`, `list`, and `find` commands display the updated attributes on `ContactCard`s.
@@ -287,7 +287,7 @@ The sequence diagram below illustrates a successful `update` request, showing bo
 <div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `UpdateCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
 </div>
 
-Legacy address is preserved. Supplied tags replace the tag set; a sole blank `t/` clears it. Empty `f/` clears the follow-up date. Other empty fields fail validation. There is no new storage schema or persistent contact ID.
+Legacy address is preserved. Supplied tags replace the tag set; a sole blank `t/` clears it. Empty `m/` clears the contact method, and empty `f/` clears the follow-up date. Other empty fields fail validation. There is no new storage schema or persistent contact ID.
 
 `UpdateIntegrationTest` covers command routing, normalisation, partial updates, clearing, duplicate rejection, ambiguity, filtered indices, and persisted JSON. Rejected requests preserve contacts, filters, and disk content. `MainWindowTest` checks confirmation, updated cards, and retained input after invalid updates.
 
@@ -907,8 +907,9 @@ Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibit
 1. Prerequisites: Add `Alicia Tan` (`add n/Alicia Tan c/TechNova Pte Ltd e/alicia@example.com p/91234567 t/tech`).
 1. Update by full name: `update Alicia Tan m/phone s/In progress f/20261025`<br>
    Expected: Output confirms `Updated Alicia Tan at TechNova Pte Ltd.` Running `view n/Alicia Tan` shows a card with badge `In progress`, contact method `phone`, follow-up date `25 Oct 2026`, and existing email, phone, and `tech` tag preserved.
-1. Clear optional date and tags: `update Alicia Tan f/ t/`<br>
-   Expected: Confirmation appears; `view n/Alicia Tan` shows `Follow-up date: None` and `No tags`.
+1. Clear optional method, date, and tags: `update Alicia Tan m/ f/ t/`<br>
+   Expected: Confirmation appears; `view n/Alicia Tan` shows `Contact method: Not specified`, `Follow-up date: None`, and `No tags`.
+
 1. Ambiguous name vs displayed index: Add a second `Alicia Tan` (`add n/Alicia Tan c/OtherCo e/alicia2@example.com p/87654321`), then run `update Alicia Tan s/Completed`.<br>
    Expected: Rejected with an ambiguity message; neither contact is updated. Run `find n/Alicia Tan`, then `update 2 s/Completed`; only the second `Alicia Tan` is updated and the filter resets.
 1. Invalid and duplicate updates: Try `update Alicia Tan`, `update 1 f/20230229`, and `update 2 e/alicia@example.com` (after `list`).<br>

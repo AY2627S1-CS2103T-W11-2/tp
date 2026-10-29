@@ -43,7 +43,8 @@ public class HelpCommandTest {
         assertTrue(SHOWING_HELP_MESSAGE.contains("list [o/name|o/company|o/status]"));
         assertTrue(SHOWING_HELP_MESSAGE.contains("find f/20261025 t/high-priority"));
         assertTrue(SHOWING_HELP_MESSAGE.contains("update Alicia Tan s/Completed f/20261028"));
-        assertTrue(SHOWING_HELP_MESSAGE.contains("Empty f/ clears the follow-up date; empty t/ clears all tags."));
+        assertTrue(SHOWING_HELP_MESSAGE.contains("Empty m/ clears the contact method; "
+                + "empty f/ clears the follow-up date; empty t/ clears all tags."));
         assertTrue(SHOWING_HELP_MESSAGE.contains("Repeated fields are alternatives (OR); different fields must all "
                 + "match (AND)."));
         assertTrue(SHOWING_HELP_MESSAGE.contains("Use an exact full name or a displayed number for NAME_OR_INDEX."));

@@ -91,7 +91,9 @@ public class UpdateIntegrationTest {
         assertEquals(original.getContactMethod(), updated.getContactMethod());
         assertEquals(original.getFollowUpDate(), updated.getFollowUpDate());
         assertEquals(original.getTags(), updated.getTags());
-        logic.execute("update 1 f/ t/");
+        logic.execute("update 1 m/ f/ t/");
+        assertTrue(saved().getFirst().getContactMethod().isEmpty());
+        assertTrue(logic.execute("view n/Alicia Tan").getFeedbackToUser().contains("Contact method: Not specified"));
         assertTrue(saved().getFirst().getFollowUpDate().isEmpty());
         assertTrue(saved().getFirst().getTags().isEmpty());
         logic.execute("update 1 s/Needs follow-up");
@@ -138,7 +140,7 @@ public class UpdateIntegrationTest {
             "Alicia Tan n/123", "Alicia Tan c/", "Alicia Tan e/bad", "Alicia Tan p/123",
             "Alicia Tan m/fax", "Alicia Tan s/done", "Alicia Tan f/20230229", "Alicia Tan f/none",
             "Alicia Tan t/ t/valid", "Alicia Tan t/a/b", "Alicia Tan s/", "Alicia Tan n/",
-            "Alicia Tan e/", "Alicia Tan p/", "Alicia Tan m/"}) {
+            "Alicia Tan e/", "Alicia Tan p/"}) {
             assertRejected("update " + args, ParseException.class);
         }
         for (String field : new String[]{"n/Alice", "c/Other", "e/a@example.com", "p/88888888",

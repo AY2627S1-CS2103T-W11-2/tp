@@ -85,12 +85,13 @@ public class UpdateCommandParser implements Parser<UpdateCommand> {
         }
     }
 
-    /** Uses the same domain constructors and field errors as add, with explicit date/tag clearing. */
+    /** Uses the same domain constructors and field errors as add, with explicit method/date/tag clearing. */
     private ContactUpdate parseChanges(ArgumentMultimap fields) throws ParseException {
         return new ContactUpdate(optional(fields, PREFIX_NAME, Name::new),
                 optional(fields, PREFIX_COMPANY, Company::new), optional(fields, PREFIX_EMAIL, Email::new),
-                parsePhone(fields), optional(fields, PREFIX_METHOD, ContactMethod::fromString),
-                optional(fields, PREFIX_STATUS, EnquiryStatus::fromString), parseDate(fields), parseTags(fields));
+                parsePhone(fields), parseClearableOptional(fields, PREFIX_METHOD, ContactMethod::fromString),
+                optional(fields, PREFIX_STATUS, EnquiryStatus::fromString),
+                parseClearableOptional(fields, PREFIX_FOLLOW_UP, FollowUpDate::new), parseTags(fields));
     }
 
     private <T> Optional<T> optional(ArgumentMultimap fields, Prefix prefix, Function<String, T> constructor)
@@ -106,14 +107,15 @@ public class UpdateCommandParser implements Parser<UpdateCommand> {
         return value.isEmpty() ? Optional.empty() : Optional.of(ContactFieldParser.parsePhone(value.orElseThrow()));
     }
 
-    /** Distinguishes an omitted date (preserve), blank date (clear), and supplied date (replace). */
-    private Optional<Optional<FollowUpDate>> parseDate(ArgumentMultimap fields) throws ParseException {
-        Optional<String> value = fields.getValue(PREFIX_FOLLOW_UP);
+    /** Distinguishes an omitted optional field (preserve), blank field (clear), and supplied value (replace). */
+    private <T> Optional<Optional<T>> parseClearableOptional(
+            ArgumentMultimap fields, Prefix prefix, Function<String, T> constructor) throws ParseException {
+        Optional<String> value = fields.getValue(prefix);
         if (value.isEmpty()) {
             return Optional.empty();
         }
         return Optional.of(value.orElseThrow().isBlank() ? Optional.empty()
-                : Optional.of(parseValue(PREFIX_FOLLOW_UP, value.orElseThrow(), FollowUpDate::new)));
+                : Optional.of(parseValue(prefix, value.orElseThrow(), constructor)));
     }
 
     /** Replaces tags in input order; a sole blank tag clears, but mixed blank/nonblank tags are errors. */
