@@ -32,7 +32,7 @@ import seedu.boothmanagerpro.ui.UiManager;
  */
 public class MainApp extends Application {
 
-    public static final String VERSION = "V1.5";
+    public static final String VERSION = "V0.5.1";
     public static final String MESSAGE_DATA_LOAD_FAILURE = "Contact data could not be loaded. "
             + "The original file will be backed up before any new data is saved.";
 
@@ -48,7 +48,7 @@ public class MainApp extends Application {
 
     @Override
     public void init() throws Exception {
-        logger.info("=============================[ Initializing BoothManagerPro ]===========================");
+        logger.info("=============================[ Initializing AddressBook ]===========================");
         super.init();
 
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
@@ -78,13 +78,13 @@ public class MainApp extends Application {
             addressBookOptional = storage.readAddressBook();
             if (addressBookOptional.isEmpty()) {
                 logger.info("Creating a new data file " + storage.getAddressBookFilePath()
-                        + " populated with sample exhibitor contacts.");
+                        + " populated with a sample AddressBook.");
             }
             initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
         } catch (DataLoadingException e) {
             startupWarning = MESSAGE_DATA_LOAD_FAILURE;
             logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
-                    + " Will be starting with an empty contact list.");
+                    + " Will be starting with an empty AddressBook.");
             initialData = new AddressBook();
         }
 
@@ -126,13 +126,13 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        logger.info("Starting BoothManagerPro " + MainApp.VERSION);
+        logger.info("Starting AddressBook " + MainApp.VERSION);
         ui.start(primaryStage);
     }
 
     @Override
     public void stop() {
-        logger.info("============================ [ Stopping BoothManagerPro ] =============================");
+        logger.info("============================ [ Stopping AddressBook ] =============================");
         try {
             storage.saveUserPrefs(model.getUserPrefs());
         } catch (IOException e) {
