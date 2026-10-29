@@ -247,6 +247,8 @@ Format: `view n/NAME`
 * Searches all stored contacts, including those hidden by a previous `find` command.
 * If several contacts match, the output lists numbered choices with their companies and asks you to choose.
   Enter the corresponding number as your next command, for example `2`.
+  Choices follow the current sort order (for example, after `list o/company`), so each number is also that contact's
+  index for `update`, `tag`, `edit`, and `delete`.
   The output is replaced with the chosen contact's details. A single match displays details immediately.
 * If exactly one contact's full name equals `NAME`, ignoring case and extra spaces, that contact's details are shown
   immediately, even when other names share a word. For example, `view n/Alex Yeo` shows `Alex Yeo` directly
