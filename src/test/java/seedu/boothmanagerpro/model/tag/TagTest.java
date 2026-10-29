@@ -57,6 +57,21 @@ public class TagTest {
         assertTrue(Tag.isValidTagName("vip_client#1")); // underscore and hash
         assertTrue(Tag.isValidTagName("测".repeat(30))); // 30 multi-byte code points
         assertFalse(Tag.isValidTagName("测".repeat(31))); // 31 multi-byte code points
+        assertFalse(Tag.isValidTagName("\u2003")); // Unicode em space only
+        assertTrue(Tag.isValidTagName("e\u0301".repeat(30))); // 30 NFC characters from decomposed input
+    }
+
+    @Test
+    public void constructor_unicodeWhitespaceAndNfd_normalisesToTrimmedNfc() {
+        Tag emSpaced = new Tag("\u2003vip\u2003");
+        assertEquals("vip", emSpaced.tagName);
+        assertEquals(new Tag("vip"), emSpaced);
+
+        Tag nfcTag = new Tag("Caf\u00E9");
+        Tag nfdTag = new Tag("Cafe\u0301");
+        assertEquals("Caf\u00E9", nfdTag.tagName);
+        assertEquals(nfcTag, nfdTag);
+        assertEquals(nfcTag.hashCode(), nfdTag.hashCode());
     }
 
 }

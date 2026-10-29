@@ -40,14 +40,14 @@ public class FindCommandParser implements Parser<FindCommand> {
     @Override
     public FindCommand parse(String args) throws ParseException {
         logger.fine("Parsing contact search.");
-        String trimmedArgs = args.trim();
+        String trimmedArgs = args.strip();
         if (trimmedArgs.isEmpty()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }
         Matcher matcher = FIELD_PREFIX.matcher(trimmedArgs);
         if (!matcher.find()) {
             FindCommand command = new FindCommand(
-                    new NameContainsKeywordsPredicate(List.of(trimmedArgs.split("\\s+"))));
+                    new NameContainsKeywordsPredicate(List.of(trimmedArgs.split("(?U)\\s+"))));
             logger.fine("Contact search parsed successfully.");
             return command;
         }
@@ -71,7 +71,7 @@ public class FindCommandParser implements Parser<FindCommand> {
     }
 
     private void addCriterion(Map<String, Set<String>> criteria, String field, String value) throws ParseException {
-        if (value.trim().isEmpty()) {
+        if (value.isBlank()) {
             throw new ParseException(MESSAGE_EMPTY_VALUE);
         }
         String normalised = ContactMatchesFieldsPredicate.normalise(field, value);

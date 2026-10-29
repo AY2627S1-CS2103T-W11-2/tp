@@ -26,10 +26,11 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
         if (field.equals("n/")) {
             return foldName(value);
         }
+        String nfc = Normalizer.normalize(value, Normalizer.Form.NFC).strip();
         if (field.equals("c/") || field.equals("t/")) {
-            return foldCase(value.trim());
+            return foldCase(nfc);
         }
-        String result = value.trim().toLowerCase(Locale.ROOT);
+        String result = nfc.toLowerCase(Locale.ROOT);
         return field.equals("p/") ? result.replace(" ", "").replace("-", "") : result;
     }
 

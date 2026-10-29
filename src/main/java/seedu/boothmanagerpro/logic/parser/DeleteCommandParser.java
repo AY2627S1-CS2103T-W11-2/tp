@@ -18,7 +18,7 @@ public class DeleteCommandParser implements Parser<DeleteCommand> {
      */
     public DeleteCommand parse(String args) throws ParseException {
         try {
-            String trimmedArgs = args.trim();
+            String trimmedArgs = args.strip();
             if (trimmedArgs.matches("[0-9]+")) {
                 Index index = ParserUtil.parseIndex(trimmedArgs);
                 return new DeleteCommand(index);
