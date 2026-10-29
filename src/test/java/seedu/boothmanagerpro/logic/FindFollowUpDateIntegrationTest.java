@@ -45,7 +45,7 @@ public class FindFollowUpDateIntegrationTest {
         String output = logic.execute("find f/20261025").getFeedbackToUser();
         assertNames("Zoe Tan", "Alicia Tan");
         assertTrue(output.startsWith("2 contact(s) found.\n\n1. Zoe Tan"));
-        assertTrue(output.contains("Follow-up date: 20261025"));
+        assertTrue(output.contains("Follow-up date: 25 Oct 2026"));
         logic.execute("find f/20261026");
         assertNames("Ben Lim"); // Searches all stored contacts, not only the previous results.
         assertEquals("0 contact(s) found.", logic.execute("find f/20261027").getFeedbackToUser());

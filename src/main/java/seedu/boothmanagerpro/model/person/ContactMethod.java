@@ -17,7 +17,7 @@ public enum ContactMethod {
      */
     public static ContactMethod fromString(String value) {
         try {
-            return valueOf(value.trim().toUpperCase(Locale.ROOT));
+            return valueOf(value.strip().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(MESSAGE_CONSTRAINTS, e);
         }

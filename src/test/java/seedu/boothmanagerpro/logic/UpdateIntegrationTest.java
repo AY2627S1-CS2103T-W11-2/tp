@@ -52,9 +52,9 @@ public class UpdateIntegrationTest {
         assertEquals("+6581234567", updated.getPhone().value);
         assertEquals("phone", updated.getContactMethod().orElseThrow().toString());
         assertEquals("Completed", updated.getEnquiryStatus().toString());
-        assertEquals("20280229", updated.getFollowUpDate().orElseThrow().toString());
+        assertEquals("29 Feb 2028", updated.getFollowUpDate().orElseThrow().toString());
         assertEquals("new, priority", Messages.formatTags(updated));
-        assertTrue(logic.execute("view n/Alice Tan").getFeedbackToUser().contains("Follow-up date: 20280229"));
+        assertTrue(logic.execute("view n/Alice Tan").getFeedbackToUser().contains("Follow-up date: 29 Feb 2028"));
     }
 
     @Test
@@ -148,6 +148,28 @@ public class UpdateIntegrationTest {
             ParseException error = assertRejected("update Alicia Tan " + field + " " + field, ParseException.class);
             assertTrue(error.getMessage().contains("Repeated fields:"));
         }
+    }
+
+    @Test
+    public void patronymicName_allCommands_roundTripsConsistently() throws Exception {
+        assertEquals("Added Raj s/o Kumar at Acme.",
+                logic.execute("add n/Raj s/o Kumar c/Acme e/raj@example.com p/91112222").getFeedbackToUser());
+        assertTrue(logic.execute("view n/Raj s/o Kumar").getFeedbackToUser().contains("Raj s/o Kumar at Acme"));
+        logic.execute("find n/Raj s/o Kumar");
+        assertEquals(1, model.getFilteredPersonList().size());
+        logic.execute("find Raj s/o Kumar");
+        assertEquals(1, model.getFilteredPersonList().size());
+        assertEquals("Updated Raj s/o Kumar at Acme.",
+                logic.execute("update Raj s/o Kumar s/Completed").getFeedbackToUser());
+        assertEquals("Completed", saved().get(2).getEnquiryStatus().toString());
+        assertTrue(logic.execute("tag Raj s/o Kumar t/vip").getFeedbackToUser()
+                .contains("Updated tags for Raj s/o Kumar at Acme. Added: vip."));
+        logic.execute("list");
+        logic.execute("update 3 n/Priya d/o Raman");
+        assertEquals("Priya d/o Raman", saved().get(2).getName().fullName);
+        assertTrue(logic.execute("delete Priya d/o Raman").getFeedbackToUser()
+                .contains("Priya d/o Raman"));
+        assertEquals(2, saved().size());
     }
 
     private List<Person> saved() throws Exception {

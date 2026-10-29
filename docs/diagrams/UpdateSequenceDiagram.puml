@@ -1,0 +1,139 @@
+@startuml
+!include style.puml
+title Updating an exhibitor contact - successful request
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
+participant ":UpdateCommandParser" as UpdateCommandParser LOGIC_COLOR
+participant "u:UpdateCommand" as UpdateCommand LOGIC_COLOR
+participant "r:CommandResult" as CommandResult LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "changes:ContactUpdate" as ContactUpdate MODEL_COLOR
+participant "updated:Person" as Person MODEL_COLOR
+participant "m:Model" as Model MODEL_COLOR
+end box
+
+box Storage STORAGE_COLOR_T1
+participant "s:Storage" as Storage STORAGE_COLOR
+end box
+
+[-> LogicManager : execute("update Alicia Tan s/Completed")
+activate LogicManager
+
+LogicManager -> AddressBookParser : parseCommand("update Alicia Tan s/Completed")
+activate AddressBookParser
+
+create UpdateCommandParser
+AddressBookParser -> UpdateCommandParser : UpdateCommandParser()
+AddressBookParser -> UpdateCommandParser : parse(" Alicia Tan s/Completed")
+activate UpdateCommandParser
+
+create ContactUpdate
+UpdateCommandParser -> ContactUpdate : ContactUpdate(...)
+activate ContactUpdate
+ContactUpdate --> UpdateCommandParser : changes
+deactivate ContactUpdate
+
+create UpdateCommand
+UpdateCommandParser -> UpdateCommand : UpdateCommand(target, changes)
+activate UpdateCommand
+
+UpdateCommand --> UpdateCommandParser : u
+deactivate UpdateCommand
+
+UpdateCommandParser --> AddressBookParser : u
+deactivate UpdateCommandParser
+'Hidden arrow to position the destroy marker below the end of the activation bar.
+UpdateCommandParser -[hidden]-> AddressBookParser
+destroy UpdateCommandParser
+
+AddressBookParser --> LogicManager : u
+deactivate AddressBookParser
+
+LogicManager -> UpdateCommand : execute(m)
+activate UpdateCommand
+
+UpdateCommand -> UpdateCommand : resolveTarget(m)
+activate UpdateCommand
+
+alt Target specified by index
+    UpdateCommand -> Model : getFilteredPersonList()
+    activate Model
+    Model --> UpdateCommand : displayed
+    deactivate Model
+    note right of UpdateCommand : original = displayed[index]
+else Target specified by name
+    UpdateCommand -> Model : getAddressBook()
+    activate Model
+    Model --> UpdateCommand : addressBook
+    deactivate Model
+    note right of UpdateCommand : original = match in addressBook\n(fails if ambiguous or not found)
+end
+
+UpdateCommand --> UpdateCommand : original
+deactivate UpdateCommand
+
+UpdateCommand -> ContactUpdate : applyTo(original)
+activate ContactUpdate
+
+create Person
+ContactUpdate -> Person : Person.createExhibitor(...)
+activate Person
+Person --> ContactUpdate : updated
+deactivate Person
+
+ContactUpdate --> UpdateCommand : updated
+deactivate ContactUpdate
+
+UpdateCommand -> UpdateCommand : rejectDuplicates(m, original, updated)
+activate UpdateCommand
+
+UpdateCommand -> Model : getAddressBook()
+activate Model
+Model --> UpdateCommand : addressBook
+deactivate Model
+
+note right of UpdateCommand : Checks all other contacts to ensure\nno conflict with updated details
+
+UpdateCommand --> UpdateCommand
+deactivate UpdateCommand
+
+UpdateCommand -> Model : setPerson(original, updated)
+activate Model
+Model --> UpdateCommand
+deactivate Model
+
+UpdateCommand -> Model : updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS)
+activate Model
+Model --> UpdateCommand
+deactivate Model
+
+create CommandResult
+UpdateCommand -> CommandResult
+activate CommandResult
+
+CommandResult --> UpdateCommand : r
+deactivate CommandResult
+
+UpdateCommand --> LogicManager : r
+deactivate UpdateCommand
+
+LogicManager -> Model : getAddressBook()
+activate Model
+Model --> LogicManager : addressBook
+deactivate Model
+
+LogicManager -> Storage : saveAddressBook(addressBook)
+activate Storage
+note right of LogicManager : Persists updated address book;\nrolls back model if saving fails
+Storage --> LogicManager
+deactivate Storage
+
+[<-- LogicManager : r
+deactivate LogicManager
+@enduml
+

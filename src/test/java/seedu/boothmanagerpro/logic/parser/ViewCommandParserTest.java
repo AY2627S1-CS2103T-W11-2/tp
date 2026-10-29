@@ -25,14 +25,14 @@ public class ViewCommandParserTest {
     @Test
     public void parse_validName_success() {
         for (String name : new String[]{"Alicia Tan", "Anne-Marie O'Neil", "Dr. Lee", "O’Neil", "Élodie", "'Ali",
-            "A".repeat(80)}) {
+            "Raj s/o Kumar", "Priya d/o Raman", "Raj S/O Kumar", "A".repeat(80)}) {
             assertParseSuccess(parser, " n/ " + name + "  ", new ViewCommand(new Name(name)));
         }
     }
 
     @Test
     public void parse_missingOrWrongField_failure() {
-        for (String args : new String[]{"", " ", "c/TechNova", "n/Alicia p/12345678", "m/email n/Alicia"}) {
+        for (String args : new String[]{"", " ", "c/TechNova", "p/91234567", "s/Completed"}) {
             assertParseFailure(parser, args, ViewCommandParser.MESSAGE_REQUIRED_NAME);
         }
     }
@@ -45,15 +45,17 @@ public class ViewCommandParserTest {
 
     @Test
     public void parse_unknownPrefixOrUnprefixedValue_failure() {
-        for (String args : new String[]{"Alicia Tan", "1", "x/test", "Alicia n/Tan", "n/Alicia x/test",
-            "n/Alicia i/1", "n/Alicia/extra"}) {
+        for (String args : new String[]{"Alicia Tan", "1", "x/test", "Alicia n/Tan", "n/Alice c/Acme",
+            "n/Alicia p/12345678", "m/email n/Alicia", "n/Alicia x/test", "n/Alicia i/1", "n/Alicia/extra",
+            "n/Raj s/o Kumar c/Acme", "n/Raj s/o"}) {
             assertParseFailure(parser, args, ViewCommandParser.MESSAGE_UNKNOWN_FIELD);
         }
     }
 
     @Test
     public void parse_invalidName_failure() {
-        for (String name : new String[]{"", " ", "123", "Alicia2", "...", "---", "Alicia!", "A".repeat(81)}) {
+        for (String name : new String[]{"", " ", "123", "Alicia2", "...", "---", "Alicia!",
+            "Raj2 s/o Kumar", "A".repeat(81)}) {
             assertParseFailure(parser, "n/" + name, ViewCommandParser.MESSAGE_INVALID_NAME);
         }
     }

@@ -1,0 +1,101 @@
+@startuml
+!include style.puml
+title Adding an exhibitor contact - successful request
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
+participant ":AddCommandParser" as AddCommandParser LOGIC_COLOR
+participant "a:AddCommand" as AddCommand LOGIC_COLOR
+participant "r:CommandResult" as CommandResult LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "toAdd:Person" as Person MODEL_COLOR
+participant "m:Model" as Model MODEL_COLOR
+end box
+
+box Storage STORAGE_COLOR_T1
+participant "s:Storage" as Storage STORAGE_COLOR
+end box
+
+[-> LogicManager : execute("add n/Alicia Tan c/TechNova...")
+activate LogicManager
+
+LogicManager -> AddressBookParser : parseCommand("add n/Alicia Tan c/TechNova...")
+activate AddressBookParser
+
+create AddCommandParser
+AddressBookParser -> AddCommandParser : AddCommandParser()
+AddressBookParser -> AddCommandParser : parse(" n/Alicia Tan c/TechNova...")
+activate AddCommandParser
+
+create Person
+AddCommandParser -> Person : Person.createExhibitor(...)
+activate Person
+Person --> AddCommandParser : toAdd
+deactivate Person
+
+create AddCommand
+AddCommandParser -> AddCommand : AddCommand(toAdd)
+activate AddCommand
+
+AddCommand --> AddCommandParser : a
+deactivate AddCommand
+
+AddCommandParser --> AddressBookParser : a
+deactivate AddCommandParser
+'Hidden arrow to position the destroy marker below the end of the activation bar.
+AddCommandParser -[hidden]-> AddressBookParser
+destroy AddCommandParser
+
+AddressBookParser --> LogicManager : a
+deactivate AddressBookParser
+
+LogicManager -> AddCommand : execute(m)
+activate AddCommand
+
+AddCommand -> AddCommand : findDuplicates(m)
+activate AddCommand
+
+AddCommand -> Model : getAddressBook()
+activate Model
+Model --> AddCommand : addressBook
+deactivate Model
+
+note right of AddCommand : Checks all contacts in addressBook\nvia isSamePerson(toAdd) (canonical\nname & company, or email match)
+
+AddCommand --> AddCommand : duplicates
+deactivate AddCommand
+
+AddCommand -> Model : addPerson(toAdd)
+activate Model
+Model --> AddCommand
+deactivate Model
+
+create CommandResult
+AddCommand -> CommandResult
+activate CommandResult
+
+CommandResult --> AddCommand : r
+deactivate CommandResult
+
+AddCommand --> LogicManager : r
+deactivate AddCommand
+
+LogicManager -> Model : getAddressBook()
+activate Model
+Model --> LogicManager : addressBook
+deactivate Model
+
+LogicManager -> Storage : saveAddressBook(addressBook)
+activate Storage
+note right of LogicManager : If saving fails, in-memory model\nis rolled back to previous state
+Storage --> LogicManager
+deactivate Storage
+
+[<-- LogicManager : r
+deactivate LogicManager
+@enduml
+

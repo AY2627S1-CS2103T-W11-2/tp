@@ -6,7 +6,6 @@ import static seedu.boothmanagerpro.logic.parser.ContactFieldParser.parseValue;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.regex.MatchResult;
-import java.util.regex.Pattern;
 
 import seedu.boothmanagerpro.logic.commands.TagCommand;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
@@ -15,11 +14,6 @@ import seedu.boothmanagerpro.model.tag.Tag;
 /** Parses a contact target and one or more t/TAG fields to toggle. */
 public class TagCommandParser implements Parser<TagCommand> {
     public static final String MESSAGE_UNKNOWN_FIELD = "Unknown field prefix: %s. Use t/.";
-    /**
-     * Matches only single-letter prefixes (e.g. {@code t/}) preceded by whitespace or at the
-     * start of input. Multi-character tokens are never treated as field delimiters.
-     */
-    private static final Pattern FIELD_PREFIX = Pattern.compile("(?<!\\S)([a-zA-Z]/)");
 
     @Override
     public TagCommand parse(String args) throws ParseException {
@@ -34,7 +28,7 @@ public class TagCommandParser implements Parser<TagCommand> {
 
     /** Rejects unsupported prefix-like tokens before tokenising t/TAG fields and the target. */
     private ArgumentMultimap tokenize(String args) throws ParseException {
-        for (MatchResult match : FIELD_PREFIX.matcher(args).results().toList()) {
+        for (MatchResult match : ArgumentTokenizer.findSingleLetterPrefixes(args)) {
             if (!PREFIX_TAG.equals(new Prefix(match.group(1)))) {
                 throw new ParseException(String.format(MESSAGE_UNKNOWN_FIELD, match.group(1)));
             }

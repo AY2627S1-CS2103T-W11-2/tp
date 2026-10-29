@@ -13,10 +13,14 @@ public class Name {
 
     public static final String MESSAGE_CONSTRAINTS =
             "Names must be 1 to 80 characters and contain a letter. "
-            + "Use only letters, spaces, hyphens, apostrophes or full stops.";
+            + "Use only letters, spaces, hyphens, apostrophes, full stops, or s/o and d/o between words.";
 
-    // Length and the presence of a letter are checked separately after whitespace normalisation.
-    public static final String VALIDATION_REGEX = "[\\p{L}\\p{M} .'\u2019-]+";
+    private static final String WORD_REGEX = "[\\p{L}\\p{M}.'\u2019-]+";
+    private static final String PATRONYMIC_REGEX = "[sSdD]/[oO]";
+
+    // Length and the presence of a letter in each segment are checked separately after whitespace normalisation.
+    public static final String VALIDATION_REGEX =
+            WORD_REGEX + "(?: (?:(?:" + PATRONYMIC_REGEX + ") )?" + WORD_REGEX + ")*";
 
     public final String fullName;
 
@@ -24,7 +28,7 @@ public class Name {
      * Trims, NFC-normalises, collapses consecutive spaces and validates a name of 1-80 Unicode
      * code points with at least one letter.
      * Allowed characters are letters (including Unicode), combining marks, spaces, hyphens,
-     * apostrophes and full stops.
+     * apostrophes, full stops, and patronymic markers ({@code s/o} and {@code d/o}) between words.
      *
      * <p>NFC normalisation ensures that canonically equivalent representations (e.g. {@code é} as
      * U+00E9 versus {@code e} followed by U+0301) are stored identically, so duplicate detection
@@ -44,8 +48,15 @@ public class Name {
      */
     public static boolean isValidName(String test) {
         String normalised = normaliseWhitespace(test);
-        return normalised.codePointCount(0, normalised.length()) <= 80 && normalised.matches(VALIDATION_REGEX)
-                && normalised.codePoints().anyMatch(Character::isLetter);
+        if (normalised.codePointCount(0, normalised.length()) > 80 || !normalised.matches(VALIDATION_REGEX)) {
+            return false;
+        }
+        for (String segment : normalised.split(" (?i:[sd]/o) ", -1)) {
+            if (segment.codePoints().noneMatch(Character::isLetter)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -58,7 +69,7 @@ public class Name {
      */
     static String normaliseWhitespace(String name) {
         String nfc = Normalizer.normalize(name, Normalizer.Form.NFC);
-        return nfc.trim().replaceAll(" +", " ");
+        return nfc.strip().replaceAll(" +", " ");
     }
 
     @Override

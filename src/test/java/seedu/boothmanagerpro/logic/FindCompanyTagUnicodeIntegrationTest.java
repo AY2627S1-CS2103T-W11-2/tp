@@ -69,6 +69,33 @@ public class FindCompanyTagUnicodeIntegrationTest {
         assertEquals(before, Files.readString(storage.getAddressBookFilePath()));
     }
 
+    @Test
+    public void find_canonicalEquivalenceAndUnicodeSpaces_matchesStoredContacts() throws Exception {
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(folder.resolve("nfc-contacts.json"));
+        StorageManager manager = new StorageManager(storage,
+                new JsonUserPrefsStorage(folder.resolve("nfc-prefs.json")));
+        ModelManager model = new ModelManager();
+        LogicManager logic = new LogicManager(model, manager);
+
+        logic.execute("add n/Caf\u00E9 Owner c/Caf\u00E9 e/cafe@example.com p/81234567 t/r\u00E9sum\u00E9");
+        Person stored = model.getAddressBook().getPersonList().getFirst();
+
+        logic.execute("find c/Cafe\u0301");
+        assertEquals(List.of(stored), List.copyOf(model.getFilteredPersonList()));
+
+        logic.execute("find c/CAFE\u0301");
+        assertEquals(List.of(stored), List.copyOf(model.getFilteredPersonList()));
+
+        logic.execute("find t/re\u0301sume\u0301");
+        assertEquals(List.of(stored), List.copyOf(model.getFilteredPersonList()));
+
+        logic.execute("find t/\u2003RE\u0301SUME\u0301\u2003");
+        assertEquals(List.of(stored), List.copyOf(model.getFilteredPersonList()));
+
+        logic.execute("find Cafe\u0301");
+        assertEquals(List.of(stored), List.copyOf(model.getFilteredPersonList()));
+    }
+
     private void assertCaseVariantsMatch(String field) throws Exception {
         for (List<String> pair : List.of(List.of("\u039f\u03a3", "\u03bf\u03c3"),
                 List.of("\u03bf\u03c3", "\u039f\u03a3"), List.of("\u03bf\u03c2", "\u03bf\u03c3"),

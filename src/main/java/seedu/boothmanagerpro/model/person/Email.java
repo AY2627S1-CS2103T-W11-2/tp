@@ -43,7 +43,7 @@ public class Email {
     public Email(String email) {
         requireNonNull(email);
         checkArgument(isValidEmail(email), MESSAGE_CONSTRAINTS);
-        value = email.trim().toLowerCase(Locale.ROOT);
+        value = email.strip().toLowerCase(Locale.ROOT);
     }
 
     /**
@@ -53,7 +53,7 @@ public class Email {
      */
     public static boolean isValidEmail(String test) {
         requireNonNull(test);
-        String trimmed = test.trim();
+        String trimmed = test.strip();
         if (trimmed.length() > MAX_LENGTH) {
             return false;
         }
