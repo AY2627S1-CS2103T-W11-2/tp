@@ -349,7 +349,7 @@ public class ExhibitorAddIntegrationTest {
         assertTrue(legacy.getContactMethod().isEmpty());
     }
 
-    // ── Unicode NFC normalisation ─────────────────────────────────────────────
+    // Unicode NFC normalisation
 
     @Test
     public void add_unicodeNfdName_rejectedAsDuplicateOfNfcContact() throws Exception {

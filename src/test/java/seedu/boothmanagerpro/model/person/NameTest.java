@@ -80,7 +80,7 @@ public class NameTest {
         assertFalse(name.equals(new Name("Other Valid Name")));
     }
 
-    // ── Unicode NFC normalisation ─────────────────────────────────────────────
+    // Unicode NFC normalisation
 
     @Test
     public void constructor_nfdInput_storedAsNfc() {

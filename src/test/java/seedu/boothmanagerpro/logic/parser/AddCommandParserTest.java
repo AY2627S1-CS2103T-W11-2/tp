@@ -138,14 +138,16 @@ public class AddCommandParserTest {
         // e.g. "Acme Design/ Build" should be stored as-is, not trigger an unknown-prefix error.
         ModelManager model = new ModelManager();
         parser.parse(" n/Slash Person c/Acme Design/ Build e/slash@example.com p/81234567").execute(model);
-        assertEquals("Acme Design/ Build", model.getFilteredPersonList().getFirst().getCompany().orElseThrow().value);
+        assertEquals("Acme Design/ Build",
+                model.getFilteredPersonList().getFirst().getCompany().orElseThrow().value);
         // Slash at the start of the value segment after c/ is also accepted.
         ModelManager model2 = new ModelManager();
         parser.parse(" n/Another Person c/A/B Corp e/ab@example.com p/91234567").execute(model2);
-        assertEquals("A/B Corp", model2.getFilteredPersonList().getFirst().getCompany().orElseThrow().value);
+        assertEquals("A/B Corp",
+                model2.getFilteredPersonList().getFirst().getCompany().orElseThrow().value);
     }
 
-        @Test
+    @Test
     public void parse_boundaryValues_success() throws Exception {
         for (String method : new String[]{"email", "PHONE", "Other"}) {
             ModelManager model = new ModelManager();

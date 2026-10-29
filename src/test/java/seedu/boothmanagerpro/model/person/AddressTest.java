@@ -41,9 +41,11 @@ public class AddressTest {
         // different languages and special characters
         assertTrue(Address.isValidAddress("北京市海淀区中关村南大街5号")); // Chinese
         assertTrue(Address.isValidAddress("東京都千代田区千代田1-1")); // Japanese
-        assertTrue(Address.isValidAddress("12 Rue de l'Élysée, 75008 Paris, France")); // French with accents and apostrophe
+        // French with accents and apostrophe
+        assertTrue(Address.isValidAddress("12 Rue de l'Élysée, 75008 Paris, France"));
         assertTrue(Address.isValidAddress("Al-Madinah Al-Munawwarah Rd, حي الشرفية, Jeddah")); // Arabic mixed
-        assertTrue(Address.isValidAddress("Level 12 / Suite 4B & 4C, 50-60 King's Cross Road")); // Slashes, ampersand, hyphen
+        // Slashes, ampersand, hyphen
+        assertTrue(Address.isValidAddress("Level 12 / Suite 4B & 4C, 50-60 King's Cross Road"));
     }
 
     @Test

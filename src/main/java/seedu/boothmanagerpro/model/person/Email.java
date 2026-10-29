@@ -17,8 +17,8 @@ public class Email {
     public static final int MAX_DOMAIN_PART_LENGTH = 255; // RFC 5321 standard maximum domain length
 
     private static final String SPECIAL_CHARACTERS = "+_.-";
-    // alphanumeric and special characters
-    private static final String ALPHANUMERIC_NO_UNDERSCORE_CHAR = "[^\\W_]"; // single alphanumeric character except underscore
+    // single alphanumeric character except underscore
+    private static final String ALPHANUMERIC_NO_UNDERSCORE_CHAR = "[^\\W_]";
     private static final String ALPHANUMERIC_NO_UNDERSCORE = ALPHANUMERIC_NO_UNDERSCORE_CHAR + "+";
     private static final String LOCAL_PART_REGEX = "^" + ALPHANUMERIC_NO_UNDERSCORE + "([" + SPECIAL_CHARACTERS + "]"
             + ALPHANUMERIC_NO_UNDERSCORE + ")*";

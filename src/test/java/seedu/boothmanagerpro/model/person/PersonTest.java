@@ -51,7 +51,7 @@ public class PersonTest {
         assertTrue(BOB.isSamePerson(editedBob));
     }
 
-    // ── Unicode NFC normalisation ─────────────────────────────────────────────
+    // Unicode NFC normalisation
 
     @Test
     public void isSamePerson_unicodeNfcVsNfdName_treatedAsEqual() {
@@ -78,7 +78,7 @@ public class PersonTest {
                 "Canonically equivalent NFD and NFC company names must be treated as duplicates");
     }
 
-    // ── equals / toString ─────────────────────────────────────────────────────
+    // equals / toString
 
     @Test
     public void equals() {

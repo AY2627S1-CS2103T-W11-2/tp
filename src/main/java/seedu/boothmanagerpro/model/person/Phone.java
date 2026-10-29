@@ -12,7 +12,8 @@ public class Phone {
     public static final String MESSAGE_CONSTRAINTS =
             "Phone number must contain 7 to 15 digits.";
     public static final String VALIDATION_REGEX = "\\+?[0-9]{7,15}";
-    public static final int MAX_INPUT_LENGTH = 30; // Maximum realistic input length including country code and formatting
+    // Maximum realistic input length including country code and formatting
+    public static final int MAX_INPUT_LENGTH = 30;
     public final String value;
 
     /**
@@ -28,7 +29,6 @@ public class Phone {
 
     /**
      * Returns true if a given string is a valid phone number.
-     * Enforces a maximum input length of {@link #MAX_INPUT_LENGTH} to guard against excessively padded inputs.
      */
     public static boolean isValidPhone(String test) {
         requireNonNull(test);
@@ -36,12 +36,12 @@ public class Phone {
         if (trimmed.length() > MAX_INPUT_LENGTH) {
             return false;
         }
-        return normalize(trimmed).matches(VALIDATION_REGEX);
+        return normalize(test).matches(VALIDATION_REGEX);
     }
 
-    /** Removes accepted spaces and hyphens, preserving an optional leading plus. */
-    private static String normalize(String phone) {
-        return phone.trim().replace(" ", "").replace("-", "");
+    /** Returns digits and an optional leading plus, with internal spaces and hyphens removed. */
+    public static String normalize(String rawPhone) {
+        return rawPhone.trim().replace(" ", "").replace("-", "");
     }
 
     @Override
