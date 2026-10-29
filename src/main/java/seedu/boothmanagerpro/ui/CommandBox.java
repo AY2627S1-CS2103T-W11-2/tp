@@ -87,6 +87,7 @@ public class CommandBox extends UiPart<Region> {
             PREFIX_ORDER.toString(), Arrays.stream(SortField.values()).map(SortField::toString).toList());
 
     private final CommandExecutor commandExecutor;
+    private final Runnable onFocusOutput;
 
     @FXML
     private TextField commandTextField;
@@ -95,14 +96,27 @@ public class CommandBox extends UiPart<Region> {
      * Creates a {@code CommandBox} with the given {@code CommandExecutor}.
      */
     public CommandBox(CommandExecutor commandExecutor) {
+        this(commandExecutor, null);
+    }
+
+    /**
+     * Creates a {@code CommandBox} with the given {@code CommandExecutor} and output focus callback.
+     */
+    public CommandBox(CommandExecutor commandExecutor, Runnable onFocusOutput) {
         super(FXML);
         this.commandExecutor = commandExecutor;
+        this.onFocusOutput = onFocusOutput;
         // calls #setStyleToDefault() whenever there is a change to the text of the command box.
         commandTextField.textProperty().addListener((unused1, unused2, unused3) -> setStyleToDefault());
         // Capture Tab before JavaFX uses it to move focus to another control.
         commandTextField.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (event.getCode() == KeyCode.TAB && autocompleteCommand()) {
-                event.consume();
+            if (event.getCode() == KeyCode.TAB) {
+                if (!event.isShiftDown() && autocompleteCommand()) {
+                    event.consume();
+                } else if (onFocusOutput != null) {
+                    onFocusOutput.run();
+                    event.consume();
+                }
             }
         });
         // JavaFX selects all text when keyboard focus returns, so the next keystroke would replace the command.

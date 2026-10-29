@@ -76,7 +76,7 @@ public class MainWindow extends UiPart<Stage> {
      * Fills up all the placeholders of this window.
      */
     void fillInnerParts() {
-        resultDisplay = new ResultDisplay();
+        resultDisplay = new ResultDisplay(() -> commandBox.focus());
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
         resultDisplay.setFeedbackToUser("Ready. Type list to show all contacts, find to search, "
                 + "or help for usage instructions.");
@@ -84,7 +84,7 @@ public class MainWindow extends UiPart<Stage> {
         StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
 
-        commandBox = new CommandBox(this::executeCommand);
+        commandBox = new CommandBox(this::executeCommand, () -> resultDisplay.focus());
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
         commandHints.setText("Enter to run  |  Tab to autofill  |  " + FOCUS_COMMAND.getDisplayText()
                 + " to focus  |  F1 for help");
