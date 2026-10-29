@@ -433,14 +433,22 @@ Format: `exit`
 
 ### Saving the data
 
-BoothManagerPro automatically saves data after successful commands, except `view` and its numbered selection replies, which do not write the data file. You do not need to save manually. If saving fails, an error appears; the change may still be present in the running app but is not guaranteed to be on disk.
+BoothManagerPro automatically saves data after successful `add`, `update`, `tag`, `edit`, `delete`, and `clear`
+commands. Read-only commands such as `list`, `find`, `view`, `help`, and `exit` do not write the data file. You do
+not need to save manually. If saving fails, the in-memory change is rolled back and an error appears.
+
+If the data file changes after a BoothManagerPro window loads it, that window refuses to save stale data. Restart
+that window to load the latest contacts before retrying the command. This prevents an older window from silently
+overwriting work saved by another window or process.
 
 ### Editing the data file
 
 By default, BoothManagerPro saves data as `data/addressbook.json`, relative to the folder from which you launch the app. Close the app before editing or replacing this file so that a running session does not overwrite your changes.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, BoothManagerPro starts with an empty contact collection at the next run. The invalid file remains on disk until a command other than `view` or a numbered view reply executes successfully and saves data (including `list`, `help`, or `exit`). Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, BoothManagerPro starts with an empty contact collection at the next run.
+The invalid file remains on disk until a data-changing command such as `add` or `clear` executes successfully and
+saves data. Still, we recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause BoothManagerPro to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 

@@ -48,6 +48,11 @@ public class UpdateCommand extends Command {
     }
 
     @Override
+    public boolean modifiesAddressBook() {
+        return true;
+    }
+
+    @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
         logger.fine("Executing UpdateCommand targeting: " + (index != null ? index.getOneBased() : name));

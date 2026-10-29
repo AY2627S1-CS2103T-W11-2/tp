@@ -2,7 +2,7 @@ package seedu.boothmanagerpro.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static seedu.boothmanagerpro.testutil.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static seedu.boothmanagerpro.testutil.TypicalPersons.ALICE;
 import static seedu.boothmanagerpro.testutil.TypicalPersons.HOON;
 import static seedu.boothmanagerpro.testutil.TypicalPersons.IDA;
@@ -106,5 +106,27 @@ public class JsonAddressBookStorageTest {
     @Test
     public void saveAddressBook_nullFilePath_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> saveAddressBook(new AddressBook(), null));
+    }
+
+    @Test
+    public void saveAddressBook_fileChangedSinceRead_throwsConcurrentDataModificationException() throws Exception {
+        Path filePath = testFolder.resolve("ConcurrentAddressBook.json");
+        JsonAddressBookStorage seedStorage = new JsonAddressBookStorage(filePath);
+        seedStorage.saveAddressBook(new AddressBook());
+
+        JsonAddressBookStorage firstSession = new JsonAddressBookStorage(filePath);
+        JsonAddressBookStorage staleSession = new JsonAddressBookStorage(filePath);
+        firstSession.readAddressBook();
+        staleSession.readAddressBook();
+
+        AddressBook firstSessionData = new AddressBook();
+        firstSessionData.addPerson(ALICE);
+        firstSession.saveAddressBook(firstSessionData);
+
+        AddressBook staleData = new AddressBook();
+        assertThrows(ConcurrentDataModificationException.class, () -> staleSession.saveAddressBook(staleData));
+
+        ReadOnlyAddressBook dataOnDisk = new JsonAddressBookStorage(filePath).readAddressBook().orElseThrow();
+        assertEquals(firstSessionData, new AddressBook(dataOnDisk));
     }
 }

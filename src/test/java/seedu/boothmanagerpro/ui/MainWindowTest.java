@@ -499,6 +499,7 @@ public class MainWindowTest {
         runOnFxThread(() -> {
             StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath()),
                     new JsonUserPrefsStorage(testFolder.resolve("preferences.json")));
+            storage.saveAddressBook(model.getAddressBook());
             Stage stage = new Stage();
             stage.setOpacity(0);
             MainWindow window = new MainWindow(stage, new LogicManager(model, storage), dataPath());

@@ -13,6 +13,10 @@ public class ClearCommand extends Command {
     public static final String COMMAND_WORD = "clear";
     public static final String MESSAGE_SUCCESS = "All contacts have been cleared!";
 
+    @Override
+    public boolean modifiesAddressBook() {
+        return true;
+    }
 
     @Override
     public CommandResult execute(Model model) {
