@@ -49,8 +49,10 @@ public class ListCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        sortField.ifPresentOrElse(field -> model.updateSortedPersonList(field.getComparator()),
-                model::resetPersonListOrder);
+        sortField.ifPresentOrElse(field -> {
+            assert field.getComparator() != null : "Comparator for sortField must not be null";
+            model.updateSortedPersonList(field.getComparator());
+        }, model::resetPersonListOrder);
         List<Person> contacts = model.getFilteredPersonList();
         String header = sortField.map(field -> String.format(MESSAGE_SORTED_HEADER, field)).orElse(MESSAGE_HEADER);
         return CommandResult.showingContactList(formatContactList(contacts, header), contacts);

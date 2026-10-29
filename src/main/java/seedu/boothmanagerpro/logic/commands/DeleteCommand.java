@@ -67,14 +67,17 @@ public class DeleteCommand extends Command {
     }
 
     private Person findPersonByIndex(Model model) throws CommandException {
+        assert targetIndex != null && targetIndex.getZeroBased() >= 0 : "Target index must be non-negative";
         List<Person> lastShownList = model.getFilteredPersonList();
         if (targetIndex.getZeroBased() >= lastShownList.size()) {
             throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         }
+        assert targetIndex.getZeroBased() < lastShownList.size() : "Resolved index must be within list bounds";
         return lastShownList.get(targetIndex.getZeroBased());
     }
 
     private Person findPersonByName(Model model) throws CommandException {
+        assert targetName != null : "Target name cannot be null when finding by name";
         List<Person> matches = model.getAddressBook().getPersonList().stream()
                 .filter(person -> person.getName().fullName.equalsIgnoreCase(targetName.fullName))
                 .toList();
