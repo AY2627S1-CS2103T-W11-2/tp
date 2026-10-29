@@ -177,6 +177,23 @@ public class UpdateIntegrationTest {
         assertEquals("Acme Inc.", saved().getFirst().getCompany().orElseThrow().value);
     }
 
+    @Test
+    public void companySlashAbbreviations_addFindAndUpdate_roundTripsWithoutSplitting() throws Exception {
+
+        assertEquals("Added Priya Nair at Acme Pte Ltd t/a Acme Events.",
+                logic.execute("add n/Priya Nair c/Acme Pte Ltd t/a Acme Events e/priya@acme.com p/92223333")
+                        .getFeedbackToUser());
+        assertEquals("Acme Pte Ltd t/a Acme Events", saved().get(2).getCompany().orElseThrow().value);
+        assertTrue(saved().get(2).getTags().isEmpty());
+
+        logic.execute("find c/Acme Pte Ltd t/a Acme Events");
+        assertEquals(1, model.getFilteredPersonList().size());
+
+        assertEquals("Updated Priya Nair at Holdings c/o M/s Lim S/B.",
+                logic.execute("update Priya Nair c/Holdings c/o M/s Lim S/B").getFeedbackToUser());
+        assertEquals("Holdings c/o M/s Lim S/B", saved().get(2).getCompany().orElseThrow().value);
+    }
+
     private List<Person> saved() throws Exception {
         return storage.readAddressBook().orElseThrow().getPersonList();
     }

@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.boothmanagerpro.logic.parser.CommandParserTestUtil.assertParseFailure;
 
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.boothmanagerpro.model.ModelManager;
@@ -146,6 +148,32 @@ public class AddCommandParserTest {
         // Slash at the start of the value segment after c/ is also accepted.
         ModelManager model2 = new ModelManager();
         parser.parse(" n/Another Person c/A/B Corp e/ab@example.com p/91234567").execute(model2);
+
+        // Common business slash abbreviations inside c/ must not be split or rejected as prefixes.
+        for (String company : new String[]{
+            "Acme Pte Ltd t/a Acme Events",
+            "TechNova S/B",
+            "TechNova P/L",
+            "I/O Interactive",
+            "A/B Labs",
+            "Holdings c/o Legal",
+            "M/s Lim & Co",
+            "Acme Corp d/b/a Acme Studio"
+        }) {
+            ModelManager abbreviationModel = new ModelManager();
+            parser.parse(" n/Alicia Tan c/ " + company + " e/alicia@example.com p/91234567")
+                    .execute(abbreviationModel);
+            assertEquals(company,
+                    abbreviationModel.getFilteredPersonList().getFirst().getCompany().orElseThrow().value);
+        }
+
+        // Single-letter tag "a" after c/ is still parsed as a tag when not followed by a company word.
+        ModelManager singleLetterTagModel = new ModelManager();
+        parser.parse(" n/Alicia Tan c/Acme t/a t/b e/alicia@example.com p/91234567")
+                .execute(singleLetterTagModel);
+        Person taggedPerson = singleLetterTagModel.getFilteredPersonList().getFirst();
+        assertEquals("Acme", taggedPerson.getCompany().orElseThrow().value);
+        assertEquals(Set.of(new Tag("a"), new Tag("b")), taggedPerson.getTags());
         assertEquals("A/B Corp",
                 model2.getFilteredPersonList().getFirst().getCompany().orElseThrow().value);
     }

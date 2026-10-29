@@ -101,7 +101,7 @@ Format: `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD]
 | Field | Rules |
 | --- | --- |
 | `n/NAME` | 1-80 characters; at least one letter. Allows letters, spaces, hyphens, apostrophes, full stops, and `s/o` or `d/o` between words. |
-| `c/COMPANY` | 1-100 characters; cannot be blank. |
+| `c/COMPANY` | 1-100 characters; cannot be blank. Supports common business slash abbreviations such as `t/a`, `d/b/a`, `c/o`, `S/B`, `P/L`, `I/O`, `A/B`, and `M/s`. |
 | `e/EMAIL` | Valid email format, such as `alicia@example.com`; stored in lowercase. |
 | `p/PHONE` | 7-15 digits, optionally starting with `+`. Only digits, spaces, hyphens, and a leading `+` are allowed, so `+65 9123-4567` works but `(65) 6123-4567` and `1234 5678 (HP)` do not. Spaces and hyphens are removed. |
 | `m/METHOD` | Optional: `email`, `phone`, or `other`, ignoring case. Omitted method is `Not specified`. |
