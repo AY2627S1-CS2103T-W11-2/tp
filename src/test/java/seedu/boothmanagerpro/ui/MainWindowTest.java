@@ -465,6 +465,39 @@ public class MainWindowTest {
         });
     }
 
+    @Test
+    public void uiManager_start_propagatesRecoveryWarningAndSupportsNormalStartup() throws Exception {
+        runOnFxThread(() -> {
+            StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath()),
+                    new JsonUserPrefsStorage(testFolder.resolve("preferences.json")));
+            for (String warning : List.of("", MainApp.MESSAGE_DATA_LOAD_FAILURE)) {
+                Stage stage = new Stage();
+                stage.setOpacity(0);
+                LogicManager logic = new LogicManager(new ModelManager(), storage);
+                UiManager manager = warning.isEmpty() ? new UiManager(logic, dataPath())
+                        : new UiManager(logic, dataPath(), warning);
+                try {
+                    manager.start(stage);
+                    Parent root = stage.getScene().getRoot();
+                    root.applyCss();
+                    root.layout();
+                    if (warning.isEmpty()) {
+                        assertTrue(output(root).startsWith("Ready."));
+                    } else {
+                        assertEquals(warning, output(root));
+                        assertTrue(root.lookup("#resultDisplay").getStyleClass().contains("error"));
+                    }
+                    enterCommand(root, "help");
+                    assertFalse(output(root).contains("Contact data could not be loaded"));
+                    assertEquals("", input(root).getText());
+                } finally {
+                    stage.hide();
+                }
+            }
+            return null;
+        });
+    }
+
     private void withWindow(ModelManager model, UiAction action) throws Exception {
         withWindow(model, "", action);
     }
@@ -476,7 +509,11 @@ public class MainWindowTest {
             Stage stage = new Stage();
             stage.setOpacity(0);
             MainWindow window = new MainWindow(stage, new LogicManager(model, storage), dataPath());
-            window.fillInnerParts(startupWarning);
+            if (startupWarning.isEmpty()) {
+                window.fillInnerParts();
+            } else {
+                window.fillInnerParts(startupWarning);
+            }
             window.show();
             try {
                 Parent root = stage.getScene().getRoot();

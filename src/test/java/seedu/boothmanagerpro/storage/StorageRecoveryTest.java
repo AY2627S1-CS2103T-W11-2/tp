@@ -102,6 +102,28 @@ public class StorageRecoveryTest {
     }
 
     @Test
+    public void save_backupDirectoryMissing_preservesProtectionUntilRetry() throws Exception {
+        Path directory = Files.createDirectory(folder.resolve("data"));
+        Path path = directory.resolve("contacts.json");
+        Files.writeString(path, "broken file");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(path);
+        assertThrows(DataLoadingException.class, storage::readAddressBook);
+        Files.delete(path);
+        Files.delete(directory);
+        IOException error = assertThrows(IOException.class, () -> storage.saveAddressBook(new AddressBook()));
+        assertTrue(error.getMessage().contains("No data was saved"));
+        assertFalse(Files.exists(directory), "A failed backup must not create replacement data");
+        Files.createDirectory(directory);
+        Files.writeString(path, "broken file");
+        storage.saveAddressBook(new AddressBook());
+        try (var files = Files.list(directory)) {
+            Path backup = files.filter(file -> file.getFileName().toString().contains(".recovery-"))
+                    .findFirst().orElseThrow();
+            assertEquals("broken file", Files.readString(backup));
+        }
+    }
+
+    @Test
     public void save_validOrMissingFile_doesNotCreateRecoveryBackup() throws Exception {
         Path path = folder.resolve("contacts.json");
         JsonAddressBookStorage storage = new JsonAddressBookStorage(path);
