@@ -191,6 +191,25 @@ public class ExhibitorAddIntegrationTest {
     }
 
     @Test
+    public void edit_emptyFields_useSharedMessagesAndPreserveData() throws Exception {
+        logic.execute(ADD);
+        Person original = model.getAddressBook().getPersonList().getFirst();
+        String before = Files.readString(storage.getAddressBookFilePath());
+        String[][] cases = {
+            {"edit 1 n/", "n/"},
+            {"edit 1 a/", "a/"},
+            {"edit 1 t/ t/new", "t/"}
+        };
+
+        for (String[] testCase : cases) {
+            ParseException error = assertThrows(ParseException.class, () -> logic.execute(testCase[0]));
+            assertEquals("Empty field: " + testCase[1] + ". Supply a value after this prefix.", error.getMessage());
+            assertEquals(original, model.getAddressBook().getPersonList().getFirst());
+            assertEquals(before, Files.readString(storage.getAddressBookFilePath()));
+        }
+    }
+
+    @Test
     public void add_withoutOptionalFields_roundTrips() throws Exception {
         String feedback = logic.execute(ADD).getFeedbackToUser();
         Person reloaded = storage.readAddressBook().orElseThrow().getPersonList().getFirst();
@@ -207,7 +226,7 @@ public class ExhibitorAddIntegrationTest {
         CommandException error = assertThrows(CommandException.class, () -> logic.execute(
                 "add n/Someone Else c/Other Company e/ALICIA@TECHNOVA.COM p/98765432"));
         assertEquals("This contact may already exist: Alicia Tan at TechNova Pte Ltd.\n"
-                + "Use the edit command if you want to update the existing contact.", error.getMessage());
+                + "Use the update command if you want to change the existing contact.", error.getMessage());
         assertEquals(before, Files.readString(storage.getAddressBookFilePath()));
         assertEquals(1, model.getAddressBook().getPersonList().size());
     }
@@ -218,6 +237,18 @@ public class ExhibitorAddIntegrationTest {
         assertThrows(CommandException.class, () -> logic.execute(ADD.replace("Alicia Tan", "alicia tan")
                 .replace("TechNova Pte Ltd", "TECHNOVA PTE LTD").replace("alicia@technova.com", "other@example.com")));
         assertEquals(1, model.getAddressBook().getPersonList().size());
+    }
+
+    @Test
+    public void add_sameNameAndCompanyWithRepeatedSpaces_rejected() throws Exception {
+        logic.execute("add n/Ben Lim c/Acme e/ben@acme.com p/98765432");
+        String before = Files.readString(storage.getAddressBookFilePath());
+
+        assertThrows(CommandException.class, () -> logic.execute(
+                "add n/Ben  Lim c/Acme e/ben2@acme.com p/91234561"));
+
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+        assertEquals(before, Files.readString(storage.getAddressBookFilePath()));
     }
 
     @Test
@@ -232,11 +263,32 @@ public class ExhibitorAddIntegrationTest {
     public void edit_duplicateEmailWhileNameAndCompanyUnchanged_rejected() throws Exception {
         logic.execute(ADD);
         logic.execute("add n/Ben Lim c/Other e/ben@example.com p/98765432");
-        assertThrows(CommandException.class, () -> logic.execute("edit 1 e/ben@example.com"));
+        CommandException error = assertThrows(CommandException.class, () ->
+                logic.execute("edit 1 e/ben@example.com"));
+        assertEquals("This edit conflicts with another contact: Ben Lim at Other. "
+                + "Check the email and name/company fields. No contact was edited.", error.getMessage());
         Person original = model.getAddressBook().getPersonList().getFirst();
         Person conflicting = new PersonBuilder(original).withEmail("ben@example.com").build();
         assertThrows(DuplicatePersonException.class, () -> model.setPerson(original, conflicting));
         assertEquals("alicia@technova.com", model.getAddressBook().getPersonList().getFirst().getEmail().value);
+    }
+
+    @Test
+    public void duplicateFeedback_identifiesConflictAndRecommendsUpdate() throws Exception {
+        logic.execute("add n/Ben Lim c/Acme e/ben@acme.com p/98765432");
+        logic.execute("add n/Chloe Ng c/Acme e/chloe@acme.com p/97776666");
+        logic.execute("add n/John Tan c/GreenWorks e/john1@gw.com p/81234567");
+
+        CommandException editError = assertThrows(CommandException.class, () ->
+                logic.execute("edit 1 e/chloe@acme.com"));
+        assertEquals("This edit conflicts with another contact: Chloe Ng at Acme. "
+                + "Check the email and name/company fields. No contact was edited.", editError.getMessage());
+
+        CommandException addError = assertThrows(CommandException.class, () ->
+                logic.execute("add n/john tan c/greenworks e/new@x.com p/91234560"));
+        assertEquals("This contact may already exist: John Tan at GreenWorks.\n"
+                + "Use the update command if you want to change the existing contact.", addError.getMessage());
+        assertEquals(3, model.getAddressBook().getPersonList().size());
     }
 
     @Test
@@ -255,6 +307,21 @@ public class ExhibitorAddIntegrationTest {
         assertThrows(CommandException.class, () -> logic.execute("edit 1 n/Alicia Tan"));
         assertEquals(before, Files.readString(storage.getAddressBookFilePath()));
         assertEquals("Ben Lim", model.getFilteredPersonList().getFirst().getName().fullName);
+    }
+
+    @Test
+    public void edit_nameCompanyCollisionWithCaseOrRepeatedSpaces_rejected() throws Exception {
+        logic.execute("add n/Ben Lim c/Acme e/ben@acme.com p/98765432");
+        logic.execute("add n/Chloe Ng c/Acme e/chloe@acme.com p/97776666");
+        String before = Files.readString(storage.getAddressBookFilePath());
+
+        for (String command : List.of("edit 1 n/CHLOE NG", "edit 1 n/chloe  ng")) {
+            assertThrows(CommandException.class, () -> logic.execute(command));
+            assertEquals(before, Files.readString(storage.getAddressBookFilePath()));
+        }
+
+        assertEquals(List.of("Ben Lim", "Chloe Ng"), model.getAddressBook().getPersonList().stream()
+                .map(person -> person.getName().fullName).toList());
     }
 
     @Test

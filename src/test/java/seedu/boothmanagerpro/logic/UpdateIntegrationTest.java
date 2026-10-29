@@ -73,6 +73,14 @@ public class UpdateIntegrationTest {
     }
 
     @Test
+    public void update_nameTargetWithExtraSpaces_resolvesCanonicalName() throws Exception {
+        assertEquals("Updated Alicia Tan at TechNova.",
+                logic.execute("update   Alicia   Tan   s/Cancelled").getFeedbackToUser());
+        assertEquals("Alicia Tan", saved().getFirst().getName().fullName);
+        assertEquals("Cancelled", saved().getFirst().getEnquiryStatus().toString());
+    }
+
+    @Test
     public void update_partialAndClearing_preservesOmittedFields() throws Exception {
         Person original = saved().getFirst();
         logic.execute("update 1 s/Completed");

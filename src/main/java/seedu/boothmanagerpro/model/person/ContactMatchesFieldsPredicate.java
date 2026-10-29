@@ -28,10 +28,10 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
         return field.equals("p/") ? result.replace(" ", "").replace("-", "") : result;
     }
 
-    /** Folds each name code point using the same case equivalence as String.equalsIgnoreCase. */
+    /** Normalises spaces and folds each name code point using the same case equivalence as String.equalsIgnoreCase. */
     private static String foldName(String value) {
         StringBuilder folded = new StringBuilder();
-        value.trim().codePoints().map(Character::toUpperCase).map(Character::toLowerCase)
+        Name.normaliseWhitespace(value).codePoints().map(Character::toUpperCase).map(Character::toLowerCase)
                 .forEach(folded::appendCodePoint);
         return folded.toString();
     }

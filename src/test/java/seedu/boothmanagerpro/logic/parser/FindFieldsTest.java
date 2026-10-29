@@ -64,6 +64,8 @@ public class FindFieldsTest {
         Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         parser.parse("n/alice pauline").execute(model);
         assertEquals(List.of(ALICE), model.getFilteredPersonList());
+        parser.parse("n/Alice   Pauline").execute(model);
+        assertEquals(List.of(ALICE), model.getFilteredPersonList());
         parser.parse("n/Alice").execute(model);
         assertTrue(model.getFilteredPersonList().isEmpty());
     }

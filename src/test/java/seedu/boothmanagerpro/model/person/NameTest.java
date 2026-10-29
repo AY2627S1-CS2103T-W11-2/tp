@@ -1,5 +1,6 @@
 package seedu.boothmanagerpro.model.person;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.boothmanagerpro.testutil.Assert.assertThrows;
@@ -17,6 +18,12 @@ public class NameTest {
     public void constructor_invalidName_throwsIllegalArgumentException() {
         String invalidName = "";
         assertThrows(IllegalArgumentException.class, () -> new Name(invalidName));
+    }
+
+    @Test
+    public void constructor_repeatedSpaces_collapsesToSingleSpace() {
+        assertEquals("Chloe Ng", new Name("  Chloe   Ng  ").fullName);
+        assertEquals(new Name("Chloe Ng"), new Name("Chloe   Ng"));
     }
 
     @Test

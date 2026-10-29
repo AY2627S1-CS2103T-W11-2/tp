@@ -138,13 +138,13 @@ If validation or duplicate detection fails, the typed command remains available 
 
 **Duplicate handling**
 
-A contact is rejected if any stored contact has the same normalised email, or the same name and company ignoring case. This includes contacts hidden by the current search. Sharing only a name or company is allowed if the email is different. Legacy contacts without a company are compared by email only.
+A contact is rejected if any stored contact has the same normalised email, or the same name and company ignoring case. Names are stored after surrounding whitespace is removed and consecutive spaces are collapsed, so `Chloe Ng` and `chloe  ng` are treated as the same name. This includes contacts hidden by the current search. Sharing only a name or company is allowed if the email is different. Legacy contacts without a company are compared by email only.
 
 For a match against Alicia's record above:
 
 ```text
 This contact may already exist: Alicia Tan at TechNova Pte Ltd.
-Use the edit command if you want to update the existing contact.
+Use the update command if you want to change the existing contact.
 ```
 
 If the email matches one record and the name/company matches another, both conflicting contacts are listed with their emails. No contact is added; correct the input before retrying.
@@ -320,7 +320,8 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]…​`
 * Edits the contact at the specified `INDEX`. The index refers to the index number shown in the current numbered command results. The index **must be a positive integer** 1, 2, 3, …​
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values. Name, email, phone, and tags follow the validation rules described under `add`.
-* Company, contact method, enquiry status, and follow-up date are preserved; `edit` does not support `c/`, `m/`, `s/`, or `f/`. Unsupported prefixes are rejected, including after `a/ADDRESS`. Changes that create a duplicate are rejected.
+* Company, contact method, enquiry status, and follow-up date are preserved; `edit` does not support `c/`, `m/`, `s/`, or `f/`. Unsupported prefixes are rejected, including after `a/ADDRESS`. Changes that create a duplicate are rejected with the conflicting contact's name and company.
+* An empty `n/`, `p/`, `e/`, or `a/` reports `Empty field: PREFIX. Supply a value after this prefix.` A single empty `t/` remains the special syntax for clearing all tags; combining an empty `t/` with another tag is rejected as an empty field.
 * The legacy `a/ADDRESS` field accepts nonblank text. Whitespace-delimited prefix-like tokens are reserved, as in `add`. Only `t/` may repeat.
 * A successful edit clears the current filter and prints the edited contact. Run `list` or `find` again before choosing another index.
 * When editing tags, all of the contact's existing tags are removed; adding tags is not cumulative.
