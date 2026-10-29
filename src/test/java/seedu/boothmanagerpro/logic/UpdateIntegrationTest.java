@@ -47,7 +47,7 @@ public class UpdateIntegrationTest {
         assertEquals("Alice Tan", updated.getName().fullName);
         assertEquals("New Company", updated.getCompany().orElseThrow().value);
         assertEquals("alice@example.com", updated.getEmail().value);
-        assertEquals("+6581234567", updated.getPhone().value);
+        assertEquals("+65 8123-4567", updated.getPhone().value);
         assertEquals("phone", updated.getContactMethod().orElseThrow().toString());
         assertEquals("Completed", updated.getEnquiryStatus().toString());
         assertEquals("29 Feb 2028", updated.getFollowUpDate().orElseThrow().toString());
@@ -109,7 +109,7 @@ public class UpdateIntegrationTest {
         logic.execute("find c/GreenWorks");
         logic.execute("update Alicia Tan s/Completed");
         assertEquals("Completed", saved().getFirst().getEnquiryStatus().toString());
-        logic.execute("update Alicia Tan e/ALICIA@example.com"); // Same normalised identity is allowed.
+        assertRejected("update Alicia Tan e/ALICIA@example.com", CommandException.class); // No stored change.
     }
 
     @Test
@@ -170,6 +170,61 @@ public class UpdateIntegrationTest {
         assertTrue(logic.execute("delete Priya d/o Raman").getFeedbackToUser()
                 .contains("Priya d/o Raman"));
         assertEquals(2, saved().size());
+    }
+
+    @Test
+    public void update_unchangedValues_preservesFilterOrderAndDisk() throws Exception {
+        logic.execute("list o/company");
+        logic.execute("find n/Alicia");
+        for (String fields : List.of("n/Alicia\tTan", "c/TechNova", "e/ALICIA@example.com", "p/91234567",
+                "m/EMAIL", "s/In progress", "f/20261025", "t/old", "e/ALICIA@example.com s/In progress")) {
+            for (String target : List.of("1", "alicia tan")) {
+                CommandException error = assertRejected("update " + target + " " + fields, CommandException.class);
+                assertEquals("No changes made: Alicia Tan at TechNova already has the supplied values.",
+                        error.getMessage());
+            }
+        }
+        assertRejected("update Ben Lim f/ t/", CommandException.class);
+        logic.execute("find n/Alicia n/Ben");
+        assertEquals(List.of("Ben Lim", "Alicia Tan"), model.getFilteredPersonList().stream()
+                .map(person -> person.getName().fullName).toList());
+    }
+
+    @Test
+    public void update_displayOnlyChanges_persistsNewFormattingAndTagOrder() throws Exception {
+        logic.execute("update 1 t/OLD");
+        assertEquals("OLD", Messages.formatTags(saved().getFirst()));
+        logic.execute("update 1 t/OLD t/new");
+        logic.execute("update 1 t/new t/OLD");
+        assertEquals("new, OLD", Messages.formatTags(saved().getFirst()));
+        logic.execute("update 1 n/ALICIA TAN c/TECHNOVA p/9123-4567");
+        Person updated = saved().getFirst();
+        assertEquals("ALICIA TAN", updated.getName().fullName);
+        assertEquals("TECHNOVA", updated.getCompany().orElseThrow().value);
+        assertEquals("9123-4567", updated.getPhone().value);
+    }
+
+    @Test
+    public void expandedNamesAndPhones_roundTripAcrossCommands() throws Exception {
+        for (String name : List.of("Raj a/l Kumar", "Priya A/P Raman", "John @ Johnny",
+                "John Smith, Jr., PhD", "John (Johnny) Smith", "Peter the 2nd", "Henry VIII")) {
+            String phone = "(65) 6123-4567 ext 88 / +65 8765-4321";
+            logic.execute("add n/" + name.replace(" ", "\t") + " c/Acme e/new@example.com p/" + phone);
+            assertEquals(name, saved().get(2).getName().fullName);
+            assertEquals(phone, saved().get(2).getPhone().value);
+            assertTrue(logic.execute("view n/" + name).getFeedbackToUser().contains("Phone: " + phone));
+            for (String query : List.of("n/" + name, name, "p/(65) 6123.4567", "p/8765-4321")) {
+                logic.execute("find " + query);
+                assertEquals(List.of(name), model.getFilteredPersonList().stream()
+                        .map(person -> person.getName().fullName).toList());
+            }
+            logic.execute("update " + name + " s/Completed");
+            assertEquals("Completed", saved().get(2).getEnquiryStatus().toString());
+            logic.execute("tag " + name + " t/vip");
+            assertEquals("vip", Messages.formatTags(saved().get(2)));
+            logic.execute("delete " + name);
+            assertEquals(2, saved().size());
+        }
     }
 
     @Test

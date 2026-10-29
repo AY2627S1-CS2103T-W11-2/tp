@@ -58,8 +58,10 @@ public class TagCommand extends Command {
         Set<Tag> added = new LinkedHashSet<>();
         Set<Tag> removed = new LinkedHashSet<>();
         for (Tag tag : tags) {
-            if (updatedTags.remove(tag)) {
-                removed.add(tag);
+            Tag existing = findMatchingTag(updatedTags, tag);
+            if (existing != null) {
+                updatedTags.remove(existing);
+                removed.add(existing);
             } else {
                 updatedTags.add(tag);
                 added.add(tag);
@@ -97,6 +99,15 @@ public class TagCommand extends Command {
             throw new CommandException(String.format(MESSAGE_AMBIGUOUS, name));
         }
         return matches.getFirst();
+    }
+
+    private static Tag findMatchingTag(Set<Tag> tags, Tag target) {
+        for (Tag candidate : tags) {
+            if (candidate.equals(target)) {
+                return candidate;
+            }
+        }
+        return null;
     }
 
     private static String formatTagSet(Set<Tag> tagSet) {

@@ -189,6 +189,24 @@ public class ViewCommandIntegrationTest {
         assertEquals(List.of(alicia, johnGreenWorks, updatedJohn), model.getAddressBook().getPersonList());
     }
 
+    @Test
+    public void execute_viewNameWithPatronymic_doesNotMatchUnrelatedPatronymicContacts() throws Exception {
+        logic.execute("add n/Raj s/o Kumar c/TechNova e/raj@example.com p/91234567");
+        logic.execute("add n/Arun s/o Mohan c/Other e/arun@example.com p/92345678");
+        logic.execute("add n/Devi d/o Raman c/Other2 e/devi@example.com p/93456789");
+
+        // Exact match for Raj s/o Kumar displays Raj's card immediately without showing selection choices for Arun
+        CommandResult result = logic.execute("view n/Raj s/o Kumar");
+        assertEquals("Exhibitor contact found:\nRaj s/o Kumar at TechNova\nEmail: raj@example.com\n"
+                + "Phone: 91234567\nContact method: Not specified\nEnquiry status: Needs follow-up\n"
+                + "Follow-up date: None\nTags: None", result.getFeedbackToUser());
+        assertTrue(result.getViewChoices().isEmpty());
+
+        // Searching for a non-existent name with s/o does not match Arun s/o Mohan
+        String expectedMessage = String.format(ViewCommand.MESSAGE_NO_MATCH, "Suresh s/o Velu");
+        assertThrows(CommandException.class, expectedMessage, () -> logic.execute("view n/Suresh s/o Velu"));
+    }
+
     private List<Person> setUpOverlappingViewChoices() {
         Person alicia = new PersonBuilder().withName("Alicia Tan").withCompany("TechNova")
                 .withEmail("alicia@technova.com").withPhone("91234567").build();

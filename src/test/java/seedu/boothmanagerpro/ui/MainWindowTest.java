@@ -317,7 +317,7 @@ public class MainWindowTest {
             assertEquals(7, storage.readAddressBook().orElseThrow().getPersonList().size());
             enterCommand(root, "view n/Alicia");
             assertTrue(output(root).contains("Email: alicia@example.com"));
-            assertTrue(output(root).contains("Phone: +6591234567"));
+            assertTrue(output(root).contains("Phone: +65 9123-4567"));
             assertTrue(output(root).contains("Tags: technology, high-priority"));
             assertFalse(root.lookup("#resultDisplay").getStyleClass().contains("error"));
             assertNoContactPanels(root);
@@ -483,6 +483,20 @@ public class MainWindowTest {
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("find f/", commandInput.getText());
 
+            commandInput.setText("find s");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("find s/", commandInput.getText());
+            commandInput.appendText("In");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("find s/In progress", commandInput.getText());
+
+            commandInput.setText("find m");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("find m/", commandInput.getText());
+            commandInput.appendText("em");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("find m/email", commandInput.getText());
+
             commandInput.setText("fi");
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("find ", commandInput.getText());
@@ -598,7 +612,15 @@ public class MainWindowTest {
 
             commandInput.setText("find s/In");
             pressKey(commandInput, KeyCode.TAB);
-            assertEquals("find s/In", commandInput.getText());
+            assertEquals("find s/In progress", commandInput.getText());
+
+            commandInput.setText("find m/em");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("find m/email", commandInput.getText());
+
+            commandInput.setText("find o/na");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("find o/na", commandInput.getText());
 
             // Repeatable prefixes can still complete again in find and tag.
             commandInput.setText("find f/20261025 f");

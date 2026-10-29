@@ -26,6 +26,7 @@ public class NameContainsKeywordsPredicateTest {
         // same values -> returns true
         NameContainsKeywordsPredicate firstPredicateCopy = new NameContainsKeywordsPredicate(firstPredicateKeywordList);
         assertTrue(firstPredicate.equals(firstPredicateCopy));
+        assertEquals(firstPredicate.hashCode(), firstPredicateCopy.hashCode());
 
         // different types -> returns false
         assertFalse(firstPredicate.equals(1));
@@ -70,6 +71,36 @@ public class NameContainsKeywordsPredicateTest {
         predicate = new NameContainsKeywordsPredicate(List.of("1234567", "alice@email.com", "Main", "Street"));
         assertFalse(predicate.test(new PersonBuilder().withName("Alice").withPhone("1234567")
                 .withEmail("alice@email.com").withAddress("Main Street").build()));
+    }
+
+    @Test
+    public void constructor_patronymics_filteredFromKeywords() {
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(
+                List.of("Raj", "s/o", "Kumar", "d/o", "D/O", "S/O"));
+        assertEquals(new NameContainsKeywordsPredicate(List.of("Raj", "Kumar")), predicate);
+
+        // Does not match unrelated person with s/o or d/o
+        Person arun = new PersonBuilder().withName("Arun s/o Mohan").build();
+        assertFalse(predicate.test(arun));
+        Person devi = new PersonBuilder().withName("Devi d/o Raman").build();
+        assertFalse(predicate.test(devi));
+
+        // Matches person with Raj or Kumar
+        Person raj = new PersonBuilder().withName("Raj s/o Kumar").build();
+        assertTrue(predicate.test(raj));
+
+        // Standalone patronymic predicate has no effective keywords
+        NameContainsKeywordsPredicate patronymicOnly = new NameContainsKeywordsPredicate(List.of("s/o", "d/o"));
+        assertFalse(patronymicOnly.test(raj));
+    }
+
+    @Test
+    public void constructor_curlyApostrophe_normalisesAndMatchesStraightApostrophe() {
+        NameContainsKeywordsPredicate curly = new NameContainsKeywordsPredicate(List.of("O\u2019Neil"));
+        NameContainsKeywordsPredicate straight = new NameContainsKeywordsPredicate(List.of("O'Neil"));
+        assertEquals(straight, curly);
+        assertTrue(curly.test(new PersonBuilder().withName("Anne-Marie O'Neil").build()));
+        assertTrue(straight.test(new PersonBuilder().withName("Anne-Marie O\u2019Neil").build()));
     }
 
     @Test

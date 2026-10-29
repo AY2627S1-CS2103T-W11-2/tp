@@ -13,18 +13,19 @@ import seedu.boothmanagerpro.model.Model;
 import seedu.boothmanagerpro.model.person.Person;
 
 /**
- * Finds and lists contacts matching name words, full names or complete other field values.
+ * Finds and lists contacts matching name words, full names, partial or full companies/emails/phones,
+ * or complete method, status, tag, and follow-up date criteria.
  */
 public class FindCommand extends Command {
     public static final String COMMAND_WORD = "find";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds contacts by name words or field criteria "
             + "and displays matching contacts with index numbers.\n"
-            + "Parameters: KEYWORD [MORE_KEYWORDS]... or [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG] "
-            + "[f/YYYYMMDD]...\n"
-            + "Names match a complete name or a whole name word; other fields match complete values. "
-            + "Repeat a prefix for alternatives (OR); "
-            + "different fields use AND. Dates match the exact follow-up date; contacts without a date do not match.\n"
+            + "Parameters: KEYWORD [MORE_KEYWORDS]... or [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] "
+            + "[m/METHOD] [s/STATUS] [t/TAG] [f/YYYYMMDD]...\n"
+            + "Names match a complete name or a whole name word; companies, emails, and phones match full or partial "
+            + "values; methods, statuses, tags, and dates match complete values. "
+            + "Repeat a prefix for alternatives (OR); different fields use AND.\n"
             + "Example: " + COMMAND_WORD + " n/Alice Pauline t/friends";
 
     private static final Logger logger = LogsCenter.getLogger(FindCommand.class);

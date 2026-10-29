@@ -105,7 +105,7 @@ public class FindFollowUpDateIntegrationTest {
         List<Person> filtered = List.copyOf(model.getFilteredPersonList());
         String json = Files.readString(storage.getAddressBookFilePath());
         for (String args : List.of("f/", "f/20230229", "f/20261025 f/20260431", "f/none",
-                "f/2026-10-25", "f/20261025 m/email", "Alicia f/20261025")) {
+                "f/2026-10-25", "f/20261025 x/email", "Alicia f/20261025")) {
             assertThrows(ParseException.class, () -> logic.execute("find " + args));
             assertEquals(all, model.getAddressBook().getPersonList());
             assertEquals(filtered, model.getFilteredPersonList());

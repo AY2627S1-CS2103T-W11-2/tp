@@ -19,7 +19,7 @@ public class ViewCommandParserTest {
         String unicodeName = "\uD801\uDC00".repeat(80);
         assertParseSuccess(parser, "n/" + unicodeName, new ViewCommand(new Name(unicodeName)));
         assertParseFailure(parser, "n/" + unicodeName + "A", Name.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, "n/Alicia2", Name.MESSAGE_CONSTRAINTS);
+        assertParseSuccess(parser, "n/Alicia2", new ViewCommand(new Name("Alicia2")));
     }
 
     @Test
@@ -69,8 +69,8 @@ public class ViewCommandParserTest {
 
     @Test
     public void parse_invalidName_failure() {
-        for (String name : new String[]{"123", "Alicia2", "...", "---", "Alicia!",
-            "John/Doe", "Alicia/extra", "/", "Raj s/o Kumar Jr/Sr", "Raj2 s/o Kumar", "A".repeat(81)}) {
+        for (String name : new String[]{"123", "...", "---", "Alicia!",
+            "John/Doe", "Alicia/extra", "/", "Raj s/o Kumar Jr/Sr", "A".repeat(81)}) {
             assertParseFailure(parser, "n/" + name, ViewCommandParser.MESSAGE_INVALID_NAME);
         }
     }

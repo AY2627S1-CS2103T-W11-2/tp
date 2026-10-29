@@ -5,6 +5,8 @@ import static seedu.boothmanagerpro.commons.util.AppUtil.checkArgument;
 
 import java.text.Normalizer;
 
+import seedu.boothmanagerpro.commons.util.StringUtil;
+
 /**
  * Represents a Tag in the address book.
  * Guarantees: immutable; name is valid as declared in {@link #isValidTagName(String)}
@@ -18,14 +20,15 @@ public class Tag {
     public final String tagName;
 
     /**
-     * Creates a trimmed, NFC-normalised, non-blank tag of at most 30 characters without the reserved slash character.
-     * Equality is case-sensitive, so only identical normalised tags collapse in a set.
+     * Creates a trimmed, NFC-normalised, non-blank tag of at most 30 characters without the reserved slash character,
+     * collapsing consecutive internal spaces.
+     * Equality is case-insensitive while preserving display casing, so case variants collapse in a set.
      *
      * @param tagName A valid tag name.
      */
     public Tag(String tagName) {
         requireNonNull(tagName);
-        String normalised = normalise(tagName);
+        String normalised = normaliseWhitespace(tagName);
         checkArgument(isValidTagName(normalised), MESSAGE_CONSTRAINTS);
         this.tagName = normalised;
     }
@@ -37,7 +40,7 @@ public class Tag {
      */
     public static boolean isValidTagName(String test) {
         requireNonNull(test);
-        String trimmed = normalise(test);
+        String trimmed = normaliseWhitespace(test);
         return !trimmed.isBlank()
                 && !trimmed.contains("/")
                 && !trimmed.contains("\r")
@@ -45,8 +48,15 @@ public class Tag {
                 && trimmed.codePointCount(0, trimmed.length()) <= MAX_LENGTH;
     }
 
-    private static String normalise(String tagName) {
-        return Normalizer.normalize(tagName, Normalizer.Form.NFC).strip();
+    /**
+     * Returns a tag name with Unicode NFC normalisation applied, surrounding whitespace removed,
+     * and runs of non-linebreak whitespace collapsed to a single space.
+     */
+    public static String normaliseWhitespace(String tagName) {
+        requireNonNull(tagName);
+        return Normalizer.normalize(tagName, Normalizer.Form.NFC)
+                .strip()
+                .replaceAll("(?U)[\\s&&[^\\r\\n]]+", " ");
     }
 
     @Override
@@ -60,12 +70,12 @@ public class Tag {
             return false;
         }
 
-        return tagName.equals(otherTag.tagName);
+        return StringUtil.foldCase(tagName).equals(StringUtil.foldCase(otherTag.tagName));
     }
 
     @Override
     public int hashCode() {
-        return tagName.hashCode();
+        return StringUtil.foldCase(tagName).hashCode();
     }
 
     /**

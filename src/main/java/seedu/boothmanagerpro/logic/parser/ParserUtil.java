@@ -28,13 +28,12 @@ public class ParserUtil {
     public static final String MESSAGE_MULTIPLE_INDICES = "Specify only one displayed index at a time.";
     public static final String MESSAGE_NAME_PREFIX_NOT_ALLOWED = "Don't include n/ for %1$s. Use: %2$s";
     public static final String MESSAGE_PHONE_CHARACTERS =
-            "Phone number can only contain digits, spaces, hyphens, and a + at the start.";
-    public static final String MESSAGE_PHONE_DIGITS =
-            "Phone number must contain 7 to 15 digits, optionally starting with +.";
+            "Phone number can only contain digits, spaces, hyphens, full stops, parentheses, a leading +, "
+            + "an extension (ext or x), and , ; or / between multiple numbers.";
+    public static final String MESSAGE_PHONE_DIGITS = Phone.MESSAGE_CONSTRAINTS;
 
     private static final String INDEX_LIKE_REGEX = "[+-]?[0-9]+";
     private static final String MULTIPLE_INDICES_REGEX = "[+-]?[0-9]+(?:\\s+[+-]?[0-9]+)+";
-    private static final String PHONE_CHARACTERS_REGEX = "\\+?[0-9 -]*";
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
@@ -114,7 +113,7 @@ public class ParserUtil {
     public static Phone parsePhone(String phone) throws ParseException {
         requireNonNull(phone);
         String trimmedPhone = phone.strip();
-        if (!trimmedPhone.matches(PHONE_CHARACTERS_REGEX)) {
+        if (!Phone.hasAllowedCharacters(trimmedPhone)) {
             throw new ParseException(MESSAGE_PHONE_CHARACTERS);
         }
         if (!Phone.isValidPhone(trimmedPhone)) {

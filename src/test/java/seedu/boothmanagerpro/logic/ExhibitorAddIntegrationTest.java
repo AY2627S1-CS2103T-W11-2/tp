@@ -124,6 +124,8 @@ public class ExhibitorAddIntegrationTest {
         assertEquals("TechNova Pte Ltd", contact.getCompany().orElseThrow().value);
         assertEquals(ContactMethod.EMAIL, contact.getContactMethod().orElseThrow());
         logic.execute("find c/TechNova");
+        assertEquals(1, model.getFilteredPersonList().size());
+        logic.execute("find c/MissingCo");
         assertTrue(model.getFilteredPersonList().isEmpty());
         logic.execute("find c/TechNova Pte Ltd c/Other Ltd");
         assertEquals(2, model.getFilteredPersonList().size());
@@ -161,7 +163,7 @@ public class ExhibitorAddIntegrationTest {
         Person edited = storage.readAddressBook().orElseThrow().getPersonList().getFirst();
         assertEquals("TechNova Pte Ltd", edited.getCompany().orElseThrow().value);
         assertEquals(ContactMethod.EMAIL, edited.getContactMethod().orElseThrow());
-        assertEquals("+6598765432", edited.getPhone().value);
+        assertEquals("+65 9876-5432", edited.getPhone().value);
         assertEquals(2, edited.getTags().size());
     }
 
@@ -250,6 +252,22 @@ public class ExhibitorAddIntegrationTest {
     }
 
     @Test
+    public void add_sameNameAndCompanyWithRepeatedSpacesAndTabsInCompany_rejected() throws Exception {
+        logic.execute("add n/Ben Lim c/TechNova Pte Ltd e/ben@technova.com p/98765432");
+        String before = Files.readString(storage.getAddressBookFilePath());
+
+        assertThrows(CommandException.class, () -> logic.execute(
+                "add n/Ben Lim c/TechNova  Pte Ltd e/ben2@technova.com p/91234561"));
+        assertThrows(CommandException.class, () -> logic.execute(
+                "add n/Ben Lim c/TechNova\tPte Ltd e/ben3@technova.com p/91234562"));
+        assertThrows(CommandException.class, () -> logic.execute(
+                "add n/Ben Lim c/TechNova\n  Pte Ltd e/ben4@technova.com p/91234563"));
+
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+        assertEquals(before, Files.readString(storage.getAddressBookFilePath()));
+    }
+
+    @Test
     public void add_sameNameDifferentCompanyAndEmail_allowed() throws Exception {
         logic.execute(ADD);
         logic.execute(ADD.replace("TechNova Pte Ltd", "Other Company")
@@ -309,11 +327,12 @@ public class ExhibitorAddIntegrationTest {
 
     @Test
     public void update_nameCompanyCollisionWithCaseOrRepeatedSpaces_rejected() throws Exception {
-        logic.execute("add n/Ben Lim c/Acme e/ben@acme.com p/98765432");
-        logic.execute("add n/Chloe Ng c/Acme e/chloe@acme.com p/97776666");
+        logic.execute("add n/Ben Lim c/TechNova Pte Ltd e/ben@acme.com p/98765432");
+        logic.execute("add n/Chloe Ng c/TechNova Pte Ltd e/chloe@acme.com p/97776666");
         String before = Files.readString(storage.getAddressBookFilePath());
 
-        for (String command : List.of("update 1 n/CHLOE NG", "update 1 n/chloe  ng")) {
+        for (String command : List.of("update 1 n/CHLOE NG", "update 1 n/chloe  ng",
+                "update 1 n/Chloe Ng c/TechNova  Pte Ltd", "update 1 n/Chloe Ng c/TechNova\tPte Ltd")) {
             assertThrows(CommandException.class, () -> logic.execute(command));
             assertEquals(before, Files.readString(storage.getAddressBookFilePath()));
         }

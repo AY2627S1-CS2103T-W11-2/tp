@@ -1,12 +1,13 @@
 package seedu.boothmanagerpro.model.person;
 
+import java.text.Collator;
 import java.util.Comparator;
 import java.util.Locale;
 import java.util.Optional;
 
 /**
- * A field the displayed contact list can be sorted by. Text is compared ignoring case, and every order ends with
- * the unique email so contacts never tie and their displayed indices stay stable.
+ * A field the displayed contact list can be sorted by. Text uses locale-aware collation ignoring case, and every
+ * order ends with the unique email so contacts never tie and their displayed indices stay stable.
  */
 public enum SortField {
     NAME(Orders.BY_NAME.thenComparing(Orders.BY_COMPANY_MISSING_LAST).thenComparing(Orders.BY_EMAIL)),
@@ -45,15 +46,27 @@ public enum SortField {
 
     /** Holds the building-block orders, which enum constants cannot reference as static fields of the enum. */
     private static final class Orders {
+        /**
+         * Locale-aware collation that ignores case but not accents, so {@code Élodie} sorts beside {@code Elodie}
+         * (rather than after {@code Zoe}) and {@code alicia tan} ties with {@code Alicia Tan}.
+         */
+        private static final Collator TEXT_ORDER = createTextOrder();
         private static final Comparator<Person> BY_NAME =
-                Comparator.comparing(person -> person.getName().fullName, String.CASE_INSENSITIVE_ORDER);
+                Comparator.comparing(person -> person.getName().fullName, TEXT_ORDER);
         /** Contacts without a company, which only older records can have, are placed after those with one. */
         private static final Comparator<Person> BY_COMPANY_MISSING_LAST =
                 Comparator.<Person, Boolean>comparing(person -> person.getCompany().isEmpty())
                         .thenComparing(person -> person.getCompany().map(company -> company.value).orElse(""),
-                                String.CASE_INSENSITIVE_ORDER);
+                                TEXT_ORDER);
         private static final Comparator<Person> BY_EMAIL = Comparator.comparing(person -> person.getEmail().value);
         /** Uses the declaration order of {@link EnquiryStatus}: needs follow-up, in progress, completed. */
         private static final Comparator<Person> BY_STATUS = Comparator.comparing(Person::getEnquiryStatus);
+
+        private static Collator createTextOrder() {
+            Collator collator = Collator.getInstance(Locale.ROOT);
+            collator.setStrength(Collator.SECONDARY);
+            collator.setDecomposition(Collator.CANONICAL_DECOMPOSITION);
+            return collator;
+        }
     }
 }

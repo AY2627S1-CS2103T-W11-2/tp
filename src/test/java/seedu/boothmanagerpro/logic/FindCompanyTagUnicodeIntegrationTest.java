@@ -34,13 +34,15 @@ public class FindCompanyTagUnicodeIntegrationTest {
     }
 
     @Test
-    public void find_unicodeCriteria_keepWholeValuesAndOrAndRules() throws Exception {
+    public void find_unicodeCriteria_matchPartialCompanyWholeTagsAndOrAndRules() throws Exception {
         Person person = new PersonBuilder().withCompany("\u039f\u03a3 Labs")
                 .withTags("\u039f\u03a3", "high-priority").build();
         ModelManager model = new ModelManager();
         model.addPerson(person);
         FindCommandParser parser = new FindCommandParser();
         parser.parse("c/\u03bf\u03c3").execute(model);
+        assertEquals(List.of(person), List.copyOf(model.getFilteredPersonList()));
+        parser.parse("c/Absent").execute(model);
         assertEquals(List.of(), List.copyOf(model.getFilteredPersonList()));
         parser.parse("t/\u03bf").execute(model);
         assertEquals(List.of(), List.copyOf(model.getFilteredPersonList()));
@@ -92,6 +94,27 @@ public class FindCompanyTagUnicodeIntegrationTest {
         assertEquals(List.of(stored), List.copyOf(model.getFilteredPersonList()));
 
         logic.execute("find Cafe\u0301");
+        assertEquals(List.of(stored), List.copyOf(model.getFilteredPersonList()));
+    }
+
+    @Test
+    public void find_companyWithInternalMultipleSpacesAndTabs_matchesStoredContacts() throws Exception {
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(folder.resolve("spaces-contacts.json"));
+        StorageManager manager = IntegrationTestFixture.createStorage(storage, folder.resolve("spaces-prefs.json"));
+        ModelManager model = new ModelManager();
+        LogicManager logic = new LogicManager(model, manager);
+
+        logic.execute("add n/Tech Guy c/TechNova\n  Pte Ltd e/tech@example.com p/81234567");
+        Person stored = model.getAddressBook().getPersonList().getFirst();
+        assertEquals("TechNova Pte Ltd", stored.getCompany().orElseThrow().value);
+
+        logic.execute("find c/TechNova Pte Ltd");
+        assertEquals(List.of(stored), List.copyOf(model.getFilteredPersonList()));
+
+        logic.execute("find c/TechNova  Pte Ltd");
+        assertEquals(List.of(stored), List.copyOf(model.getFilteredPersonList()));
+
+        logic.execute("find c/TechNova\tPte Ltd");
         assertEquals(List.of(stored), List.copyOf(model.getFilteredPersonList()));
     }
 

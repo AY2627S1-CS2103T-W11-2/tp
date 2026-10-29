@@ -73,8 +73,11 @@ public class TagIntegrationTest {
                 "Updated tags for Alicia Tan at TechNova. Added: VIP. Removed: None. Current tags: VIP.",
                 logic.execute("tag 1 t/VIP").getFeedbackToUser());
         assertEquals(
-                "Updated tags for Alicia Tan at TechNova. Added: vip. Removed: None. Current tags: VIP, vip.",
-                logic.execute("tag 1 t/vip").getFeedbackToUser());
+                "Updated tags for Alicia Tan at TechNova. Added: high priority. Removed: VIP. "
+                        + "Current tags: high priority.",
+                logic.execute("tag 1 t/vip t/high  priority").getFeedbackToUser());
+        logic.execute("find t/high  priority");
+        assertEquals(1, model.getFilteredPersonList().size());
     }
 
     @Test
@@ -133,7 +136,7 @@ public class TagIntegrationTest {
         for (String args : new String[]{"", "Alicia Tan", "t/vip", "0 t/vip", "-1 t/vip",
             "999999999999999999 t/vip", "Alicia Tan s/Completed", "Alicia Tan t/vip c/Other",
             "Alicia Tan /t/vip", "Alicia Tan t/", "Alicia Tan t/valid t/", "Alicia Tan t/a/b",
-            "Alicia Tan t/1234567890123456789012345678901", "123InvalidName t/vip"}) {
+            "Alicia Tan t/1234567890123456789012345678901", "Invalid!Name t/vip"}) {
             assertRejected("tag " + args, ParseException.class);
         }
     }

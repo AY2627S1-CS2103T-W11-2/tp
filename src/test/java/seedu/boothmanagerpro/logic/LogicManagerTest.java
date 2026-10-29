@@ -21,6 +21,7 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.boothmanagerpro.logic.commands.AddCommand;
 import seedu.boothmanagerpro.logic.commands.CommandResult;
 import seedu.boothmanagerpro.logic.commands.ListCommand;
+import seedu.boothmanagerpro.logic.commands.UpdateCommand;
 import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 import seedu.boothmanagerpro.model.Model;
@@ -111,6 +112,23 @@ public class LogicManagerTest {
         assertThrows(CommandException.class, () -> logic.execute(sorted ? "list" : "list o/name"));
         assertEquals(sorted ? java.util.List.of(amy, zoe) : java.util.List.of(zoe, amy),
                 model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_unchangedUpdate_doesNotAttemptStorageWrite() {
+        model.addPerson(AMY);
+        StorageManager writeRejectingStorage = new StorageManager(
+                new JsonAddressBookStorage(temporaryFolder.resolve("contacts.json")),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook data) {
+                throw new AssertionError("An unchanged update must not save the address book");
+            }
+        };
+        logic = new LogicManager(model, writeRejectingStorage);
+        assertThrows(CommandException.class,
+                String.format(UpdateCommand.MESSAGE_NO_CHANGES, AddCommand.formatIdentity(AMY)), () ->
+                logic.execute("update 1 p/" + AMY.getPhone().value));
     }
 
     @Test

@@ -19,10 +19,10 @@ public final class ArgumentTokenizer {
     private static final String COMPANY_PREFIX = CliSyntax.PREFIX_COMPANY.getPrefix();
     private static final Pattern SINGLE_LETTER_PREFIX = Pattern.compile("(?<!\\S)([a-zA-Z]/)");
     private static final Pattern BEFORE_PATRONYMIC = Pattern.compile(
-            "(?:^|.*\\s)(?!(?i:[sd]/o)\\s)(?:[a-zA-Z]/)?(?=[^\\s/]*\\p{L})[^\\s/]+\\s+",
+            "(?:^|.*\\s)(?!(?i:[sd]/o|a/[lp])\\s)(?:[a-zA-Z]/)?(?=[^\\s/]*\\p{L})[^\\s/]+\\s+",
             Pattern.DOTALL);
     private static final Pattern FROM_PATRONYMIC = Pattern.compile(
-            "(?i:[sd]/o)\\s+(?=[^\\s/]*\\p{L})[^\\s/]+(?:\\s.*|$)",
+            "(?i:[sd]/o|a/[lp])\\s+(?=[^\\s/]*\\p{L})[^\\s/]+(?:\\s.*|$)",
             Pattern.DOTALL);
     private static final Pattern COMPANY_INITIALISM_OR_MESSRS = Pattern.compile(
             "(?:[A-Z]/[A-Z]|M/s)(?:\\s.*|[.,;:)].*|$)",
@@ -54,7 +54,7 @@ public final class ArgumentTokenizer {
 
     /**
      * Finds all whitespace-delimited single-letter prefix tokens (e.g. {@code n/}, {@code c/}),
-     * excluding legal-name patronymic markers ({@code s/o} and {@code d/o}) appearing between words
+     * excluding legal-name patronymic markers ({@code s/o}, {@code d/o}, {@code a/l}, {@code a/p}) between words
      * and common business slash abbreviations inside a {@code c/} company value.
      */
     public static List<MatchResult> findSingleLetterPrefixes(String argsString) {
@@ -76,7 +76,7 @@ public final class ArgumentTokenizer {
 
     /**
      * Returns true if the token starting at {@code start} is a legal-name patronymic marker
-     * ({@code s/o} or {@code d/o}, case-insensitive) appearing between two words containing letters,
+     * ({@code s/o}, {@code d/o}, {@code a/l} or {@code a/p}, case-insensitive) between two words containing letters,
      * rather than a command field prefix.
      */
     static boolean isPatronymicToken(String args, int start) {

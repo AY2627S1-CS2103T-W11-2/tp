@@ -56,6 +56,24 @@ public class TagCommandTest {
     }
 
     @Test
+    public void execute_caseVariantAndCollapsedSpaces_togglesExistingTag() {
+        // BENSON initially has tags "owesMoney" and "friends"; toggling "OWESMONEY" removes "owesMoney"
+        Person target = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
+        Set<Tag> toggleTags = new LinkedHashSet<>(List.of(new Tag("OWESMONEY"), new Tag("high   priority")));
+        TagCommand tagCommand = new TagCommand(INDEX_SECOND_PERSON, toggleTags);
+
+        Person updatedPerson = new PersonBuilder(target).withTags("friends", "high priority").build();
+        String expectedMessage = String.format(
+                "Updated tags for %s. Added: %s. Removed: %s. Current tags: %s.",
+                AddCommand.formatIdentity(updatedPerson), "high priority", "owesMoney", "friends, high priority");
+
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.setPerson(target, updatedPerson);
+
+        assertCommandSuccess(tagCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void execute_validNameCaseInsensitive_addsTagsSuccess() {
         Person target = model.getFilteredPersonList().get(2); // CARL has no tags initially
         TagCommand tagCommand = new TagCommand(new Name("carl kurz"), Set.of(new Tag("sponsor")));

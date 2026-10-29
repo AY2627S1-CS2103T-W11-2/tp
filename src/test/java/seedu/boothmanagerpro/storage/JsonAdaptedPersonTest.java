@@ -33,7 +33,7 @@ import seedu.boothmanagerpro.testutil.PersonBuilder;
 
 public class JsonAdaptedPersonTest {
 
-    private static final String INVALID_NAME = "R@chel";
+    private static final String INVALID_NAME = "R!chel";
     private static final String INVALID_PHONE = "+651234";
     private static final String INVALID_ADDRESS = " ";
     private static final String INVALID_EMAIL = "example.com";
@@ -66,7 +66,7 @@ public class JsonAdaptedPersonTest {
 
     @Test
     public void toModelType_normalisesValuesLikeAdd() throws Exception {
-        Person expected = new PersonBuilder(BENSON).withPhone("+6598765432")
+        Person expected = new PersonBuilder(BENSON).withPhone("+65 9876-5432")
                 .withCompany("TechNova").withContactMethod("email").build();
         JsonAdaptedPerson stored = new JsonAdaptedPerson("  " + VALID_NAME + "  ", "+65 9876-5432",
                 "  " + VALID_EMAIL.toUpperCase(java.util.Locale.ROOT) + "  ", VALID_ADDRESS,

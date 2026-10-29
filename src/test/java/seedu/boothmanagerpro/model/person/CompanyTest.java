@@ -20,6 +20,7 @@ public class CompanyTest {
     public void constructor_invalidCompany_throwsIllegalArgumentException() {
         assertThrows(IllegalArgumentException.class, () -> new Company(""));
         assertThrows(IllegalArgumentException.class, () -> new Company("   "));
+        assertThrows(IllegalArgumentException.class, () -> new Company("\t\n  "));
         assertThrows(IllegalArgumentException.class, () -> new Company("A".repeat(101)));
     }
 
@@ -32,19 +33,44 @@ public class CompanyTest {
     }
 
     @Test
+    public void constructor_repeatedWhitespaceAndNewlines_collapsesToSingleSpace() {
+        Company doubleSpace = new Company("TechNova  Pte Ltd");
+        assertEquals("TechNova Pte Ltd", doubleSpace.value);
+        assertEquals(new Company("TechNova Pte Ltd"), doubleSpace);
+
+        Company tabsAndNewlines = new Company("TechNova\t\tPte\n\nLtd");
+        assertEquals("TechNova Pte Ltd", tabsAndNewlines.value);
+        assertEquals(new Company("TechNova Pte Ltd"), tabsAndNewlines);
+
+        Company mixedWhitespace = new Company("  TechNova\n  Pte Ltd  ");
+        assertEquals("TechNova Pte Ltd", mixedWhitespace.value);
+        assertEquals(new Company("TechNova Pte Ltd"), mixedWhitespace);
+
+        Company unicodeWhitespace = new Company("\u2003TechNova\u2003\u2003Pte\u2003Ltd\u2003");
+        assertEquals("TechNova Pte Ltd", unicodeWhitespace.value);
+        assertEquals(new Company("TechNova Pte Ltd"), unicodeWhitespace);
+    }
+
+    @Test
     public void isValidCompany() {
         assertThrows(NullPointerException.class, () -> Company.isValidCompany(null));
 
         // invalid companies
         assertFalse(Company.isValidCompany(""));
         assertFalse(Company.isValidCompany("   "));
+        assertFalse(Company.isValidCompany("\t\r\n"));
         assertFalse(Company.isValidCompany("A".repeat(101)));
+        assertFalse(Company.isValidCompany("A".repeat(50) + "   " + "B".repeat(51))); // 102 code points after collapse
 
         // valid companies (boundaries and punctuation)
         assertTrue(Company.isValidCompany("A"));
         assertTrue(Company.isValidCompany("A".repeat(100)));
         assertTrue(Company.isValidCompany("Acme Pte. Ltd."));
         assertTrue(Company.isValidCompany("  TechNova & Partners (SG)  "));
+        assertTrue(Company.isValidCompany("TechNova  Pte Ltd"));
+        assertTrue(Company.isValidCompany("TechNova\n  Pte Ltd"));
+        assertTrue(Company.isValidCompany("TechNova\tPte Ltd"));
+        assertTrue(Company.isValidCompany("A".repeat(50) + "    " + "B".repeat(49))); // 100 code points after collapse
     }
 
     @Test

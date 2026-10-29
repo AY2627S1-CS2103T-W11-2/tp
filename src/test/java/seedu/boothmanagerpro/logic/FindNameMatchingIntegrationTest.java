@@ -1,6 +1,8 @@
 package seedu.boothmanagerpro.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -10,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.UserPrefs;
 import seedu.boothmanagerpro.storage.JsonAddressBookStorage;
@@ -72,6 +75,55 @@ public class FindNameMatchingIntegrationTest {
         logic = createLogic();
         logic.execute("find n/Alex");
         assertNames("Alex Yeo", "Alex Yeoh", "John Alex");
+    }
+
+    @Test
+    public void find_nameWithPatronymic_doesNotMatchUnrelatedPatronymicContacts() throws Exception {
+        logic.execute("add n/Raj s/o Kumar c/TechNova e/raj@example.com p/91234561");
+        logic.execute("add n/Arun s/o Mohan c/Other e/arun@example.com p/92345672");
+        logic.execute("add n/Devi d/o Raman c/Other2 e/devi@example.com p/93456783");
+
+        // Unprefixed find does not treat s/o as a standalone keyword
+        logic.execute("find Raj s/o Kumar");
+        assertNames("Raj s/o Kumar");
+
+        // Find with d/o does not return every contact with d/o
+        logic.execute("find Devi d/o Raman");
+        assertNames("Devi d/o Raman");
+
+        // Prefixed find does not treat s/o as a standalone word
+        logic.execute("find n/Raj s/o Kumar");
+        assertNames("Raj s/o Kumar");
+
+        // Searching for non-existent name with s/o matches no contacts
+        logic.execute("find Suresh s/o Velu");
+        assertNames();
+    }
+
+    @Test
+    public void curlyAndStraightApostrophes_matchAcrossAllCommandsAndDuplicateChecks() throws Exception {
+        logic.execute("add n/Anne-Marie O\u2019Neil c/TechNova e/oneil@example.com p/91234568");
+        assertThrows(CommandException.class, () ->
+                logic.execute("add n/Anne-Marie O'Neil c/TechNova e/oneil2@example.com p/91234569"));
+
+        logic.execute("find O'Neil");
+        assertNames("Anne-Marie O'Neil");
+        logic.execute("find O\u2019Neil");
+        assertNames("Anne-Marie O'Neil");
+        logic.execute("find n/Anne-Marie O\u2019Neil");
+        assertNames("Anne-Marie O'Neil");
+        logic.execute("find n/O\u2019Neil");
+        assertNames("Anne-Marie O'Neil");
+
+        String viewOutput = logic.execute("view n/Anne-Marie O\u2019Neil").getFeedbackToUser();
+        assertTrue(viewOutput.contains("Anne-Marie O'Neil at TechNova"));
+
+        logic.execute("update Anne-Marie O\u2019Neil p/88887777");
+        assertEquals("88887777", storage.readAddressBook().orElseThrow().getPersonList().get(4).getPhone().value);
+
+        logic.execute("tag Anne-Marie O\u2019Neil t/vip");
+        assertTrue(logic.execute("delete Anne-Marie O\u2019Neil").getFeedbackToUser()
+                .contains("Anne-Marie O'Neil at TechNova"));
     }
 
     private LogicManager createLogic() {
