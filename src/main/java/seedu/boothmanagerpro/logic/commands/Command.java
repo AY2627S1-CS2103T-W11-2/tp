@@ -9,6 +9,14 @@ import seedu.boothmanagerpro.model.Model;
 public abstract class Command {
 
     /**
+     * Returns whether executing this command changes address book data that must be persisted.
+     * Read-only commands leave this as {@code false}; mutating commands opt in explicitly.
+     */
+    public boolean modifiesAddressBook() {
+        return false;
+    }
+
+    /**
      * Executes the command and returns the result message.
      *
      * @param model {@code Model} which the command should operate on.

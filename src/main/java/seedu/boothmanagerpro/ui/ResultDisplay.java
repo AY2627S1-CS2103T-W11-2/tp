@@ -76,7 +76,7 @@ public class ResultDisplay extends UiPart<Region> {
 
     /**
      * Shows {@code contacts} as static cards in place of the text output, which keeps the same feedback.
-     * Numbered cards use the one-based indices accepted by edit and delete. The total is shown below the cards
+     * Numbered cards use the one-based indices accepted by update and delete. The total is shown below the cards
      * only when {@code isShowingTotal}, since other results already state their count in the heading.
      */
     public void showContacts(List<Person> contacts, boolean isNumbered, boolean isShowingTotal) {

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static seedu.boothmanagerpro.testutil.TypicalPersons.ALICE;
 
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import javax.imageio.ImageIO;
 
@@ -36,6 +38,8 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import seedu.boothmanagerpro.MainApp;
 import seedu.boothmanagerpro.logic.LogicManager;
+import seedu.boothmanagerpro.logic.commands.CommandResult;
+import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.UserPrefs;
 import seedu.boothmanagerpro.model.util.SampleDataUtil;
@@ -323,6 +327,32 @@ public class MainWindowTest {
     }
 
     @Test
+    public void handleHelp_logicFailure_displaysAndHandlesError() throws Exception {
+        runOnFxThread(() -> {
+            StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath()),
+                    new JsonUserPrefsStorage(testFolder.resolve("preferences.json")));
+            LogicManager failingLogic = new LogicManager(new ModelManager(), storage) {
+                @Override
+                public CommandResult execute(String commandText) throws CommandException {
+                    throw new CommandException("Help is temporarily unavailable.");
+                }
+            };
+            Stage stage = new Stage();
+            stage.setOpacity(0);
+            MainWindow window = new MainWindow(stage, failingLogic, dataPath());
+            try {
+                assertEquals(stage, window.getPrimaryStage());
+                window.fillInnerParts();
+                window.handleHelp();
+                assertEquals("Help is temporarily unavailable.", output(stage.getScene().getRoot()));
+            } finally {
+                stage.hide();
+            }
+            return null;
+        });
+    }
+
+    @Test
     public void tabAutocomplete_completesCommandsAndRequiredPrefixes() throws Exception {
         withWindow(new ModelManager(), (window, root, storage) -> {
             TextField commandInput = input(root);
@@ -460,6 +490,67 @@ public class MainWindowTest {
 
             commandInput.undo();
             assertEquals("", commandInput.getText());
+        });
+    }
+
+    @Test
+    public void commandBox_convenienceConstructorAndAutocompleteEdges_areHandled() throws Exception {
+        runOnFxThread(() -> {
+            CommandBox commandBox = new CommandBox(command -> new CommandResult(command));
+            TextField commandInput = (TextField) commandBox.getRoot().lookup("#commandTextField");
+
+            commandInput.setText("unknown");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("unknown", commandInput.getText());
+
+            // The next required prefix can skip one that was already supplied out of order.
+            commandInput.setText("add c/TechNova n/Alicia Tan");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add c/TechNova n/Alicia Tan e/", commandInput.getText());
+
+            // A last required prefix with earlier fields absent has no later prefix to append.
+            commandInput.setText("add n/Alicia Tan p/91234567");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add n/Alicia Tan p/91234567", commandInput.getText());
+
+            // Empty fixed-choice text is ambiguous, so completion must fall through without changing it.
+            commandInput.setText("list o/");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("list o/", commandInput.getText());
+
+            // An existing tag prefix must not be duplicated.
+            commandInput.setText("tag Alicia Tan t/");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("tag Alicia Tan t/", commandInput.getText());
+
+            AtomicInteger outputFocusRequests = new AtomicInteger();
+            CommandBox focusableCommandBox = new CommandBox(
+                    command -> new CommandResult(command), outputFocusRequests::incrementAndGet);
+            TextField focusableInput = (TextField) focusableCommandBox.getRoot().lookup("#commandTextField");
+            focusableInput.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.TAB,
+                    true, false, false, false));
+            assertEquals(1, outputFocusRequests.get());
+            return null;
+        });
+    }
+
+    @Test
+    public void resultDisplay_tabCallbackAndVisibleContactFocus_areHandled() throws Exception {
+        runOnFxThread(() -> {
+            AtomicInteger commandFocusRequests = new AtomicInteger();
+            ResultDisplay display = new ResultDisplay(commandFocusRequests::incrementAndGet);
+
+            display.getRoot().fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.A,
+                    false, false, false, false));
+            assertEquals(0, commandFocusRequests.get());
+            display.getRoot().fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.TAB,
+                    false, false, false, false));
+            assertEquals(1, commandFocusRequests.get());
+
+            display.showContacts(List.of(ALICE), true, false);
+            assertTrue(display.getRoot().lookup("#contactScroll").isVisible());
+            display.focus();
+            return null;
         });
     }
 
@@ -602,9 +693,11 @@ public class MainWindowTest {
         runOnFxThread(() -> {
             StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath()),
                     new JsonUserPrefsStorage(testFolder.resolve("preferences.json")));
+            storage.saveAddressBook(model.getAddressBook());
             Stage stage = new Stage();
             stage.setOpacity(0);
             MainWindow window = new MainWindow(stage, new LogicManager(model, storage), dataPath());
+            assertEquals(stage, window.getPrimaryStage());
             if (startupWarning.isEmpty()) {
                 window.fillInnerParts();
             } else {

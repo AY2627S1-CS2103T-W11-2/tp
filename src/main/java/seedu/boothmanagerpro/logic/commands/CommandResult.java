@@ -24,7 +24,7 @@ public class CommandResult {
     /** Contacts the UI may present as cards alongside the text feedback. */
     private final List<Person> contactsToShow;
 
-    /** Whether shown contacts carry the one-based indices used by edit and delete. */
+    /** Whether shown contacts carry the one-based indices used by update and delete. */
     private final boolean numberedContacts;
 
     /** Whether the UI should show the total below the shown contacts, as the list output does. */

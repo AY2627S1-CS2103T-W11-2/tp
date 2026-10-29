@@ -25,6 +25,11 @@ class DataFileRecovery {
         failedFiles.remove(file.toAbsolutePath().normalize());
     }
 
+    /** Returns whether a failed load still requires the original file to be preserved. */
+    boolean isPending(Path file) {
+        return failedFiles.contains(file.toAbsolutePath().normalize());
+    }
+
     /**
      * Makes a unique byte-for-byte backup beside the original before permitting a save.
      * Failure leaves the path protected, so retrying cannot bypass the backup requirement.

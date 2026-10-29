@@ -112,4 +112,3 @@ public class MessagesTest {
         assertEquals("hello", Messages.formatOptional(Optional.of("hello")));
     }
 }
-

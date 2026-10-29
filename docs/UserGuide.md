@@ -412,7 +412,13 @@ Format: `exit`
 
 ### Saving the data
 
-BoothManagerPro automatically saves data after successful commands, except `view` and its numbered selection replies, which do not write the data file. You do not need to save manually. If saving fails, an error appears; the change may still be present in the running app but is not guaranteed to be on disk.
+BoothManagerPro automatically saves data after successful `add`, `update`, `tag`, `delete`, and `clear`
+commands. Read-only commands such as `list`, `find`, `view`, `help`, and `exit` do not write the data file. You do
+not need to save manually. If saving fails, the in-memory change is rolled back and an error appears.
+
+If the data file changes after a BoothManagerPro window loads it, that window refuses to save stale data. Restart
+that window to load the latest contacts before retrying the command. This prevents an older window from silently
+overwriting work saved by another window or process.
 
 ### Editing the data file
 
