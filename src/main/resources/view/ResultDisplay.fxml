@@ -11,7 +11,7 @@
               styleClass="result-display" accessibleText="Command result" />
     <ScrollPane fx:id="contactScroll" fitToWidth="true" hbarPolicy="NEVER" visible="false" managed="false"
                 styleClass="contact-scroll" accessibleText="Contacts in command result">
-      <VBox fx:id="contactCards" spacing="10" mouseTransparent="true" styleClass="contact-cards" />
+      <VBox fx:id="contactCards" spacing="10" styleClass="contact-cards" />
     </ScrollPane>
   </StackPane>
 </VBox>

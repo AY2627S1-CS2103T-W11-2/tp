@@ -5,7 +5,12 @@ import static java.util.Objects.requireNonNull;
 import java.util.Locale;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import seedu.boothmanagerpro.logic.Messages;
@@ -64,6 +69,7 @@ public class ContactCard extends UiPart<Region> {
         contactMethod.setText("Contact method: " + Messages.formatOptional(person.getContactMethod()));
         followUpDate.setText("Follow-up date: " + Messages.formatFollowUpDate(person));
         showTags(person);
+        setupCopyActions(person);
     }
 
     /**
@@ -92,5 +98,73 @@ public class ContactCard extends UiPart<Region> {
     /** Returns the style class for {@code status}, e.g. {@code status-needs-follow-up}. */
     static String statusStyleClass(EnquiryStatus status) {
         return "status-" + status.name().toLowerCase(Locale.ROOT).replace('_', '-');
+    }
+
+    /**
+     * Sets up context menus and double-click actions to allow copying contact details to the clipboard.
+     */
+    private void setupCopyActions(Person person) {
+        String emailValue = person.getEmail().value;
+        String phoneValue = person.getPhone().value;
+        String nameValue = person.getName().fullName;
+        String allDetails = Messages.formatContactDetails(person);
+
+        configureCopyableLabel(email, emailValue, "Copy Email", allDetails);
+        configureCopyableLabel(phone, phoneValue, "Copy Phone", allDetails);
+        configureCopyableLabel(name, nameValue, "Copy Name", allDetails);
+        person.getCompany().ifPresent(c -> configureCopyableLabel(company, c.value, "Copy Company", allDetails));
+
+        ContextMenu cardMenu = new ContextMenu();
+        MenuItem copyEmailItem = new MenuItem("Copy Email");
+        copyEmailItem.setOnAction(event -> copyToClipboard(emailValue));
+        MenuItem copyPhoneItem = new MenuItem("Copy Phone");
+        copyPhoneItem.setOnAction(event -> copyToClipboard(phoneValue));
+        MenuItem copyDetailsItem = new MenuItem("Copy Contact Details");
+        copyDetailsItem.setOnAction(event -> copyToClipboard(allDetails));
+        cardMenu.getItems().addAll(copyEmailItem, copyPhoneItem, copyDetailsItem);
+
+        getRoot().setOnContextMenuRequested(event -> {
+            if (!event.isConsumed()) {
+                cardMenu.show(getRoot(), event.getScreenX(), event.getScreenY());
+                event.consume();
+            }
+        });
+    }
+
+    /**
+     * Attaches a context menu and a double-click copy handler to {@code label}.
+     */
+    private void configureCopyableLabel(Label label, String valueToCopy, String primaryCopyLabel, String allDetails) {
+        ContextMenu menu = new ContextMenu();
+        MenuItem copyValue = new MenuItem(primaryCopyLabel);
+        copyValue.setOnAction(event -> copyToClipboard(valueToCopy));
+        MenuItem copyDetails = new MenuItem("Copy Contact Details");
+        copyDetails.setOnAction(event -> copyToClipboard(allDetails));
+        menu.getItems().addAll(copyValue, copyDetails);
+        label.setContextMenu(menu);
+
+        label.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2 && event.getButton() == MouseButton.PRIMARY) {
+                copyToClipboard(valueToCopy);
+                event.consume();
+            }
+        });
+    }
+
+    /**
+     * Copies {@code text} to the system clipboard.
+     */
+    public static void copyToClipboard(String text) {
+        if (text == null) {
+            return;
+        }
+        try {
+            Clipboard clipboard = Clipboard.getSystemClipboard();
+            ClipboardContent content = new ClipboardContent();
+            content.putString(text);
+            clipboard.setContent(content);
+        } catch (Exception e) {
+            // Ignored in environments where clipboard is unavailable
+        }
     }
 }

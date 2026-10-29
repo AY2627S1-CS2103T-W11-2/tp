@@ -16,9 +16,9 @@
         </HBox>
         <VBox styleClass="workspace" spacing="10" VBox.vgrow="ALWAYS">
           <HBox alignment="CENTER_LEFT">
-            <Label text="COMMAND" styleClass="section-label" />
+            <Label text="COMMAND" styleClass="section-label" minWidth="-Infinity" />
             <Region HBox.hgrow="ALWAYS" />
-            <Label fx:id="commandHints" styleClass="muted" />
+            <Label fx:id="commandHints" styleClass="muted" wrapText="true" minWidth="0" />
           </HBox>
           <StackPane fx:id="commandBoxPlaceholder" />
           <StackPane fx:id="resultDisplayPlaceholder" minHeight="0" VBox.vgrow="ALWAYS" />

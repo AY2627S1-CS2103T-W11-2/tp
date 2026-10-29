@@ -2,6 +2,7 @@ package seedu.boothmanagerpro.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -205,7 +206,7 @@ public class MainWindowTest {
             VBox cards = (VBox) root.lookup("#contactCards");
             assertTrue(root.lookup("#contactScroll").isVisible());
             assertFalse(root.lookup("#resultDisplay").isVisible());
-            assertTrue(cards.isMouseTransparent());
+            assertFalse(cards.isMouseTransparent());
             assertEquals(6, cards.getChildren().size(), "5 cards and the total");
             savePreview(root, 1180, 820, "cli-list.png");
             enterCommand(root, "not-a-command");
@@ -577,6 +578,46 @@ public class MainWindowTest {
     @Test
     public void tabFocusReturn_keepsCommandInputUnselected() throws Exception {
         assertFocusReturnKeepsDraft(output -> pressKey(output, KeyCode.TAB));
+    }
+
+    @Test
+    public void tabFocusReturn_fromContactScroll_returnsFocusToCommandInput() throws Exception {
+        withWindow(sampleModel(), (window, root, storage) -> {
+            enterCommand(root, "list");
+            Node contactScroll = root.lookup("#contactScroll");
+            assertTrue(contactScroll.isVisible());
+            contactScroll.requestFocus();
+            pressKey(contactScroll, KeyCode.TAB);
+            assertEquals(input(root), root.getScene().getFocusOwner());
+        });
+    }
+
+    @Test
+    public void contactCard_copyMenusAndLayoutSafeguards_areConfigured() throws Exception {
+        withWindow(sampleModel(), (window, root, storage) -> {
+            enterCommand(root, "view n/Alex Yeoh");
+            VBox cards = (VBox) root.lookup("#contactCards");
+            assertFalse(cards.isMouseTransparent());
+            Parent card = (Parent) cards.getChildren().getFirst();
+            Label email = (Label) card.lookup("#email");
+            Label phone = (Label) card.lookup("#phone");
+            Label commandHints = (Label) root.lookup("#commandHints");
+
+            assertTrue(phone.isWrapText());
+            assertEquals(0.0, phone.getMinWidth());
+            assertTrue(commandHints.isWrapText());
+            assertEquals(0.0, commandHints.getMinWidth());
+
+            assertNotNull(email.getContextMenu());
+            assertTrue(email.getContextMenu().getItems().stream()
+                    .anyMatch(item -> item.getText().equals("Copy Email")));
+            assertNotNull(phone.getContextMenu());
+            assertTrue(phone.getContextMenu().getItems().stream()
+                    .anyMatch(item -> item.getText().equals("Copy Phone")));
+
+            ContactCard.copyToClipboard("test@example.com");
+            ContactCard.copyToClipboard(null);
+        });
     }
 
     @Test

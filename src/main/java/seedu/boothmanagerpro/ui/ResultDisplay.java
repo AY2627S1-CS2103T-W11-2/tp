@@ -5,7 +5,9 @@ import static java.util.Objects.requireNonNull;
 import java.util.List;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.input.KeyCode;
@@ -56,6 +58,11 @@ public class ResultDisplay extends UiPart<Region> {
                 event.consume();
             }
         });
+        ContextMenu scrollMenu = new ContextMenu();
+        MenuItem copyAll = new MenuItem("Copy Result as Text");
+        copyAll.setOnAction(event -> ContactCard.copyToClipboard(resultDisplay.getText()));
+        scrollMenu.getItems().add(copyAll);
+        contactScroll.setContextMenu(scrollMenu);
     }
 
     /** Shows {@code feedbackToUser} as successful command feedback. */

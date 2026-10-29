@@ -81,7 +81,11 @@ public class MainWindow extends UiPart<Stage> {
 
     /** Displays a startup loading failure prominently while keeping the command box usable. */
     void fillInnerParts(String startupWarning) {
-        resultDisplay = new ResultDisplay();
+        resultDisplay = new ResultDisplay(() -> {
+            if (commandBox != null) {
+                commandBox.focus();
+            }
+        });
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
         resultDisplay.setFeedbackToUser("Ready. Type list to show all contacts, find to search, "
                 + "or help for usage instructions.");
