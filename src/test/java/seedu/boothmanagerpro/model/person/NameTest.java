@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.boothmanagerpro.testutil.Assert.assertThrows;
 
+import java.text.Normalizer;
+
 import org.junit.jupiter.api.Test;
 
 public class NameTest {
@@ -76,5 +78,36 @@ public class NameTest {
 
         // different values -> returns false
         assertFalse(name.equals(new Name("Other Valid Name")));
+    }
+
+    // ── Unicode NFC normalisation ─────────────────────────────────────────────
+
+    @Test
+    public void constructor_nfdInput_storedAsNfc() {
+        // NFD: e + combining acute (U+0301)
+        String nfd = "Jose\u0301 Tan";
+        // NFC: é as precomposed U+00E9
+        String nfc = "Jos\u00E9 Tan";
+        Name fromNfd = new Name(nfd);
+        Name fromNfc = new Name(nfc);
+        // Both must store the same NFC bytes and compare as equal
+        assertEquals(nfc, fromNfd.fullName);
+        assertEquals(fromNfc, fromNfd);
+    }
+
+    @Test
+    public void constructor_nfcAndNfdRepresentations_haveEqualHashCode() {
+        Name nfcName = new Name("Jos\u00E9 Tan");
+        Name nfdName = new Name("Jose\u0301 Tan");
+        assertEquals(nfcName.hashCode(), nfdName.hashCode());
+    }
+
+    @Test
+    public void normaliseWhitespace_returnsNfcForm() {
+        String nfd = "Cafe\u0301 Owner";
+        String result = Name.normaliseWhitespace(nfd);
+        // After normalisation the result must already be in NFC form
+        assertEquals(Normalizer.normalize(result, Normalizer.Form.NFC), result);
+        assertEquals("Caf\u00E9 Owner", result);
     }
 }

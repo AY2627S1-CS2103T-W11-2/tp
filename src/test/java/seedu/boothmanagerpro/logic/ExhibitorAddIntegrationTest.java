@@ -348,4 +348,31 @@ public class ExhibitorAddIntegrationTest {
         assertTrue(legacy.getCompany().isEmpty());
         assertTrue(legacy.getContactMethod().isEmpty());
     }
+
+    // ── Unicode NFC normalisation ─────────────────────────────────────────────
+
+    @Test
+    public void add_unicodeNfdName_rejectedAsDuplicateOfNfcContact() throws Exception {
+        // First contact: name contains é as precomposed U+00E9 (NFC form).
+        logic.execute("add n/Jos\u00E9 Tan c/Unicode Co e/jose1@example.com p/81234567");
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+
+        // Second add: visually identical name using NFD encoding (e + combining acute U+0301).
+        // After NFC normalisation both names are identical, so the add must be rejected.
+        assertThrows(CommandException.class, () ->
+                logic.execute("add n/Jose\u0301 Tan c/Unicode Co e/jose2@example.com p/82345678"));
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+    }
+
+    @Test
+    public void add_unicodeNfdCompany_rejectedAsDuplicateOfNfcContact() throws Exception {
+        // First contact: company contains NFC precomposed accent.
+        logic.execute("add n/Alice Tan c/Caf\u00E9 Co e/alice1@example.com p/81234567");
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+
+        // Second add: same company name but NFD combining accent — visually identical, must be rejected.
+        assertThrows(CommandException.class, () ->
+                logic.execute("add n/Alice Tan c/Cafe\u0301 Co e/alice2@example.com p/82345678"));
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+    }
 }

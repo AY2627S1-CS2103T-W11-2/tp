@@ -51,6 +51,35 @@ public class PersonTest {
         assertTrue(BOB.isSamePerson(editedBob));
     }
 
+    // ── Unicode NFC normalisation ─────────────────────────────────────────────
+
+    @Test
+    public void isSamePerson_unicodeNfcVsNfdName_treatedAsEqual() {
+        // \u00E9 = precomposed e-acute (NFC); e + \u0301 = base + combining acute accent (NFD).
+        // Both render identically on screen but differ at the byte level before normalisation.
+        Person nfcPerson = new PersonBuilder().withName("Jos\u00E9 Tan").withCompany("Unicode Co")
+                .withEmail("jose1@example.com").build();
+        Person nfdPerson = new PersonBuilder().withName("Jose\u0301 Tan").withCompany("Unicode Co")
+                .withEmail("jose2@example.com").build();
+
+        assertTrue(nfcPerson.isSamePerson(nfdPerson),
+                "Canonically equivalent NFD and NFC names must be treated as duplicates");
+    }
+
+    @Test
+    public void isSamePerson_unicodeNfcVsNfdCompany_treatedAsEqual() {
+        // Same concept applied to company names.
+        Person nfcPerson = new PersonBuilder().withName("Alice Tan").withCompany("Caf\u00E9 Co")
+                .withEmail("alice1@example.com").build();
+        Person nfdPerson = new PersonBuilder().withName("Alice Tan").withCompany("Cafe\u0301 Co")
+                .withEmail("alice2@example.com").build();
+
+        assertTrue(nfcPerson.isSamePerson(nfdPerson),
+                "Canonically equivalent NFD and NFC company names must be treated as duplicates");
+    }
+
+    // ── equals / toString ─────────────────────────────────────────────────────
+
     @Test
     public void equals() {
         // same values -> returns true
