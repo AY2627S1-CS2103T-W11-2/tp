@@ -92,7 +92,7 @@ public class MainWindow extends UiPart<Stage> {
         StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
 
-        commandBox = new CommandBox(this::executeCommand);
+        commandBox = new CommandBox(this::executeCommand, () -> resultDisplay.focus());
         commandBoxPlaceholder.getChildren().add(commandBox.getRoot());
         commandHints.setText("Enter to run  |  Tab to autofill  |  " + FOCUS_COMMAND.getDisplayText()
                 + " to focus  |  F1 for help");

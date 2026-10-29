@@ -82,6 +82,7 @@ public class CommandBox extends UiPart<Region> {
             PREFIX_ORDER.toString(), Arrays.stream(SortField.values()).map(SortField::toString).toList());
 
     private final CommandExecutor commandExecutor;
+    private final Runnable onFocusOutput;
 
     @FXML
     private TextField commandTextField;
@@ -90,14 +91,27 @@ public class CommandBox extends UiPart<Region> {
      * Creates a {@code CommandBox} with the given {@code CommandExecutor}.
      */
     public CommandBox(CommandExecutor commandExecutor) {
+        this(commandExecutor, null);
+    }
+
+    /**
+     * Creates a {@code CommandBox} with the given {@code CommandExecutor} and output focus callback.
+     */
+    public CommandBox(CommandExecutor commandExecutor, Runnable onFocusOutput) {
         super(FXML);
         this.commandExecutor = commandExecutor;
+        this.onFocusOutput = onFocusOutput;
         // calls #setStyleToDefault() whenever there is a change to the text of the command box.
         commandTextField.textProperty().addListener((unused1, unused2, unused3) -> setStyleToDefault());
         // Capture Tab before JavaFX uses it to move focus to another control.
         commandTextField.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
-            if (event.getCode() == KeyCode.TAB && autocompleteCommand()) {
-                event.consume();
+            if (event.getCode() == KeyCode.TAB) {
+                if (!event.isShiftDown() && autocompleteCommand()) {
+                    event.consume();
+                } else if (onFocusOutput != null) {
+                    onFocusOutput.run();
+                    event.consume();
+                }
             }
         });
         // JavaFX selects all text when keyboard focus returns, so the next keystroke would replace the command.
@@ -174,9 +188,17 @@ public class CommandBox extends UiPart<Region> {
         String currentPrefix = ADD_REQUIRED_PREFIXES.get(lastPrefixIndex);
         int valueStart = lastPrefixPosition + 1 + currentPrefix.length();
         boolean hasValue = !input.substring(valueStart).isBlank();
-        boolean hasNextPrefix = lastPrefixIndex + 1 < ADD_REQUIRED_PREFIXES.size();
-        if (hasValue && hasNextPrefix) {
-            return setCommandText(input + " " + ADD_REQUIRED_PREFIXES.get(lastPrefixIndex + 1));
+        // All required prefixes are already present — nothing to add.
+        boolean allPresent = ADD_REQUIRED_PREFIXES.stream()
+                .allMatch(prefix -> input.contains(" " + prefix));
+        if (hasValue && !allPresent) {
+            // Find the next required prefix that is not yet present in the command.
+            for (int next = lastPrefixIndex + 1; next < ADD_REQUIRED_PREFIXES.size(); next++) {
+                String nextPrefix = ADD_REQUIRED_PREFIXES.get(next);
+                if (!input.contains(" " + nextPrefix)) {
+                    return setCommandText(input + " " + nextPrefix);
+                }
+            }
         }
         return false;
     }
@@ -258,8 +280,9 @@ public class CommandBox extends UiPart<Region> {
         if (text.equals(commandTextField.getText())) {
             return false;
         }
-        commandTextField.setText(text);
+        commandTextField.replaceText(0, commandTextField.getLength(), text);
         commandTextField.positionCaret(text.length());
+        commandTextField.deselect();
         commandTextField.requestFocus();
         return true;
     }

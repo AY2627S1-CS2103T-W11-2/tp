@@ -372,6 +372,12 @@ public class MainWindowTest {
             assertEquals("add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567",
                     commandInput.getText());
 
+            // Reordered add: all four required fields present in a different order must not gain a duplicate prefix.
+            commandInput.setText("add c/OtherCo e/gamma@example.com p/91234569 n/Gamma Tester");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add c/OtherCo e/gamma@example.com p/91234569 n/Gamma Tester",
+                    commandInput.getText());
+
             commandInput.setText("view");
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("view n/", commandInput.getText());
@@ -435,6 +441,25 @@ public class MainWindowTest {
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("view n/", commandInput.getText());
             assertEquals(commandInput.getText().length(), commandInput.getCaretPosition());
+        });
+    }
+
+    @Test
+    public void tabAutocomplete_preservesUndoHistory() throws Exception {
+        withWindow(new ModelManager(), (window, root, storage) -> {
+            TextField commandInput = input(root);
+
+            commandInput.appendText("add n/Undo Tester");
+            assertEquals("add n/Undo Tester", commandInput.getText());
+
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add n/Undo Tester c/", commandInput.getText());
+
+            commandInput.undo();
+            assertEquals("add n/Undo Tester", commandInput.getText());
+
+            commandInput.undo();
+            assertEquals("", commandInput.getText());
         });
     }
 
