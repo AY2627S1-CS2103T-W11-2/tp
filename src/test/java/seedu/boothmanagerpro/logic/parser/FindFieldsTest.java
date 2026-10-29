@@ -74,12 +74,10 @@ public class FindFieldsTest {
                     "Invalid value for e/: " + FindCommandParser.MESSAGE_INVALID_EMAIL_SEARCH);
         }
         assertParseFailure(parser, "p/1234\t567",
-                "Invalid value for p/: Phone number can only contain digits, spaces, hyphens, and a + at the start.");
+                "Invalid value for p/: " + FindCommandParser.MESSAGE_INVALID_PHONE_SEARCH);
         assertParseFailure(parser, "p/abc",
-                "Invalid value for p/: Phone number can only contain digits, spaces, hyphens, and a + at the start.");
-        assertParseFailure(parser, "p/(65) 6123-4567",
-                "Invalid value for p/: Phone number can only contain digits, spaces, hyphens, and a + at the start.");
-        for (String badPhone : List.of("p/+", "p/---", "p/1234567890123456", "p/" + "1  ".repeat(11))) {
+                "Invalid value for p/: " + FindCommandParser.MESSAGE_INVALID_PHONE_SEARCH);
+        for (String badPhone : List.of("p/+", "p/---", "p/1234567890123456", "p/" + "1" + " ".repeat(100) + "2")) {
             assertParseFailure(parser, badPhone,
                     "Invalid value for p/: " + FindCommandParser.MESSAGE_INVALID_PHONE_SEARCH);
         }

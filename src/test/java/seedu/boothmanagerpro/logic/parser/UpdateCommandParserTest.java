@@ -47,7 +47,7 @@ public class UpdateCommandParserTest {
 
     @Test
     public void parse_phoneWithSeparators_success() {
-        ContactUpdate phone = changes(Optional.empty(), Optional.of(new Phone("+6591234567")), Optional.empty(),
+        ContactUpdate phone = changes(Optional.empty(), Optional.of(new Phone("+65 9123-4567")), Optional.empty(),
                 Optional.empty(), Optional.empty());
         assertParseSuccess(parser, "1 p/+65 9123-4567", new UpdateCommand(INDEX_FIRST_PERSON, phone));
     }
@@ -96,10 +96,10 @@ public class UpdateCommandParserTest {
 
     @Test
     public void parse_invalidPhone_failure() {
-        assertParseFailure(parser, "1 p/(65) 6123-4567", "Invalid value for p/: "
-                + "Phone number can only contain digits, spaces, hyphens, and a + at the start.");
+        assertParseFailure(parser, "1 p/1234 5678 (HP)", "Invalid value for p/: "
+                + ParserUtil.MESSAGE_PHONE_CHARACTERS);
         assertParseFailure(parser, "1 p/123",
-                "Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +.");
+                "Invalid value for p/: " + ParserUtil.MESSAGE_PHONE_DIGITS);
     }
 
     @Test

@@ -19,7 +19,7 @@ import seedu.boothmanagerpro.model.person.Phone;
 import seedu.boothmanagerpro.model.tag.Tag;
 
 public class ParserUtilTest {
-    private static final String INVALID_NAME = "R@chel";
+    private static final String INVALID_NAME = "R!chel";
     private static final String INVALID_PHONE = "+651234";
     private static final String INVALID_ADDRESS = " ";
     private static final String INVALID_EMAIL = "example.com";
@@ -139,9 +139,9 @@ public class ParserUtilTest {
     public void parsePhone_invalidValue_throwsParseException() {
         assertThrows(ParseException.class, () -> ParserUtil.parsePhone(INVALID_PHONE));
         assertThrows(ParseException.class,
-                "Phone number can only contain digits, spaces, hyphens, and a + at the start.", ()
-                -> ParserUtil.parsePhone("(65) 6123-4567"));
-        assertThrows(ParseException.class, "Phone number must contain 7 to 15 digits, optionally starting with +.", ()
+                ParserUtil.MESSAGE_PHONE_CHARACTERS, ()
+                -> ParserUtil.parsePhone("1234 5678 (HP)"));
+        assertThrows(ParseException.class, ParserUtil.MESSAGE_PHONE_DIGITS, ()
                 -> ParserUtil.parsePhone("123"));
     }
 

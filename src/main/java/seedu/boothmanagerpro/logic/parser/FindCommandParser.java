@@ -45,9 +45,10 @@ public class FindCommandParser implements Parser<FindCommand> {
             "Email search value is invalid. Supply a full or partial email or domain "
             + "(e.g. alicia@technova.com or @technova.com).";
     public static final String MESSAGE_INVALID_PHONE_SEARCH =
-            "Phone search value must contain 1 to 15 digits, optionally starting with +.";
+            "Phone search value must contain 1 to 15 digits, optionally starting with +, "
+            + "and may only include spaces, hyphens, full stops, or parentheses as formatting.";
     private static final String EMAIL_SEARCH_REGEX = "[A-Za-z0-9+_.-]*(?:@[A-Za-z0-9.-]*)?";
-    private static final String PHONE_CHARACTERS_REGEX = "\\+?[0-9 -]*";
+    private static final String PHONE_CHARACTERS_REGEX = "\\+?[0-9 ().-]*";
     private static final String PHONE_SEARCH_DIGITS_REGEX = "\\+?[0-9]{1,15}";
     private static final Logger logger = LogsCenter.getLogger(FindCommandParser.class);
 
@@ -115,12 +116,8 @@ public class FindCommandParser implements Parser<FindCommand> {
     private void validatePhoneCriterion(String value) throws ParseException {
         requireSearchValue(value);
         String trimmed = value.strip();
-        if (!trimmed.matches(PHONE_CHARACTERS_REGEX)) {
-            throw new ParseException(String.format(
-                    ContactFieldParser.MESSAGE_INVALID_VALUE, PREFIX_PHONE, ParserUtil.MESSAGE_PHONE_CHARACTERS));
-        }
-        String normalised = Phone.normalize(trimmed);
-        if (trimmed.length() > Phone.MAX_INPUT_LENGTH || !normalised.matches(PHONE_SEARCH_DIGITS_REGEX)) {
+        if (trimmed.length() > Phone.MAX_INPUT_LENGTH || !trimmed.matches(PHONE_CHARACTERS_REGEX)
+                || !Phone.normalize(trimmed).matches(PHONE_SEARCH_DIGITS_REGEX)) {
             throw new ParseException(String.format(
                     ContactFieldParser.MESSAGE_INVALID_VALUE, PREFIX_PHONE, MESSAGE_INVALID_PHONE_SEARCH));
         }

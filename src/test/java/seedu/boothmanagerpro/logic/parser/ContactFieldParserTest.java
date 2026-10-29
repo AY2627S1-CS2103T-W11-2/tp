@@ -15,9 +15,9 @@ import seedu.boothmanagerpro.model.tag.Tag;
 /** Tests the shared add and update field conversion and its prefix-specific messages. */
 public class ContactFieldParserTest {
     private static final String PHONE_CHARACTERS = "Invalid value for p/: "
-            + "Phone number can only contain digits, spaces, hyphens, and a + at the start.";
+            + ParserUtil.MESSAGE_PHONE_CHARACTERS;
     private static final String PHONE_DIGITS =
-            "Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +.";
+            "Invalid value for p/: " + ParserUtil.MESSAGE_PHONE_DIGITS;
 
     @Test
     public void requireValue_blank_failure() {
@@ -42,22 +42,21 @@ public class ContactFieldParserTest {
     }
 
     @Test
-    public void parsePhone_validFormats_normalised() throws Exception {
-        assertEquals(new Phone("91234567"), ContactFieldParser.parsePhone(" 9123 4567 "));
-        assertEquals(new Phone("+6591234567"), ContactFieldParser.parsePhone("+65 9123-4567"));
+    public void parsePhone_validFormats_preserved() throws Exception {
+        assertEquals(new Phone("9123 4567"), ContactFieldParser.parsePhone(" 9123 4567 "));
+        assertEquals(new Phone("+65 9123-4567"), ContactFieldParser.parsePhone("+65 9123-4567"));
     }
 
     @Test
     public void parsePhone_disallowedCharacter_failure() {
-        for (String phone : new String[]{"(65) 6123-4567", "6123.4567", "1234 5678 (HP)", "9123456+",
-            "+65+91234567", "abc1234567", "6561234567 ext 12"}) {
+        for (String phone : new String[]{"1234 5678 (HP)", "abc1234567", "9123\t4567"}) {
             assertThrows(ParseException.class, PHONE_CHARACTERS, () -> ContactFieldParser.parsePhone(phone));
         }
     }
 
     @Test
     public void parsePhone_wrongDigitCount_failure() {
-        for (String phone : new String[]{"123456", "+123456", "1".repeat(16), "9 1 2 3"}) {
+        for (String phone : new String[]{"123456", "+123456", "1".repeat(16), "9 1 2 3", "9123456+", "+65+91234567"}) {
             assertThrows(ParseException.class, PHONE_DIGITS, () -> ContactFieldParser.parsePhone(phone));
         }
     }

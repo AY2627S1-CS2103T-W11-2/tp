@@ -45,6 +45,20 @@ public class SortFieldTest {
     }
 
     @Test
+    public void nameAndCompany_accentedLetters_sortBesideUnaccentedLetters() {
+        Person angel = new PersonBuilder().withName("Ángel").withCompany("Ángel Co")
+                .withEmail("angel@example.com").build();
+        Person elodie = new PersonBuilder().withName("Elodie").withCompany("Elodie Co")
+                .withEmail("elodie@example.com").build();
+        Person accentedElodie = new PersonBuilder().withName("Élodie").withCompany("Élodie Co")
+                .withEmail("accented@example.com").build();
+        for (SortField field : List.of(SortField.NAME, SortField.COMPANY)) {
+            assertEquals(List.of(angel, elodie, accentedElodie, ZOE),
+                    sorted(field, ZOE, accentedElodie, elodie, angel));
+        }
+    }
+
+    @Test
     public void name_sameName_breaksTieByCompanyThenEmail() {
         Person atTechNova = new PersonBuilder(ALICIA).withEmail("b@technova.com").build();
         Person atTechNovaFirstEmail = new PersonBuilder(ALICIA).withEmail("a@technova.com").build();

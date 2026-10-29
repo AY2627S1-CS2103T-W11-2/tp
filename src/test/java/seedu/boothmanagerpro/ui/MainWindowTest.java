@@ -308,7 +308,7 @@ public class MainWindowTest {
             assertEquals(7, storage.readAddressBook().orElseThrow().getPersonList().size());
             enterCommand(root, "view n/Alicia");
             assertTrue(output(root).contains("Email: alicia@example.com"));
-            assertTrue(output(root).contains("Phone: +6591234567"));
+            assertTrue(output(root).contains("Phone: +65 9123-4567"));
             assertTrue(output(root).contains("Tags: technology, high-priority"));
             assertFalse(root.lookup("#resultDisplay").getStyleClass().contains("error"));
             assertNoContactPanels(root);

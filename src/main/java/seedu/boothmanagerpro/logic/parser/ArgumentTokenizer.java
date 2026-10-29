@@ -17,10 +17,10 @@ import java.util.stream.Collectors;
 public class ArgumentTokenizer {
     private static final Pattern SINGLE_LETTER_PREFIX = Pattern.compile("(?<!\\S)([a-zA-Z]/)");
     private static final Pattern BEFORE_PATRONYMIC = Pattern.compile(
-            "(?:^|.*\\s)(?!(?i:[sd]/o)\\s)(?:[a-zA-Z]/)?(?=[^\\s/]*\\p{L})[^\\s/]+\\s+",
+            "(?:^|.*\\s)(?!(?i:[sd]/o|a/[lp])\\s)(?:[a-zA-Z]/)?(?=[^\\s/]*\\p{L})[^\\s/]+\\s+",
             Pattern.DOTALL);
     private static final Pattern FROM_PATRONYMIC = Pattern.compile(
-            "(?i:[sd]/o)\\s+(?=[^\\s/]*\\p{L})[^\\s/]+(?:\\s.*|$)",
+            "(?i:[sd]/o|a/[lp])\\s+(?=[^\\s/]*\\p{L})[^\\s/]+(?:\\s.*|$)",
             Pattern.DOTALL);
 
     /**
@@ -39,7 +39,7 @@ public class ArgumentTokenizer {
 
     /**
      * Finds all whitespace-delimited single-letter prefix tokens (e.g. {@code n/}, {@code c/}),
-     * excluding legal-name patronymic markers ({@code s/o} and {@code d/o}) appearing between words.
+     * excluding legal-name patronymic markers ({@code s/o}, {@code d/o}, {@code a/l}, {@code a/p}) between words.
      */
     static List<MatchResult> findSingleLetterPrefixes(String argsString) {
         return SINGLE_LETTER_PREFIX.matcher(argsString).results()
@@ -49,7 +49,7 @@ public class ArgumentTokenizer {
 
     /**
      * Returns true if the token starting at {@code start} is a legal-name patronymic marker
-     * ({@code s/o} or {@code d/o}, case-insensitive) appearing between two words containing letters,
+     * ({@code s/o}, {@code d/o}, {@code a/l} or {@code a/p}, case-insensitive) between two words containing letters,
      * rather than a command field prefix.
      */
     static boolean isPatronymicToken(String args, int start) {

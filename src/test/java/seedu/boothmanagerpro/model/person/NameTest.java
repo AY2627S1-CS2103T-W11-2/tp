@@ -56,7 +56,7 @@ public class NameTest {
         // valid name
         assertTrue(Name.isValidName("peter jack")); // alphabets only
         assertFalse(Name.isValidName("12345")); // numbers only
-        assertFalse(Name.isValidName("peter the 2nd")); // alphanumeric characters
+        assertTrue(Name.isValidName("peter the 2nd")); // alphanumeric characters
         assertTrue(Name.isValidName("Capital Tan")); // with capital letters
         assertTrue(Name.isValidName("Anne-Marie O'Neil")); // realistic punctuation
         assertTrue(Name.isValidName("Dr. Élodie")); // full stops and accented letters
@@ -81,6 +81,23 @@ public class NameTest {
         assertFalse(Name.isValidName("Raj s/o ---")); // no letters after s/o
         assertFalse(Name.isValidName("Raj/Kumar")); // arbitrary slash
         assertFalse(Name.isValidName("Raj x/o Kumar")); // unsupported slash marker
+    }
+
+    @Test
+    public void constructor_expandedNameFormats_normalisesWhitespace() {
+        for (String name : new String[]{"Raj a/l Kumar", "Priya A/P Raman", "John @ Johnny",
+            "John Smith, Jr., PhD", "John (Johnny) Smith", "Henry VIII", "Peter the 2nd"}) {
+            assertEquals(name, new Name(name).fullName);
+        }
+        assertEquals("Raj a/l Kumar", new Name("\u00a0 Raj\ta/l\nKumar\u202f").fullName);
+        assertEquals(new Name("John Smith"), new Name("John\tSmith"));
+        for (String name : new String[]{"a/l", "a/p Raman", "Raj a/l", "Raj a/l a/p Kumar",
+            "123 a/l Kumar", "Raj a/p ---", "\u00a0\u202f"}) {
+            assertFalse(Name.isValidName(name), name);
+        }
+        for (String marker : new String[]{"a/l", "A/L", "a/P", "A/p"}) {
+            assertTrue(Name.isPatronymic(marker), marker);
+        }
     }
 
     @Test

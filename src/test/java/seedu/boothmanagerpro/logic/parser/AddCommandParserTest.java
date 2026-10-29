@@ -31,7 +31,7 @@ public class AddCommandParserTest {
         assertEquals("TechNova Pte Ltd", person.getCompany().orElseThrow().value);
         assertEquals(ContactMethod.EMAIL, person.getContactMethod().orElseThrow());
         assertEquals("alicia@technova.com", person.getEmail().value);
-        assertEquals("+6591234567", person.getPhone().value);
+        assertEquals("+65 9123-4567", person.getPhone().value);
         assertEquals(2, person.getTags().size());
     }
 
@@ -97,7 +97,7 @@ public class AddCommandParserTest {
 
     @Test
     public void parse_invalidFields_failure() {
-        for (String name : new String[]{"123", "A1", "---", "A".repeat(81)}) {
+        for (String name : new String[]{"123", "A!", "---", "A".repeat(81)}) {
             assertParseFailure(parser, valid.replace("Alicia Tan", name),
                     "Invalid value for n/: " + Name.MESSAGE_CONSTRAINTS);
         }
@@ -107,11 +107,11 @@ public class AddCommandParserTest {
         }
         for (String phone : new String[]{"123456", "1".repeat(16)}) {
             assertParseFailure(parser, valid.replace("91234567", phone),
-                    "Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +.");
+                    "Invalid value for p/: " + ParserUtil.MESSAGE_PHONE_DIGITS);
         }
-        for (String phone : new String[]{"1234567+", "abc1234567", "(65) 6123-4567"}) {
+        for (String phone : new String[]{"abc1234567", "1234 5678 (HP)"}) {
             assertParseFailure(parser, valid.replace("91234567", phone), "Invalid value for p/: "
-                    + "Phone number can only contain digits, spaces, hyphens, and a + at the start.");
+                    + ParserUtil.MESSAGE_PHONE_CHARACTERS);
         }
         assertParseFailure(parser, valid.replace("alicia@technova.com", "a@@example.com"),
                     "Invalid value for e/: " + Email.MESSAGE_CONSTRAINTS);

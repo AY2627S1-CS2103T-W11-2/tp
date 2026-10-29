@@ -36,7 +36,7 @@ public class DeleteCommandParserTest {
 
     @Test
     public void parse_invalidName_showsNameConstraints() {
-        for (String args : new String[]{"Alice!", "John123", "...", "A".repeat(81)}) {
+        for (String args : new String[]{"Alice!", "John!", "...", "A".repeat(81)}) {
             assertParseFailure(parser, args, Name.MESSAGE_CONSTRAINTS);
         }
     }

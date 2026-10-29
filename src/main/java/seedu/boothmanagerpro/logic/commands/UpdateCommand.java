@@ -27,6 +27,7 @@ public class UpdateCommand extends Command {
             + "Use list or find, then update the contact by its displayed index. No contact was updated.";
     public static final String MESSAGE_DUPLICATE = "This update conflicts with another contact: %s. "
             + "Check the email and name/company fields. No contact was updated.";
+    public static final String MESSAGE_NO_CHANGES = "No changes made: %s already has the supplied values.";
 
     private static final Logger logger = LogsCenter.getLogger(UpdateCommand.class);
 
@@ -59,6 +60,11 @@ public class UpdateCommand extends Command {
         logger.fine("Executing UpdateCommand targeting: " + (index != null ? index.getOneBased() : name));
         Person original = resolveTarget(model);
         Person updated = changes.applyTo(original);
+        if (isUnchanged(original, updated)) {
+            // Failing keeps the current filter and prevents LogicManager from rewriting an unchanged data file.
+            logger.info("UpdateCommand made no changes to contact: " + AddCommand.formatIdentity(original));
+            throw new CommandException(String.format(MESSAGE_NO_CHANGES, AddCommand.formatIdentity(original)));
+        }
         rejectDuplicates(model, original, updated);
         model.setPerson(original, updated);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
@@ -96,6 +102,14 @@ public class UpdateCommand extends Command {
         Person target = matches.getFirst();
         logger.fine("Resolved target contact by name " + name + ": " + AddCommand.formatIdentity(target));
         return target;
+    }
+
+    /**
+     * Returns true if the update leaves every stored value unchanged, including the displayed casing and order of
+     * tags (which {@link seedu.boothmanagerpro.model.tag.Tag#equals} compares case-insensitively).
+     */
+    private static boolean isUnchanged(Person original, Person updated) {
+        return original.equals(updated) && Messages.formatTags(original).equals(Messages.formatTags(updated));
     }
 
     /** Includes hidden contacts, excluding only the contact being replaced. */

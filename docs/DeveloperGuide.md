@@ -244,9 +244,9 @@ All contact workflows share `Person` and its validated value objects.
 
 | Attribute | Shared contract |
 | --- | --- |
-| Name | `Name` owns validation: 1-80 Unicode code points, at least one letter, supported punctuation, and `s/o` or `d/o` between words. `view` uses the same validator as `add` and prefixed `find`. |
+| Name | `Name` owns validation: 1-80 Unicode code points, at least one letter, digits and supported punctuation, and `s/o`, `d/o`, `a/l`, or `a/p` between words. `view` uses the same validator as `add` and prefixed `find`. |
 | Company | `Optional<Company>`; required by `add`, absent in legacy records. `find c/` matches the complete value ignoring case. |
-| Email / phone | Stored lowercase email and normalised phone; search validates through the same value objects as `add`. |
+| Email / phone | Emails are stored lowercase. Phones preserve formatting and support extensions and multiple numbers; phone searches validate partial numbers separately and ignore spaces, hyphens, dots, and parentheses when matching. |
 | Contact method | `Optional<ContactMethod>`; `email`, `phone`, or `other`. An absent method is shown as `Not specified` and does not match `find m/`. |
 | Follow-up date | `Optional<FollowUpDate>`; validated and stored in JSON as `YYYYMMDD`, formatted as `d MMM uuuu` (e.g. `25 Oct 2026`) for display, and shown as `None` when absent. |
 | Tags | Case-insensitive duplicates collapse on `add` and `update` while preserving display casing; consecutive spaces collapse. Search ignores case and matches whole tags. `add`, `update`, `tag`, storage, and command feedback preserve stored order. Empty tags show `None` in text and on cards. |
@@ -277,7 +277,7 @@ covers same-name contacts at different companies, numbered replies, and cancella
 2. `ContactFieldParser` shares prefix-specific validation feedback with `add`; domain value types remain the source of constraints and normalisation.
 3. Immutable `ContactUpdate` represents partial changes. An absent optional preserves the value; a present empty date or tag set explicitly clears it. Tags are defensively copied.
 4. `UpdateCommand` resolves an exact case-insensitive full name across all contacts or a one-based index in the current displayed list. Missing or ambiguous targets fail before mutation.
-5. The command constructs a replacement `Person` via `ContactUpdate#applyTo` and checks every other contact for duplicate email or name/company, including hidden records. Target resolution, duplicate warnings, and successful updates are logged via `LogsCenter`. Only then does it call `Model#setPerson` and reset the filter.
+5. The command constructs a replacement `Person` via `ContactUpdate#applyTo`. If all stored values are unchanged, it throws `CommandException` with a no-change message before mutation or persistence. The comparison includes displayed tag casing and order, which `Person#equals` alone ignores. Otherwise, it checks every other contact for duplicate email or name/company, including hidden records. Target resolution, duplicate warnings, and successful updates are logged via `LogsCenter`. Only then does it call `Model#setPerson` and reset the filter.
 6. `LogicManager` persists the updated address book through `Storage#saveAddressBook` (rolling back the in-memory model, filter, and display ordering if saving fails), and the UI displays a concise confirmation. Subsequent `view`, `list`, and `find` commands display the updated attributes on `ContactCard`s.
 
 The sequence diagram below illustrates a successful `update` request, showing both index-based and name-based target resolution.
@@ -289,7 +289,7 @@ The sequence diagram below illustrates a successful `update` request, showing bo
 
 Legacy address is preserved. Supplied tags replace the tag set; a sole blank `t/` clears it. Empty `f/` clears the follow-up date. Other empty fields fail validation. There is no new storage schema or persistent contact ID.
 
-`UpdateIntegrationTest` covers command routing, normalisation, partial updates, clearing, duplicate rejection, ambiguity, filtered indices, and persisted JSON. Rejected requests preserve contacts, filters, and disk content. `MainWindowTest` checks confirmation, updated cards, and retained input after invalid updates.
+`UpdateIntegrationTest` covers command routing, normalisation, partial updates, clearing, duplicate rejection, ambiguity, filtered indices, no-op updates, and persisted JSON. Rejected requests preserve contacts, filters, sort order, and disk content. `LogicManagerTest` checks that unchanged updates never call storage. `MainWindowTest` checks confirmation, updated cards, and retained input after invalid updates.
 
 ### Updating contact tags
 
@@ -307,7 +307,7 @@ Legacy address is preserved. Supplied tags replace the tag set; a sole blank `t/
 
 1. `AddressBookParser` routes `add` to `AddCommandParser`.
 2. The parser rejects unknown prefixes, preambles, repeated non-tag fields, and missing required prefixes.
-3. Value objects validate fields, normalise Unicode and whitespace in names/companies/tags, lowercase email, and remove phone spaces/hyphens. Repeated tags are ignored.
+3. Value objects validate fields, normalise Unicode and whitespace in names/companies/tags, lowercase email, and preserve phone formatting (collapsing repeated spaces). Repeated tags are ignored.
 4. `AddCommand` checks the complete address book for matching email or name/company, logging execution, duplicate rejections, and successful additions via `LogsCenter`, then adds the contact or reports the existing match.
 5. `LogicManager` saves through `JsonAddressBookStorage` before returning the success result, rolling back the in-memory model, filter, and display ordering if saving fails.
 6. The result contains a concise identity confirmation. `MainWindow` displays it in `ResultDisplay` and focuses command input. `CommandBox` clears successful input and retains failed input. A later `view`, `find`, or `list` displays the saved contact as a `ContactCard`.
@@ -333,7 +333,7 @@ Integration notes:
 - `Person.getCompany()` and `getContactMethod()` return optional values. New additions require company; legacy records may lack it. Omitted method displays as `Not specified`.
 - Name/company duplicate matching ignores case and normalises Unicode (NFC); contacts without a company match only by normalised email.
 - The legacy address field remains for compatibility, using `Not provided` for new contacts. `add` no longer accepts `a/`.
-- Single-letter prefix tokens are reserved except `s/o` and `d/o` between name words. Other words between prefixes belong to that field, allowing multi-word names and companies.
+- Single-letter prefix tokens are reserved except `s/o`, `d/o`, `a/l`, and `a/p` between name words. Other words between prefixes belong to that field, allowing multi-word names and companies.
 - JSON includes `company` and `contactMethod`; legacy files without them are accepted if their other values meet current validation rules.
 - `list`, `find`, and `view` output includes company and contact method. Logic tests run without a display server.
 
@@ -369,7 +369,7 @@ The sequence diagram below shows how `list o/name` is executed.
 | `STATUS` | Enquiry status in workflow order (the declaration order of `EnquiryStatus`: Needs follow-up, In progress, Completed, Cancelled), then name, then email. |
 
 Email is unique per contact, so the final email comparison means no two contacts tie and the displayed indices are
-stable between runs.
+stable between runs. Names and companies use a root-locale `Collator` at secondary strength with canonical decomposition: case is ignored, accents are retained, and accented letters sort beside their unaccented forms.
 
 Status uses workflow order rather than alphabetical order, which would place `Completed` first. Adding a new
 `EnquiryStatus` value therefore needs it declared in the right position to sort correctly.
@@ -674,7 +674,7 @@ Use case ends.
 
 * Values for the same field are combined using OR; criteria for different fields are combined using AND.
 * Unprefixed keywords match whole name words using OR. Prefixed name criteria match a complete name or a single whole name word; other fields match complete values.
-* Name, company, email, and tag comparisons ignore case and surrounding spaces; phone comparisons ignore spaces and hyphens; follow-up date criteria match the exact calendar date (`YYYYMMDD`) and exclude contacts without a date.
+* Name, company, email, and tag comparisons ignore case and surrounding spaces; phone comparisons ignore spaces, hyphens, full stops, and parentheses; follow-up date criteria match the exact calendar date (`YYYYMMDD`) and exclude contacts without a date.
 * Repeated identical search values are ignored.
 
 **Extensions**
@@ -814,7 +814,7 @@ These are requirements for the intended product, not claims that every target ha
 * **Exact match**: A search result where the search value matches the complete field value after its field-specific normalisation, not just part of it. For example, `find c/Tech` does not match company "TechNova". Name criteria additionally accept a whole name word, so `find n/Alicia` matches "Alicia Tan".
 * **Index**: The number shown beside a contact in a displayed list, used to select a specific contact when several share the same name
 * **Mainstream OS**: Windows, Linux, Unix, and macOS
-* **Normalisation**: Converting input to a standard form before storing or comparing it, such as lowercasing emails, collapsing repeated spaces in names, and removing spaces and hyphens from phone numbers
+* **Normalisation**: Converting input to a standard form before storing or comparing it, such as lowercasing emails, collapsing repeated spaces in names, and removing formatting from phone numbers for search comparisons
 * **Prefix**: A marker ending in `/` that identifies which field a value belongs to, e.g. `n/` for name or `t/` for tag
 * **Primary contact**: The representative to contact first when an exhibitor has several representatives
 * **Representative**: A person who acts on behalf of an exhibitor. One exhibitor may have several
@@ -955,10 +955,10 @@ Start with the sample data and run `list` first. Each command below is rejected 
 | `n/` before a tag target | `tag n/Alex Yeoh t/vip` | `Don't include n/ for tag. Use: tag NAME_OR_INDEX t/TAG [t/TAG]...` |
 | View without a prefix | `view alex` | `view needs the n/ prefix before the name. Use: view n/NAME, e.g. view n/Alicia Tan` |
 | View with an empty name | `view n/` | `Name cannot be empty. Use: view n/NAME, e.g. view n/Alicia Tan` |
-| View with invalid slash in name | `view n/John/Doe` | `Names must be 1 to 80 characters and contain a letter. Use only letters, spaces, hyphens, apostrophes, full stops, or s/o and d/o between words.` |
-| Phone with a disallowed character | `add n/Chris Tan c/Example Ltd e/chris@example.com p/(65) 6123-4567` | `Invalid value for p/: Phone number can only contain digits, spaces, hyphens, and a + at the start.` |
-| Phone with too few digits | `add n/Chris Tan c/Example Ltd e/chris@example.com p/123` | `Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +.` |
-| Invalid field value in find | `find e/bad email`, `find p/+` | `Invalid value for e/: Email search value is invalid. Supply a full or partial email or domain (e.g. alicia@technova.com or @technova.com).` / `Invalid value for p/: Phone search value must contain 1 to 15 digits, optionally starting with +.` |
+| View with invalid slash in name | `view n/John/Doe` | `Names must be 1 to 80 characters and contain a letter. Use only letters, digits, spaces, hyphens, apostrophes, full stops, commas, parentheses, @, or s/o, d/o, a/l and a/p between words.` |
+| Phone with a disallowed character | `add n/Chris Tan c/Example Ltd e/chris@example.com p/1234 5678 (HP)` | `Invalid value for p/: Phone number can only contain digits, spaces, hyphens, full stops, parentheses, a leading +, an extension (ext or x), and , ; or / between multiple numbers.` |
+| Phone with too few digits | `add n/Chris Tan c/Example Ltd e/chris@example.com p/123` | `Invalid value for p/: Each phone number must contain 7 to 15 digits (excluding any extension), optionally starting with +.` |
+| Invalid field value in find | `find e/bad email`, `find p/+` | `Invalid value for e/: Email search value is invalid. Supply a full or partial email or domain (e.g. alicia@technova.com or @technova.com).` / `Invalid value for p/: Phone search value must contain 1 to 15 digits, optionally starting with +, and may only include spaces, hyphens, full stops, or parentheses as formatting.` |
 | Unexpected parameters on parameterless commands | `help extra`, `exit 1` | `Invalid command format!` followed by the `help` or `exit` usage |
 
 ### Deleting a contact

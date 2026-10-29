@@ -163,7 +163,7 @@ public class ExhibitorAddIntegrationTest {
         Person edited = storage.readAddressBook().orElseThrow().getPersonList().getFirst();
         assertEquals("TechNova Pte Ltd", edited.getCompany().orElseThrow().value);
         assertEquals(ContactMethod.EMAIL, edited.getContactMethod().orElseThrow());
-        assertEquals("+6598765432", edited.getPhone().value);
+        assertEquals("+65 9876-5432", edited.getPhone().value);
         assertEquals(2, edited.getTags().size());
     }
 
