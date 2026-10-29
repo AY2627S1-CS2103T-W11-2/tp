@@ -145,6 +145,22 @@ public class ArgumentTokenizerTest {
     }
 
     @Test
+    public void isPatronymicToken_variousContexts_detectsOnlyPatronymicBetweenNameWords() {
+        assertTrue(ArgumentTokenizer.isPatronymicToken(" n/Raj s/o Kumar c/Acme", 7));
+        assertTrue(ArgumentTokenizer.isPatronymicToken("Priya D/O Raman s/Completed", 6));
+        assertFalse(ArgumentTokenizer.isPatronymicToken("s/o Kumar", 0));
+        assertFalse(ArgumentTokenizer.isPatronymicToken("   s/o Kumar", 3));
+        assertFalse(ArgumentTokenizer.isPatronymicToken(" n/ s/o Kumar", 4));
+        assertFalse(ArgumentTokenizer.isPatronymicToken("1 s/o Kumar", 2));
+        assertFalse(ArgumentTokenizer.isPatronymicToken("n/Raj s/o s/o Kumar", 10));
+        assertFalse(ArgumentTokenizer.isPatronymicToken("n/Raj s/o", 6));
+        assertFalse(ArgumentTokenizer.isPatronymicToken("n/Raj s/o   ", 6));
+        assertFalse(ArgumentTokenizer.isPatronymicToken("n/Raj s/o c/Acme", 6));
+        assertFalse(ArgumentTokenizer.isPatronymicToken("n/Raj s/o 123", 6));
+        assertFalse(ArgumentTokenizer.isPatronymicToken("n/Raj s/other", 6));
+    }
+
+    @Test
     public void equalsMethod() {
         Prefix aaa = new Prefix("aaa");
 

@@ -17,7 +17,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.regex.MatchResult;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import seedu.boothmanagerpro.commons.core.LogsCenter;
@@ -48,13 +47,6 @@ public class AddCommandParser implements Parser<AddCommand> {
     public static final String MESSAGE_PREAMBLE = "Unexpected text before the first field. "
             + "Start with a prefix, for example: add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567";
     private static final Logger logger = LogsCenter.getLogger(AddCommandParser.class);
-    /**
-     * Matches only single-letter prefixes (e.g. {@code n/}, {@code c/}) preceded by whitespace or at the
-     * start of input. This deliberately excludes multi-character tokens such as {@code Design/} so that
-     * slash characters embedded in field values (e.g. a company name like {@code Acme Design/ Build})
-     * are never mistaken for field delimiters.
-     */
-    private static final Pattern FIELD_PREFIX = Pattern.compile("(?<!\\S)([a-zA-Z]/)");
     private static final Set<Prefix> ALLOWED_PREFIXES = Set.of(PREFIX_NAME, PREFIX_COMPANY, PREFIX_EMAIL,
             PREFIX_PHONE, PREFIX_METHOD, PREFIX_STATUS, PREFIX_FOLLOW_UP, PREFIX_TAG);
     private static final List<Prefix> SINGLE_VALUE_PREFIXES = List.of(PREFIX_NAME, PREFIX_COMPANY,
@@ -139,7 +131,7 @@ public class AddCommandParser implements Parser<AddCommand> {
      * @throws ParseException If text precedes the first prefix or a single-letter prefix is not supported.
      */
     private ArgumentMultimap tokenize(String args) throws ParseException {
-        List<MatchResult> matches = FIELD_PREFIX.matcher(args).results().toList();
+        List<MatchResult> matches = ArgumentTokenizer.findSingleLetterPrefixes(args);
         if (matches.isEmpty()) {
             if (!args.isBlank()) {
                 throw new ParseException(MESSAGE_PREAMBLE);

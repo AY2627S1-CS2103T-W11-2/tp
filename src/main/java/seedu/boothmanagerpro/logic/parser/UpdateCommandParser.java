@@ -17,7 +17,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.regex.MatchResult;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import seedu.boothmanagerpro.commons.core.LogsCenter;
@@ -36,13 +35,6 @@ import seedu.boothmanagerpro.model.tag.Tag;
 /** Parses a target followed by validated partial changes, without changing model state. */
 public class UpdateCommandParser implements Parser<UpdateCommand> {
     private static final Logger logger = LogsCenter.getLogger(UpdateCommandParser.class);
-    /**
-     * Matches only single-letter prefixes (e.g. {@code c/}, {@code s/}) preceded by whitespace or at the
-     * start of input. Multi-character tokens such as {@code Design/} are never treated as field delimiters,
-     * so slashes embedded in field values (e.g. a company name like {@code Acme Design/ Build}) do not
-     * cause spurious unknown-prefix errors.
-     */
-    private static final Pattern FIELD_PREFIX = Pattern.compile("(?<!\\S)([a-zA-Z]/)");
     private static final List<Prefix> PREFIXES = List.of(PREFIX_NAME, PREFIX_COMPANY, PREFIX_EMAIL,
             PREFIX_PHONE, PREFIX_METHOD, PREFIX_STATUS, PREFIX_FOLLOW_UP, PREFIX_TAG);
 
@@ -62,7 +54,7 @@ public class UpdateCommandParser implements Parser<UpdateCommand> {
 
     /** Rejects unsupported single-letter prefix tokens before tokenising recognised fields and the target. */
     private ArgumentMultimap tokenize(String args) throws ParseException {
-        for (MatchResult match : FIELD_PREFIX.matcher(args).results().toList()) {
+        for (MatchResult match : ArgumentTokenizer.findSingleLetterPrefixes(args)) {
             if (!PREFIXES.contains(new Prefix(match.group(1)))) {
                 throw new ParseException(String.format(AddCommandParser.MESSAGE_UNKNOWN_FIELD, match.group(1)));
             }

@@ -99,7 +99,7 @@ Format: `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD]
 
 | Field | Rules |
 | --- | --- |
-| `n/NAME` | 1-80 characters; at least one letter. Allows letters, spaces, hyphens, apostrophes, and full stops. |
+| `n/NAME` | 1-80 characters; at least one letter. Allows letters, spaces, hyphens, apostrophes, full stops, and `s/o` or `d/o` between words. |
 | `c/COMPANY` | 1-100 characters; cannot be blank. |
 | `e/EMAIL` | Valid email format, such as `alicia@example.com`; stored in lowercase. |
 | `p/PHONE` | 7-15 digits, optionally starting with `+`. Spaces and hyphens are removed. |
@@ -159,7 +159,7 @@ If the email matches one record and the name/company matches another, both confl
 | Unknown prefix (example: `x/`) | `Unknown field prefix: x/. Use n/, c/, e/, p/, m/, s/, f/, or t/.` |
 | Text before the first prefix | `Unexpected text before the first field.` followed by a complete example command. |
 | Empty field (example: `c/`) | `Empty field: c/. Supply a value after this prefix.` |
-| Invalid name | `Invalid value for n/: Names must be 1 to 80 characters and contain a letter. Use only letters, spaces, hyphens, apostrophes or full stops.` |
+| Invalid name | `Invalid value for n/: Names must be 1 to 80 characters and contain a letter. Use only letters, spaces, hyphens, apostrophes, full stops, or s/o and d/o between words.` |
 | Invalid company | `Invalid value for c/: Company name must contain 1 to 100 characters.` |
 | Invalid email | `Invalid value for e/: Email address is invalid.` |
 | Invalid phone | `Invalid value for p/: Phone number must contain 7 to 15 digits.` |
@@ -242,7 +242,7 @@ Format: `view n/NAME`
 * Matching follows unprefixed `find KEYWORD`: case-insensitive whole-name keywords, matching **any** supplied keyword.
   For example, `view n/rhineson` matches both `rhineson` and `rhineson kok`; `rhin` does not match `rhineson`.
 * Names must contain 1 to 80 characters and at least one letter. Letters, spaces, hyphens, apostrophes,
-  and full stops are supported, for example `Anne-Marie O'Neil`.
+  full stops, and `s/o` or `d/o` between words are supported, for example `Anne-Marie O'Neil` or `Raj s/o Kumar`.
 * Searches all stored contacts, including those hidden by a previous `find` command.
 * If several contacts match, the output lists numbered choices with their companies and asks you to choose.
   Enter the corresponding number as your next command, for example `2`.
