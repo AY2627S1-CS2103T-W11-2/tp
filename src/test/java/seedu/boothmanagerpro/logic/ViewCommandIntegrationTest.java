@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.boothmanagerpro.logic.commands.CommandResult;
 import seedu.boothmanagerpro.logic.commands.ViewCommand;
 import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
@@ -149,6 +150,24 @@ public class ViewCommandIntegrationTest {
     public void execute_editToOtherContactsEmail_rejectsDuplicateAndPreservesData() {
         assertThrows(CommandException.class, () -> logic.execute("edit 1 e/alicia@techindustries.com"));
         assertEquals(List.of(first, second), model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void execute_sameNameAfterSortByCompany_choicesMatchDisplayedIndices() throws Exception {
+        List<Person> contacts = setUpOverlappingViewChoices();
+        Person alicia = contacts.get(0);
+        Person johnGreenWorks = contacts.get(1);
+        Person johnBlueSky = contacts.get(2);
+        logic.execute("list o/company");
+
+        CommandResult result = logic.execute("view n/John Tan");
+        // Sorted by company, so the numbering differs from the stored order of alicia, johnGreenWorks, johnBlueSky.
+        assertEquals(List.of(johnBlueSky, johnGreenWorks, alicia), result.getViewChoices());
+        assertEquals(result.getViewChoices(), model.getFilteredPersonList());
+
+        logic.execute("update 1 s/Completed");
+        Person updatedJohn = new PersonBuilder(johnBlueSky).withEnquiryStatus("Completed").build();
+        assertEquals(List.of(alicia, johnGreenWorks, updatedJohn), model.getAddressBook().getPersonList());
     }
 
     private List<Person> setUpOverlappingViewChoices() {

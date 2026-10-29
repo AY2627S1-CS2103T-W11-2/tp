@@ -44,15 +44,24 @@ public class ViewCommand extends Command {
         if (matches.isEmpty()) {
             throw new CommandException(String.format(MESSAGE_NO_MATCH, name));
         }
+        // An exact full name picks out its contact, even when other names share a word with it.
+        List<Person> exactMatches = matches.stream()
+                .filter(person -> person.getName().fullName.equalsIgnoreCase(name.fullName)).toList();
+        if (exactMatches.size() == 1) {
+            Person exactMatch = exactMatches.getFirst();
+            model.updateFilteredPersonList(person -> person.equals(exactMatch));
+            return createDetailsResult(exactMatch);
+        }
         model.updateFilteredPersonList(matchesName);
         if (matches.size() == 1) {
             return createDetailsResult(matches.getFirst());
         }
-        return createSelectionResult(matches);
+        // Number the choices in displayed order so they agree with the indices used by edit, update and delete.
+        return createSelectionResult(List.copyOf(model.getFilteredPersonList()));
     }
 
     /**
-     * Creates a numbered prompt and preserves the matching contacts in their displayed order.
+     * Creates a numbered prompt listing the matching contacts in their displayed order.
      */
     private CommandResult createSelectionResult(List<Person> matches) {
         assert matches.size() > 1 : "A selection prompt requires multiple matching contacts";

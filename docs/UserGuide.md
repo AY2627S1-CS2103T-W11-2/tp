@@ -45,8 +45,9 @@ BoothManagerPro helps **convention organisers manage exhibitor contacts through 
 * Type a command and press **Enter**. Command words and prefixes are case-sensitive: use `list`, not `List`.
 * The command box starts with keyboard focus. Press **Ctrl+L** on Windows/Linux or **Command+L** on macOS to return to it. Use `help` or **F1** for the guide, and `exit` to close the app.
 * Press **Tab** to complete an unambiguous command word, field prefix, contact method, enquiry status, or list sort
-  field. It also supplies the next required `add` prefix, `view n/`, `list o/`, or the first `tag t/` after a target.
-  If no completion is available, **Tab** resumes normal focus navigation.
+  field. It also supplies the next required `add` prefix, `view n/`, `find n/`, `list o/`, or the first `tag t/` after
+  a target. If no completion is available, **Tab** resumes normal focus navigation. When focus returns to the command
+  box, the cursor is placed at the end of your input, so typing continues the command instead of replacing it.
 * Each launch starts with a ready prompt. Saved contacts remain available but are not automatically printed.
 * Results appear in the output area below the command box. `list`, `find`, and `view` show matching contacts as separate cards; other commands and errors show text. Each card shows the enquiry status as a coloured badge beside the name, and the card's left edge uses the same colour: amber for `Needs follow-up`, blue for `In progress`, green for `Completed`, and red for `Cancelled`. Cards are display-only and cannot be clicked or selected; scroll the output area to see more. There is no separate contact-list or details panel.
 * `list` prints every contact with a number and details. `find` prints the match count and numbered matching contacts; it works without running `list` first.
@@ -247,7 +248,12 @@ Format: `view n/NAME`
 * Searches all stored contacts, including those hidden by a previous `find` command.
 * If several contacts match, the output lists numbered choices with their companies and asks you to choose.
   Enter the corresponding number as your next command, for example `2`.
+  Choices follow the current sort order (for example, after `list o/company`), so each number is also that contact's
+  index for `update`, `tag`, `edit`, and `delete`.
   The output is replaced with the chosen contact's details. A single match displays details immediately.
+* If exactly one contact's full name equals `NAME`, ignoring case and extra spaces, that contact's details are shown
+  immediately, even when other names share a word. For example, `view n/Alex Yeo` shows `Alex Yeo` directly
+  instead of also listing `Alex Yeoh`; `view n/Alex` still lists both.
 * An invalid number shows the valid range and lets you try again. Another successfully parsed command cancels the pending choice, even if execution fails. A command with invalid syntax leaves the choice pending. Cancelling a choice clears its prompt; a subsequent bare number is no longer a selection reply.
 * Only `n/` is accepted. Repeated names, other prefixes, missing/invalid names, and unprefixed requests are rejected.
 * No match produces an error and keeps the current filter unchanged.
