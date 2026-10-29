@@ -67,7 +67,7 @@ public class ExhibitorAddIntegrationTest {
             assertEquals(options.contains("s/") ? "Completed" : "Needs follow-up",
                     saved.getEnquiryStatus().toString());
             assertEquals(options.contains("f/"), saved.getFollowUpDate().isPresent());
-            logic.execute("clear");
+            logic.execute("clear confirm");
         }
     }
 

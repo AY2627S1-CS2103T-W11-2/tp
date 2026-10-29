@@ -853,7 +853,7 @@ Use a disposable data folder. Do not run `clear` against real contact data.
 | Empty search | Run `find NobodyMatches`. | `0 contact(s) found.` with no stale contact details. |
 | View | Run `view n/NAME` for multiple matches, then reply with a valid number. | Numbered choices are replaced by the chosen contact's text details. |
 | Cancel choice | Request multiple view matches, then run `find NAME` or an out-of-range `delete INDEX`. | The new feedback replaces the choice prompt. A subsequent bare number is no longer accepted. |
-| Empty data | Run `clear`, restart, then `list`. | Ready prompt on restart; list prints no-contacts guidance. |
+| Empty data | Run `clear confirm`, restart, then `list`. | Ready prompt on restart; list prints no-contacts guidance. |
 | Restart | Add contacts, exit, and relaunch from the same folder. | Only a ready prompt appears; list prints the saved records. |
 
 ### Testing exhibitor additions

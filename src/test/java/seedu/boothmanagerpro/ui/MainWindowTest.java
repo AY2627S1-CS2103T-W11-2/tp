@@ -224,6 +224,9 @@ public class MainWindowTest {
             assertEquals(before, Files.readString(dataPath()));
             assertNoContactPanels(root);
             enterCommand(root, "clear");
+            assertTrue(output(root).contains("This will delete all contacts! Type 'clear confirm' to proceed."));
+            assertEquals(1, model.getFilteredPersonList().size());
+            enterCommand(root, "clear confirm");
             enterCommand(root, "list");
             assertTrue(output(root).startsWith("No contacts found."));
             assertTrue(storage.readAddressBook().orElseThrow().getPersonList().isEmpty());

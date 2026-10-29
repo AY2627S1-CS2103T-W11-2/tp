@@ -32,7 +32,7 @@ BoothManagerPro helps **convention organisers manage exhibitor contacts through 
 
    * `delete Alex Yeoh` : Deletes the contact named Alex Yeoh.
 
-   * `clear` : Deletes all contacts.
+   * `clear confirm` : Deletes all contacts.
 
    * `exit` : Exits the app.
 
@@ -76,7 +76,7 @@ BoothManagerPro helps **convention organisers manage exhibitor contacts through 
 * Prefixed fields can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `exit`, and `clear`, are ignored.<br>
+* Extraneous parameters for commands that take no parameters, such as `help` and `exit`, are ignored.<br>
   For example, `help 123` is interpreted as `help`. The exception is `list`, which accepts only an optional `o/name`, `o/company`, or `o/status` and rejects anything else.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -396,11 +396,13 @@ Examples:
 
 ![Delete command confirming the removal of John Lim](images/Ui%20-%20delete%20command.png)
 
-### Clearing all entries: `clear`
+### Clearing all entries: `clear confirm`
 
-Deletes all stored contacts, including those hidden by a filter. The action takes effect immediately; there is no confirmation prompt or undo command.
+Deletes all stored contacts, including those hidden by a filter. To prevent accidental deletion of all data, confirmation is required.
 
-Format: `clear`
+Format: `clear confirm`
+
+* Running `clear` without `confirm` does not delete any contacts and prompts you to type `clear confirm`.
 
 ### Exiting the program: `exit`
 
@@ -439,7 +441,7 @@ Searching enquiry status, reminders, data archiving, CSV import/export, and undo
 Action | Format, Examples
 --------|------------------
 **Add** | `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...` <br> e.g., `add n/James Ho c/Example Ltd e/jamesho@example.com p/22224444 m/phone t/technology`
-**Clear** | `clear`
+**Clear** | `clear confirm`
 **Delete** | `delete NAME` or `delete INDEX`<br> e.g., `delete Alex Yeoh`
 **Update** | `update NAME_OR_INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...`<br> e.g., `update Alicia Tan s/Completed f/`
 **Tag** | `tag NAME_OR_INDEX t/TAG [t/TAG]...`<br> e.g., `tag Alicia Tan t/high-priority t/sponsor`
