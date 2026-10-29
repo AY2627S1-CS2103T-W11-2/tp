@@ -90,7 +90,9 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
 
     private boolean matchesName(String fullName, Set<String> values) {
         String name = normalise("n/", fullName);
-        return values.contains(name) || Arrays.stream(name.split(" ")).anyMatch(values::contains);
+        return values.contains(name) || Arrays.stream(name.split(" "))
+                .filter(word -> !Name.isPatronymic(word))
+                .anyMatch(values::contains);
     }
 
     @Override

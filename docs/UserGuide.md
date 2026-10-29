@@ -254,7 +254,7 @@ Shows the chosen contact's details as a card in the command output area.
 
 Format: `view n/NAME`
 
-* Matching follows unprefixed `find KEYWORD`: case-insensitive whole-name keywords, matching **any** supplied keyword.
+* Matching follows unprefixed `find KEYWORD`: case-insensitive whole-name keywords, matching **any** supplied keyword. Patronymic markers (`s/o` and `d/o`) connect words in a name and do not act as standalone keywords, so `view n/Raj s/o Kumar` matches contacts with `Raj` or `Kumar` without matching unrelated contacts containing `s/o`.
   For example, `view n/rhineson` matches both `rhineson` and `rhineson kok`; `rhin` does not match `rhineson`.
 * Names must contain 1 to 80 characters and at least one letter. Letters, spaces, hyphens, apostrophes,
   full stops, and `s/o` or `d/o` between words are supported, for example `Anne-Marie O'Neil` or `Raj s/o Kumar`.
@@ -383,7 +383,7 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * Keyword order does not matter; `Alicia Tan` and `Tan Alicia` use the same keywords.
 * The search considers only names.
 * Only full words match; for example, `Ali` does not match `Alicia`.
-* Contacts matching at least one keyword are returned (an `OR` search). After adding Alicia Tan and Ben Lim using the examples above, `find Alicia Ben` finds both contacts.
+* Contacts matching at least one keyword are returned (an `OR` search). After adding Alicia Tan and Ben Lim using the examples above, `find Alicia Ben` finds both contacts. Patronymic markers `s/o` and `d/o` do not act as standalone keywords, so `find Raj s/o Kumar` searches for `Raj` and `Kumar` without matching every contact containing `s/o`.
 
 Examples:
 

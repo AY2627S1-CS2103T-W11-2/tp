@@ -74,6 +74,29 @@ public class FindNameMatchingIntegrationTest {
         assertNames("Alex Yeo", "Alex Yeoh", "John Alex");
     }
 
+    @Test
+    public void find_nameWithPatronymic_doesNotMatchUnrelatedPatronymicContacts() throws Exception {
+        logic.execute("add n/Raj s/o Kumar c/TechNova e/raj@example.com p/91234561");
+        logic.execute("add n/Arun s/o Mohan c/Other e/arun@example.com p/92345672");
+        logic.execute("add n/Devi d/o Raman c/Other2 e/devi@example.com p/93456783");
+
+        // Unprefixed find does not treat s/o as a standalone keyword
+        logic.execute("find Raj s/o Kumar");
+        assertNames("Raj s/o Kumar");
+
+        // Find with d/o does not return every contact with d/o
+        logic.execute("find Devi d/o Raman");
+        assertNames("Devi d/o Raman");
+
+        // Prefixed find does not treat s/o as a standalone word
+        logic.execute("find n/Raj s/o Kumar");
+        assertNames("Raj s/o Kumar");
+
+        // Searching for non-existent name with s/o matches no contacts
+        logic.execute("find Suresh s/o Velu");
+        assertNames();
+    }
+
     private LogicManager createLogic() {
         return IntegrationTestFixture.createLogic(model, storage, folder.resolve("prefs.json"));
     }

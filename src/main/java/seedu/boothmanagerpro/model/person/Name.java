@@ -60,6 +60,17 @@ public class Name {
     }
 
     /**
+     * Returns true if the given word is a patronymic marker ({@code s/o} or {@code d/o}, case-insensitive).
+     */
+    public static boolean isPatronymic(String word) {
+        if (word == null) {
+            return false;
+        }
+        String stripped = word.strip();
+        return stripped.equalsIgnoreCase("s/o") || stripped.equalsIgnoreCase("d/o");
+    }
+
+    /**
      * Returns a name with Unicode NFC normalisation applied, surrounding whitespace removed,
      * and each run of spaces collapsed to one.
      *

@@ -75,6 +75,24 @@ public class NameTest {
     }
 
     @Test
+    public void isPatronymic() {
+        assertTrue(Name.isPatronymic("s/o"));
+        assertTrue(Name.isPatronymic("S/O"));
+        assertTrue(Name.isPatronymic("d/o"));
+        assertTrue(Name.isPatronymic("D/O"));
+        assertTrue(Name.isPatronymic("s/O"));
+        assertTrue(Name.isPatronymic("d/O"));
+        assertTrue(Name.isPatronymic("  s/o  "));
+
+        assertFalse(Name.isPatronymic("Raj"));
+        assertFalse(Name.isPatronymic("Kumar"));
+        assertFalse(Name.isPatronymic(""));
+        assertFalse(Name.isPatronymic("   "));
+        assertFalse(Name.isPatronymic(null));
+        assertFalse(Name.isPatronymic("x/o"));
+    }
+
+    @Test
     public void equals() {
         Name name = new Name("Valid Name");
 
