@@ -85,8 +85,9 @@ BoothManagerPro helps **convention organisers manage exhibitor contacts through 
 ### Viewing help: `help`
 
 Prints every command's description, format, example, and the User Guide link in the text output area. This includes
-optional fields and features such as list sorting, follow-up-date searches, status updates, and tag toggling. You can
-also press **F1**. Keyboard focus stays in the command box.
+optional fields and features such as list sorting, follow-up-date searches, status updates, field clearing, and tag
+toggling. It also summarizes displayed-index targeting and the **Tab**, **F1**, and **Ctrl+L**/**Command+L** keyboard
+controls. You can also press **F1** to open it. Keyboard focus stays in the command box.
 
 Format: `help`
 
