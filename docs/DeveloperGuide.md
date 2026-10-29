@@ -101,7 +101,7 @@ The `UI` component,
 | `MainWindow.fxml` / `BoothManagerPro.css` | Command-driven layout, colours, spacing, and a single output area that fills available space. |
 | `ContactCard.fxml` / `ContactCard` | A static, read-only card for one contact, shown by `ResultDisplay` when a `CommandResult` carries contacts to show. The enquiry status appears as a badge beside the name; `ContactCard` adds a `status-*` style class (e.g. `status-in-progress`) to the badge and card, and `BoothManagerPro.css` colours both. |
 | `CommandBox` | Typed input through `Logic.execute()` with `Tab` autocomplete; successful input clears, failed input remains editable. |
-| `ResultDisplay` | Summary heading, scrollable static `ContactCard` container (with an optional total label for `list`), read-only `TextArea` output, and error styling. Each result replaces the previous output. |
+| `ResultDisplay` | Summary heading, scrollable static `ContactCard` container (with virtualized batch loading for performance at scale and an optional total label for `list`), read-only `TextArea` output, and error styling. Each result replaces the previous output. |
 
 - Startup shows only a ready prompt; contacts are loaded into the model without being displayed.
 - There are no separate persistent contact-list or details side panels, no contact-selection listeners, and no visibility flag; `ContactCard`s are static and non-selectable.
@@ -202,7 +202,7 @@ same one-based indices accepted by `update`, `tag`, and `delete`. Empty `list` a
 `CommandResult` carries `feedbackToUser`, an `exit` flag, an immutable `viewChoices` snapshot when awaiting a numbered
 `view` reply, an immutable `contactsToShow` snapshot, and `numberedContacts` / `showingContactTotal` flags. `MainWindow`
 passes `feedbackToUser` and the contact snapshot to `ResultDisplay`: when `contactsToShow` is non-empty, `ResultDisplay`
-renders scrollable static `ContactCard`s beneath its summary heading (plus the total count below `list` cards);
+renders scrollable static `ContactCard`s beneath its summary heading (loaded in virtualized batches to maintain responsive rendering with 1,000+ contacts, plus the total count below `list` cards);
 otherwise, it shows the read-only `TextArea`. Each command replaces the previous output rather than appending a command
 history transcript.
 
@@ -249,7 +249,7 @@ All contact workflows share `Person` and its validated value objects.
 | Email / phone | Stored lowercase email and normalised phone; search validates through the same value objects as `add`. |
 | Contact method | `Optional<ContactMethod>`; `email`, `phone`, or `other`. An absent method is shown as `Not specified`. Not a search criterion. |
 | Follow-up date | `Optional<FollowUpDate>`; validated and stored in JSON as `YYYYMMDD`, formatted as `d MMM uuuu` (e.g. `25 Oct 2026`) for display, and shown as `None` when absent. |
-| Tags | Exact duplicates collapse on `add`. Search ignores case and matches whole tags. `add`, `update`, `tag`, storage, and command feedback preserve stored order. Empty tags show `None` in text and `No tags` on cards. |
+| Tags | Exact duplicates collapse on `add`. Search ignores case and matches whole tags. `add`, `update`, `tag`, storage, and command feedback preserve stored order. Empty tags show `None` in text and on cards. |
 | Storage | JSON stores `company`, `contactMethod`, `enquiryStatus`, and `followUpDate`; absent optional fields become empty optionals or default to `Needs follow-up`. The legacy address remains for compatibility. |
 
 | Feature | Selection / result |
@@ -875,7 +875,7 @@ Use a separate test data folder with no Alicia Tan or Ben Lim records. Run each 
 | Check | Command / action | Expected result |
 | --- | --- | --- |
 | Full record and normalisation | `add n/Alicia Tan c/TechNova Pte Ltd e/ALICIA@example.com p/+65 9123-4567 m/EMAIL t/technology t/technology t/high-priority` | Contact added; a subsequent `view n/Alicia Tan` card shows `alicia@example.com`, `+6591234567`, `email`, and each tag once. |
-| Optional fields omitted | `add n/Ben Lim c/GreenWorks e/ben@example.com p/87654321` | Contact added; a subsequent `view n/Ben Lim` card shows status `Needs follow-up`, method `Not specified`, follow-up date `None`, and `No tags`. |
+| Optional fields omitted | `add n/Ben Lim c/GreenWorks e/ben@example.com p/87654321` | Contact added; a subsequent `view n/Ben Lim` card shows status `Needs follow-up`, method `Not specified`, follow-up date `None`, and `None` for tags. |
 | Duplicate email, even when hidden | Run `find Ben`, then `add n/Another Person c/Another Company e/ALICIA@example.com p/98765432` | Rejected; identifies Alicia Tan at TechNova Pte Ltd. |
 | Duplicate name and company | `add n/alicia tan c/technova pte ltd e/different@example.com p/98765432` | Rejected despite different email and letter case. |
 | Missing field | `add n/Chris Tan e/chris@example.com p/98765432` | Missing-required-field error; no contact added. |
@@ -908,7 +908,7 @@ Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibit
 1. Update by full name: `update Alicia Tan m/phone s/In progress f/20261025`<br>
    Expected: Output confirms `Updated Alicia Tan at TechNova Pte Ltd.` Running `view n/Alicia Tan` shows a card with badge `In progress`, contact method `phone`, follow-up date `25 Oct 2026`, and existing email, phone, and `tech` tag preserved.
 1. Clear optional date and tags: `update Alicia Tan f/ t/`<br>
-   Expected: Confirmation appears; `view n/Alicia Tan` shows `Follow-up date: None` and `No tags`.
+   Expected: Confirmation appears; `view n/Alicia Tan` shows `Follow-up date: None` and `None` for tags.
 1. Ambiguous name vs displayed index: Add a second `Alicia Tan` (`add n/Alicia Tan c/OtherCo e/alicia2@example.com p/87654321`), then run `update Alicia Tan s/Completed`.<br>
    Expected: Rejected with an ambiguity message; neither contact is updated. Run `find n/Alicia Tan`, then `update 2 s/Completed`; only the second `Alicia Tan` is updated and the filter resets.
 1. Invalid and duplicate updates: Try `update Alicia Tan`, `update 1 f/20230229`, and `update 2 e/alicia@example.com` (after `list`).<br>
@@ -1008,7 +1008,7 @@ Start with the sample data and run `list` first. Each command below is rejected 
 1. Missing-field data file
 
    1. Close BoothManagerPro and edit `data/addressbook.json` so one contact omits optional exhibitor fields (`"company": null`, `"contactMethod": null`, and remove `"enquiryStatus"` and `"followUpDate"`), keeping valid `name`, `phone`, `email`, and `address`. Relaunch and run `list`.<br>
-      Expected: The contact loads normally with `Company not specified`, `Contact method: Not specified`, `Needs follow-up`, and `Follow-up date: None`.
+      Expected: The contact loads normally with `Not specified` for company, `Contact method: Not specified`, `Needs follow-up`, and `Follow-up date: None`.
 
    1. Close BoothManagerPro, remove a required field such as `"email"` or `"name"` from a contact in `data/addressbook.json`, and relaunch.<br>
       Expected: Loading fails safely with the same warning banner and empty contact list as a corrupted file, preserving the original file in a `.recovery-` backup before the next save.

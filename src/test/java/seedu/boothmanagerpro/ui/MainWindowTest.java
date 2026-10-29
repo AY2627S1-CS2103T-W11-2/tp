@@ -2,6 +2,7 @@ package seedu.boothmanagerpro.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -10,7 +11,10 @@ import static seedu.boothmanagerpro.testutil.TypicalPersons.ALICE;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -28,11 +32,17 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.ContextMenuEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -42,6 +52,13 @@ import seedu.boothmanagerpro.logic.commands.CommandResult;
 import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.UserPrefs;
+import seedu.boothmanagerpro.model.person.Address;
+import seedu.boothmanagerpro.model.person.Company;
+import seedu.boothmanagerpro.model.person.Email;
+import seedu.boothmanagerpro.model.person.EnquiryStatus;
+import seedu.boothmanagerpro.model.person.Name;
+import seedu.boothmanagerpro.model.person.Person;
+import seedu.boothmanagerpro.model.person.Phone;
 import seedu.boothmanagerpro.model.util.SampleDataUtil;
 import seedu.boothmanagerpro.storage.JsonAddressBookStorage;
 import seedu.boothmanagerpro.storage.StorageManager;
@@ -205,7 +222,7 @@ public class MainWindowTest {
             VBox cards = (VBox) root.lookup("#contactCards");
             assertTrue(root.lookup("#contactScroll").isVisible());
             assertFalse(root.lookup("#resultDisplay").isVisible());
-            assertTrue(cards.isMouseTransparent());
+            assertFalse(cards.isMouseTransparent());
             assertEquals(6, cards.getChildren().size(), "5 cards and the total");
             savePreview(root, 1180, 820, "cli-list.png");
             enterCommand(root, "not-a-command");
@@ -582,6 +599,14 @@ public class MainWindowTest {
             display.showContacts(List.of(ALICE), true, false);
             assertTrue(display.getRoot().lookup("#contactScroll").isVisible());
             display.focus();
+
+            display.setFeedbackToUser("test");
+            assertFalse(display.getRoot().lookup("#contactScroll").isVisible());
+            display.focus();
+
+            ResultDisplay nullCallbackDisplay = new ResultDisplay();
+            nullCallbackDisplay.getRoot().fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.TAB,
+                    false, false, false, false));
             return null;
         });
     }
@@ -609,6 +634,185 @@ public class MainWindowTest {
     @Test
     public void tabFocusReturn_keepsCommandInputUnselected() throws Exception {
         assertFocusReturnKeepsDraft(output -> pressKey(output, KeyCode.TAB));
+    }
+
+    @Test
+    public void tabFocusReturn_fromContactScroll_returnsFocusToCommandInput() throws Exception {
+        withWindow(sampleModel(), (window, root, storage) -> {
+            enterCommand(root, "list");
+            Node contactScroll = root.lookup("#contactScroll");
+            assertTrue(contactScroll.isVisible());
+            contactScroll.requestFocus();
+            pressKey(contactScroll, KeyCode.TAB);
+            assertEquals(input(root), root.getScene().getFocusOwner());
+        });
+    }
+
+    @Test
+    public void contactCard_copyMenusAndLayoutSafeguards_areConfigured() throws Exception {
+        withWindow(sampleModel(), (window, root, storage) -> {
+            enterCommand(root, "view n/Alex Yeoh");
+            VBox cards = (VBox) root.lookup("#contactCards");
+            assertFalse(cards.isMouseTransparent());
+            Parent card = (Parent) cards.getChildren().getFirst();
+            Label email = (Label) card.lookup("#email");
+            Label phone = (Label) card.lookup("#phone");
+            Label commandHints = (Label) root.lookup("#commandHints");
+
+            assertTrue(phone.isWrapText());
+            assertEquals(0.0, phone.getMinWidth());
+            assertTrue(commandHints.isWrapText());
+            assertEquals(0.0, commandHints.getMinWidth());
+
+            assertNotNull(email.getContextMenu());
+            assertTrue(email.getContextMenu().getItems().stream()
+                    .anyMatch(item -> item.getText().equals("Copy Email")));
+            assertNotNull(phone.getContextMenu());
+            assertTrue(phone.getContextMenu().getItems().stream()
+                    .anyMatch(item -> item.getText().equals("Copy Phone")));
+
+            ContactCard.copyToClipboard("test@example.com");
+            ContactCard.copyToClipboard(null);
+        });
+    }
+
+    @Test
+    public void contactCard_missingCompanyAndTags_matchesUserGuidePlaceholders() throws Exception {
+        runOnFxThread(() -> {
+            Person person = new Person(new Name("No Field"), new Phone("91234567"),
+                    new Email("nofield@example.com"), new Address("Blk 123"),
+                    Set.of(), Optional.empty(), Optional.empty(),
+                    EnquiryStatus.NEEDS_FOLLOW_UP, Optional.empty());
+            ContactCard card = new ContactCard(person, 1);
+            Label company = (Label) card.getRoot().lookup("#company");
+            FlowPane tags = (FlowPane) card.getRoot().lookup("#tags");
+            assertEquals("Not specified", company.getText());
+            assertEquals(1, tags.getChildren().size());
+            assertEquals("None", ((Label) tags.getChildren().getFirst()).getText());
+            return null;
+        });
+    }
+
+    @Test
+    public void showContacts_oneThousandContacts_rendersIncrementallyWithoutLag() throws Exception {
+        runOnFxThread(() -> {
+            List<Person> oneThousand = new ArrayList<>();
+            for (int i = 0; i < 1000; i++) {
+                oneThousand.add(new Person(new Name("Contact Person"), new Phone("91234567"),
+                        new Email("contact" + i + "@example.com"), new Address("Blk 123"),
+                        Set.of(), Optional.empty(), Optional.empty(),
+                        EnquiryStatus.NEEDS_FOLLOW_UP, Optional.empty()));
+            }
+            ResultDisplay display = new ResultDisplay();
+            long start = System.currentTimeMillis();
+            display.showContacts(oneThousand, true, true);
+            long elapsed = System.currentTimeMillis() - start;
+            assertTrue(elapsed < 500, "Initial display of 1,000 contacts took " + elapsed + "ms, expected < 500ms");
+            VBox cards = display.getContactCards();
+            assertEquals(ResultDisplay.getBatchSize(), cards.getChildren().size(),
+                    "Initial batch should match BATCH_SIZE");
+
+            display.loadAllRemainingBatches();
+            assertEquals(1001, cards.getChildren().size(),
+                    "All 1,000 cards plus total label should be loaded");
+            return null;
+        });
+    }
+
+    @Test
+    public void contactCard_copyActionsAndEvents_fullyCovered() throws Exception {
+        runOnFxThread(() -> {
+            Person personWithCompany = new Person(new Name("Alex Yeoh"), new Phone("87438807"),
+                    new Email("alexyeoh@example.com"), new Address("Blk 30"),
+                    Set.of(), Optional.of(new Company("TechNova")), Optional.empty(),
+                    EnquiryStatus.NEEDS_FOLLOW_UP, Optional.empty());
+            ContactCard card = new ContactCard(personWithCompany, 1);
+            Stage stage = new Stage();
+            Scene scene = new Scene(card.getRoot());
+            stage.setScene(scene);
+            stage.show();
+            try {
+                Label email = (Label) card.getRoot().lookup("#email");
+                Label phone = (Label) card.getRoot().lookup("#phone");
+                Label name = (Label) card.getRoot().lookup("#name");
+                Label company = (Label) card.getRoot().lookup("#company");
+
+                for (MenuItem item : email.getContextMenu().getItems()) {
+                    item.fire();
+                }
+                for (MenuItem item : phone.getContextMenu().getItems()) {
+                    item.fire();
+                }
+                for (MenuItem item : name.getContextMenu().getItems()) {
+                    item.fire();
+                }
+                for (MenuItem item : company.getContextMenu().getItems()) {
+                    item.fire();
+                }
+                for (MenuItem item : card.getCardContextMenu().getItems()) {
+                    item.fire();
+                }
+
+                ContextMenuEvent menuEvent = new ContextMenuEvent(ContextMenuEvent.CONTEXT_MENU_REQUESTED,
+                        10, 10, 10, 10, false, null);
+                card.getRoot().getOnContextMenuRequested().handle(menuEvent);
+
+                MouseEvent doublePrimary = new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0,
+                        MouseButton.PRIMARY, 2, false, false, false, false, false, false, false, false, false, false,
+                        null);
+                email.getOnMouseClicked().handle(doublePrimary);
+
+                MouseEvent singlePrimary = new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0,
+                        MouseButton.PRIMARY, 1, false, false, false, false, false, false, false, false, false, false,
+                        null);
+                email.getOnMouseClicked().handle(singlePrimary);
+
+                MouseEvent doubleSecondary = new MouseEvent(MouseEvent.MOUSE_CLICKED, 0, 0, 0, 0,
+                        MouseButton.SECONDARY, 2, false, false, false, false, false, false, false, false, false, false,
+                        null);
+                email.getOnMouseClicked().handle(doubleSecondary);
+            } finally {
+                stage.hide();
+            }
+
+            return null;
+        });
+    }
+
+    @Test
+    public void resultDisplay_scrollListenerAndCleanup_fullyCovered() throws Exception {
+        runOnFxThread(() -> {
+            List<Person> fifty = new ArrayList<>();
+            for (int i = 0; i < 50; i++) {
+                fifty.add(new Person(new Name("Person"), new Phone("91234567"),
+                        new Email("person" + i + "@example.com"), new Address("Blk 123"),
+                        Set.of(), Optional.empty(), Optional.empty(),
+                        EnquiryStatus.NEEDS_FOLLOW_UP, Optional.empty()));
+            }
+
+            ResultDisplay display = new ResultDisplay();
+            ScrollPane contactScroll = (ScrollPane) display.getRoot().lookup("#contactScroll");
+            contactScroll.getContextMenu().getItems().getFirst().fire();
+
+            display.showContacts(fifty, true, true);
+            assertEquals(ResultDisplay.getBatchSize(), display.getLoadedCount());
+
+            // Scroll below threshold: no extra batch
+            contactScroll.setVvalue(0.1);
+            assertEquals(ResultDisplay.getBatchSize(), display.getLoadedCount());
+
+            // Scroll above threshold: loads next batch
+            contactScroll.setVvalue(0.85);
+            assertEquals(50, display.getLoadedCount());
+
+            // Cleanup while scrollListener is active
+            display.showContacts(fifty, true, true);
+            assertEquals(ResultDisplay.getBatchSize(), display.getLoadedCount());
+            display.setFeedbackToUser("Clearing results");
+            assertEquals(0, display.getLoadedCount());
+
+            return null;
+        });
     }
 
     @Test
