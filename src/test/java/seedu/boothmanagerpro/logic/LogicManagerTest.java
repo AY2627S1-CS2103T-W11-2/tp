@@ -1,6 +1,7 @@
 package seedu.boothmanagerpro.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static seedu.boothmanagerpro.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.boothmanagerpro.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.boothmanagerpro.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
@@ -141,6 +142,8 @@ public class LogicManagerTest {
 
     /**
      * Tests the Logic component's handling of an {@code IOException} thrown by the Storage component.
+     * When saving fails, the model must be rolled back to its state prior to execution so that
+     * unpersisted contacts are not retained in memory.
      *
      * @param e the exception to be thrown by the Storage component
      * @param expectedMessage the message expected inside exception thrown by the Logic component
@@ -168,7 +171,10 @@ public class LogicManagerTest {
         Person expectedPerson = new PersonBuilder(AMY).withTags().withCompany("TechNova")
                 .withAddress("Not provided").build();
         ModelManager expectedModel = new ModelManager();
-        expectedModel.addPerson(expectedPerson);
+        // Since saving failed, the model must be rolled back and remain unchanged (no person added).
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
+        assertFalse(model.hasPerson(expectedPerson));
+        // A subsequent view command must not find the contact whose save failed
+        assertThrows(CommandException.class, () -> logic.execute("view n/Amy Bee"));
     }
 }

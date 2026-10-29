@@ -145,6 +145,11 @@ public class AddCommandTest {
         }
 
         @Override
+        public Predicate<? super Person> getFilteredPersonListPredicate() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public void updateSortedPersonList(Comparator<Person> comparator) {
             throw new AssertionError("This method should not be called.");
         }

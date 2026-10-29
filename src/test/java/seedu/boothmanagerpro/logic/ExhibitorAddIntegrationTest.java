@@ -375,4 +375,31 @@ public class ExhibitorAddIntegrationTest {
                 logic.execute("add n/Alice Tan c/Cafe\u0301 Co e/alice2@example.com p/82345678"));
         assertEquals(1, model.getAddressBook().getPersonList().size());
     }
+
+    @Test
+    public void add_saveFailure_rollsBackInMemoryModelAndPreventsPersistence() throws Exception {
+        // Save initial state with one contact
+        logic.execute(ADD);
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+        Path filePath = storage.getAddressBookFilePath();
+
+        // Make file read-only to simulate save failure
+        boolean readOnlySet = filePath.toFile().setReadOnly();
+        assertTrue(readOnlySet, "File should be marked read-only");
+
+        try {
+            assertThrows(CommandException.class, () ->
+                    logic.execute("add n/Write Failure c/Test Co e/writefail@example.com p/81234567"));
+
+            // Contact must NOT be in memory
+            assertEquals(1, model.getAddressBook().getPersonList().size());
+            assertFalse(model.hasPerson(new PersonBuilder().withName("Write Failure")
+                    .withCompany("Test Co").withEmail("writefail@example.com").withPhone("81234567").build()));
+
+            // view command must not find Write Failure even without restoring permissions
+            assertThrows(CommandException.class, () -> logic.execute("view n/Write Failure"));
+        } finally {
+            filePath.toFile().setWritable(true);
+        }
+    }
 }
