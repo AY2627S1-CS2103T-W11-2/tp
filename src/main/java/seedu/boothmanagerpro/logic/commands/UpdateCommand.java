@@ -21,7 +21,8 @@ public class UpdateCommand extends Command {
     public static final String COMMAND_WORD = "update";
     public static final String MESSAGE_USAGE = "update NAME or INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] "
             + "[m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...\n"
-            + "Supply at least one field. Empty f/ clears the date; empty t/ clears tags. "
+            + "Supply at least one field. Empty m/ clears the contact method; empty f/ clears the date; "
+            + "empty t/ clears tags. "
             + "Use list or find for displayed indices. Example: update Alicia Tan s/In progress";
     public static final String MESSAGE_AMBIGUOUS = "More than one contact has the name %s. "
             + "Use list or find, then update the contact by its displayed index. No contact was updated.";

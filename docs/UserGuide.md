@@ -55,7 +55,7 @@ BoothManagerPro is a desktop contact manager for **convention organisers followi
 * Type a command and press **Enter**. Command words are case-insensitive (for example, `list` or `LIST`), while field prefixes use lowercase letters (for example, `n/`, `c/`, `t/`).
 * The command box starts with keyboard focus. Press **Ctrl+L** on Windows/Linux or **Command+L** on macOS to return to it. Use `help` or **F1** for the guide, and `exit` to close the app.
 * Press **Tab** to complete an unambiguous command word, field prefix, contact method, enquiry status, or list sort
-  field. It also supplies the next required `add` prefix, `view n/`, `find n/`, `list o/`, or the first `tag t/` after
+  field. It also supplies any missing required `add` prefix, `view n/`, `find n/`, `list o/`, or the first `tag t/` after
   a target. If no completion is available, **Tab** resumes normal focus navigation. When focus returns to the command
   box, the cursor is placed at the end of your input, so typing continues the command instead of replacing it.
 * Each launch starts with a ready prompt. Saved contacts remain available but are not automatically printed.
@@ -111,7 +111,7 @@ Format: `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD]
 | Field | Rules |
 | --- | --- |
 | `n/NAME` | 1-80 characters; at least one letter. Allows letters, digits, spaces, hyphens, apostrophes (`'` and `’`, stored as `'`), full stops, commas, parentheses, `@`, and `s/o`, `d/o`, `a/l`, or `a/p` between words. |
-| `c/COMPANY` | 1-100 characters; cannot be blank. |
+| `c/COMPANY` | 1-100 characters; cannot be blank. Supports common business slash abbreviations such as `t/a`, `d/b/a`, `c/o`, `S/B`, `P/L`, `I/O`, `A/B`, and `M/s`. |
 | `e/EMAIL` | Valid email format, such as `alicia@example.com`; stored in lowercase. |
 | `p/PHONE` | Each number has 7-15 digits, optionally starting with `+`; spaces, hyphens, full stops, and parentheses are allowed. Extensions use `ext`, `ext.`, or `x` followed by 1-6 digits. Separate multiple numbers with `,`, `;`, or `/`, e.g. `(65) 6123-4567 ext 88 / 9123 4567`. Formatting is preserved, with repeated spaces collapsed. Maximum 100 characters overall; labels such as `(HP)` are not accepted. |
 | `m/METHOD` | Optional: `email`, `phone`, or `other`, ignoring case. Omitted method is `Not specified`. |
@@ -267,7 +267,7 @@ Format: `view n/NAME`
 * If exactly one contact's full name equals `NAME`, ignoring case and extra spaces, that contact's details are shown
   immediately, even when other names share a word. For example, `view n/Alex Yeo` shows `Alex Yeo` directly
   instead of also listing `Alex Yeoh`; `view n/Alex` still lists both.
-* An invalid number shows the valid range followed by the numbered choices again, and lets you try again. Another successfully parsed command cancels the pending choice, even if execution fails. A command with invalid syntax leaves the choice pending. Cancelling a choice clears its prompt; a subsequent bare number is no longer a selection reply.
+* An invalid number shows the valid range followed by the numbered choices again, and lets you try again. Opening `help` (or pressing **F1**) shows the help guide with the pending numbered choices kept at the bottom so you can still reply with a number. Any other successfully parsed command cancels the pending choice, even if execution fails. A command with invalid syntax leaves the choice pending. Cancelling a choice clears its prompt; a subsequent bare number is no longer a selection reply.
 * Only `n/` is accepted. Repeated names, other prefixes, missing/invalid names, and unprefixed requests are rejected.
   A name without `n/`, such as `view alex`, shows `view needs the n/ prefix before the name. Use: view n/NAME, e.g. view n/Alicia Tan`;
   `view n/` with no name shows `Name cannot be empty. Use: view n/NAME, e.g. view n/Alicia Tan`.
@@ -303,7 +303,7 @@ Format: `update NAME_OR_INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD
 - If names conflict, run `list` or `find` and use the displayed index: `update 2 s/In progress`. This is a current list position, not a permanent contact ID or a numbered view reply.
 - Supply at least one field. Omitted attributes stay unchanged. `n/` changes the name; the text before the first prefix selects the original contact.
 - Only `t/` may repeat. Supplied tags replace existing tags, with duplicates ignored in input order. Empty `t/` clears tags; do not combine it with nonempty tags.
-- Empty `f/` clears the date. Other blank fields are rejected. Status may be changed to any of the four supported values; there is no enforced transition order.
+- Empty `m/` clears the preferred contact method back to `Not specified`; empty `f/` clears the date. Other blank fields are rejected. Status may be changed to any of the four supported values; there is no enforced transition order.
 - Unknown prefixes, invalid values, missing/ambiguous targets, and duplicate email or name/company combinations are rejected without changing contacts or saved data. Duplicate checks include hidden contacts.
 - Don't put `n/` before the contact: `update n/Alicia Tan s/Completed` shows `Don't include n/ for update. Use: update NAME_OR_INDEX FIELD... (n/ only sets a new name, e.g. update Alicia Tan n/Alicia Lim)`.
 - An index of `0` or below shows `Index must be a positive integer.`; a leading `+` such as `+1` shows `Index must be an unsigned positive integer (e.g. 1, not +1).`; an index too large to be a list position, such as `99999999999999` or `+99999999999999`, shows `Index is too large. Use a number shown in the current list, find or view results.`
@@ -314,7 +314,7 @@ Format: `update NAME_OR_INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD
 ```text
 update Alicia Tan p/+65 9876-5432 m/phone s/In progress f/20261025
 update Alicia Tan n/Alicia Lim c/New Company
-update 2 s/Completed f/ t/
+update 2 s/Completed m/ f/ t/
 update Alicia Tan s/Cancelled
 ```
 

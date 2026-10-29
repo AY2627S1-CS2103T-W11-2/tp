@@ -230,7 +230,7 @@ name-and-company prompt plus an immutable `CommandResult.viewChoices` snapshot d
 
 `LogicManager` retains those choices and their prompt for the next numbered reply. Invalid replies report the valid
 range followed by the numbered prompt again, keeping the choices available. A successful selection filters to the
-selected contact and returns `CommandResult.showingContact(...)` to render its `ContactCard`. Another successfully
+selected contact and returns `CommandResult.showingContact(...)` to render its `ContactCard`. Opening `help` (including via `F1`) appends the pending prompt beneath the help text and retains the pending choices, whereas any other successfully
 parsed command clears the pending choices, even if execution fails, whereas invalid command syntax preserves them.
 If the selected record has changed or disappeared, the user must run `view` again. Each `LogicManager` holds its own
 selection state. Viewing and numbered replies bypass storage writes, because neither changes contact data.
@@ -275,7 +275,7 @@ covers same-name contacts at different companies, numbered replies, and cancella
 
 1. `AddressBookParser` routes `update` to `UpdateCommandParser`, which validates the target, field cardinality, and supplied values.
 2. `ContactFieldParser` shares prefix-specific validation feedback with `add`; domain value types remain the source of constraints and normalisation.
-3. Immutable `ContactUpdate` represents partial changes. An absent optional preserves the value; a present empty date or tag set explicitly clears it. Tags are defensively copied.
+3. Immutable `ContactUpdate` represents partial changes. An absent optional preserves the value; a present empty contact method, date, or tag set explicitly clears it. Tags are defensively copied.
 4. `UpdateCommand` resolves an exact case-insensitive full name across all contacts or a one-based index in the current displayed list. Missing or ambiguous targets fail before mutation.
 5. The command constructs a replacement `Person` via `ContactUpdate#applyTo`. If all stored values are unchanged, it throws `CommandException` with a no-change message before mutation or persistence. The comparison includes displayed tag casing and order, which `Person#equals` alone ignores. Otherwise, it checks every other contact for duplicate email or name/company, including hidden records. Target resolution, duplicate warnings, and successful updates are logged via `LogsCenter`. Only then does it call `Model#setPerson` and reset the filter.
 6. `LogicManager` persists the updated address book through `Storage#saveAddressBook` (rolling back the in-memory model, filter, and display ordering if saving fails), and the UI displays a concise confirmation. Subsequent `view`, `list`, and `find` commands display the updated attributes on `ContactCard`s.
@@ -287,7 +287,7 @@ The sequence diagram below illustrates a successful `update` request, showing bo
 <div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `UpdateCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
 </div>
 
-Legacy address is preserved. Supplied tags replace the tag set; a sole blank `t/` clears it. Empty `f/` clears the follow-up date. Other empty fields fail validation. There is no new storage schema or persistent contact ID.
+Legacy address is preserved. Supplied tags replace the tag set; a sole blank `t/` clears it. Empty `m/` clears the contact method, and empty `f/` clears the follow-up date. Other empty fields fail validation. There is no new storage schema or persistent contact ID.
 
 `UpdateIntegrationTest` covers command routing, normalisation, partial updates, clearing, duplicate rejection, ambiguity, filtered indices, no-op updates, and persisted JSON. Rejected requests preserve contacts, filters, sort order, and disk content. `LogicManagerTest` checks that unchanged updates never call storage. `MainWindowTest` checks confirmation, updated cards, and retained input after invalid updates.
 
@@ -333,7 +333,7 @@ Integration notes:
 - `Person.getCompany()` and `getContactMethod()` return optional values. New additions require company; legacy records may lack it. Omitted method displays as `Not specified`.
 - Name/company duplicate matching ignores case and normalises Unicode (NFC); contacts without a company match only by normalised email.
 - The legacy address field remains for compatibility, using `Not provided` for new contacts. `add` no longer accepts `a/`.
-- Single-letter prefix tokens are reserved except `s/o`, `d/o`, `a/l`, and `a/p` between name words. Other words between prefixes belong to that field, allowing multi-word names and companies.
+- Single-letter prefix tokens are reserved except `s/o`, `d/o`, `a/l`, and `a/p` between name words and common business slash abbreviations (`t/a`, `d/b/a`, `c/o`, `M/s`, and uppercase initialisms such as `S/B`, `P/L`, `I/O`, `A/B`) inside `c/`. Other words between prefixes belong to that field, allowing multi-word names and companies.
 - JSON includes `company` and `contactMethod`; legacy files without them are accepted if their other values meet current validation rules.
 - `list`, `find`, and `view` output includes company and contact method. Logic tests run without a display server.
 
@@ -899,6 +899,8 @@ Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibit
 1. With two stored contacts named `Alicia Tan` at different companies and with different emails, run `view n/Alicia Tan`.<br>
    Expected: Numbered company choices appear. Enter `0`, then `3`, then `2`.<br>
    Expected: The invalid replies (`0` and `3`) show `Please enter a number between 1 and 2.` followed by the numbered choices again; `2` displays the second contact's card.
+1. Run `view n/Alicia Tan`, press `F1` (or run `help`), then enter `1`.<br>
+   Expected: Help is shown with the numbered choices preserved at the bottom, and `1` displays the first contact's card.
 1. Run `view n/Alicia Tan`, then `list`, then `2`.<br>
    Expected: `list` cancels the pending choice; the final `2` is rejected as an unknown command rather than treated as a view selection.
 
@@ -907,8 +909,9 @@ Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibit
 1. Prerequisites: Add `Alicia Tan` (`add n/Alicia Tan c/TechNova Pte Ltd e/alicia@example.com p/91234567 t/tech`).
 1. Update by full name: `update Alicia Tan m/phone s/In progress f/20261025`<br>
    Expected: Output confirms `Updated Alicia Tan at TechNova Pte Ltd.` Running `view n/Alicia Tan` shows a card with badge `In progress`, contact method `phone`, follow-up date `25 Oct 2026`, and existing email, phone, and `tech` tag preserved.
-1. Clear optional date and tags: `update Alicia Tan f/ t/`<br>
-   Expected: Confirmation appears; `view n/Alicia Tan` shows `Follow-up date: None` and `None` for tags.
+1. Clear optional method, date, and tags: `update Alicia Tan m/ f/ t/`<br>
+   Expected: Confirmation appears; `view n/Alicia Tan` shows `Contact method: Not specified`, `Follow-up date: None`, and `No tags`.
+
 1. Ambiguous name vs displayed index: Add a second `Alicia Tan` (`add n/Alicia Tan c/OtherCo e/alicia2@example.com p/87654321`), then run `update Alicia Tan s/Completed`.<br>
    Expected: Rejected with an ambiguity message; neither contact is updated. Run `find n/Alicia Tan`, then `update 2 s/Completed`; only the second `Alicia Tan` is updated and the filter resets.
 1. Invalid and duplicate updates: Try `update Alicia Tan`, `update 1 f/20230229`, and `update 2 e/alicia@example.com` (after `list`).<br>

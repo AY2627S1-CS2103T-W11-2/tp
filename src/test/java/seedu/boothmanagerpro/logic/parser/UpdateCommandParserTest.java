@@ -12,6 +12,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import seedu.boothmanagerpro.logic.commands.UpdateCommand;
+import seedu.boothmanagerpro.model.person.ContactMethod;
 import seedu.boothmanagerpro.model.person.ContactUpdate;
 import seedu.boothmanagerpro.model.person.EnquiryStatus;
 import seedu.boothmanagerpro.model.person.FollowUpDate;
@@ -53,11 +54,19 @@ public class UpdateCommandParserTest {
     }
 
     @Test
-    public void parse_emptyDateOrTag_clearsField() {
+    public void parse_emptyMethodDateOrTag_clearsField() {
+        ContactUpdate clearMethod = new ContactUpdate(Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.of(Optional.<ContactMethod>empty()), Optional.empty(),
+                Optional.empty(), Optional.empty());
+        ContactUpdate setMethod = new ContactUpdate(Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.of(Optional.of(ContactMethod.PHONE)), Optional.empty(),
+                Optional.empty(), Optional.empty());
         ContactUpdate clearDate = changes(Optional.empty(), Optional.empty(), Optional.empty(),
                 Optional.of(Optional.<FollowUpDate>empty()), Optional.empty());
         ContactUpdate clearTags = changes(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
                 Optional.of(Set.<Tag>of()));
+        assertParseSuccess(parser, "1 m/", new UpdateCommand(INDEX_FIRST_PERSON, clearMethod));
+        assertParseSuccess(parser, "1 m/phone", new UpdateCommand(INDEX_FIRST_PERSON, setMethod));
         assertParseSuccess(parser, "1 f/", new UpdateCommand(INDEX_FIRST_PERSON, clearDate));
         assertParseSuccess(parser, "1 t/", new UpdateCommand(INDEX_FIRST_PERSON, clearTags));
     }
@@ -81,7 +90,7 @@ public class UpdateCommandParserTest {
 
     @Test
     public void parse_emptyField_failure() {
-        for (String prefix : new String[]{"n/", "c/", "e/", "p/", "m/", "s/"}) {
+        for (String prefix : new String[]{"n/", "c/", "e/", "p/", "s/"}) {
             assertParseFailure(parser, "1 " + prefix + "  ",
                     "Empty field: " + prefix + ". Supply a value after this prefix.");
         }

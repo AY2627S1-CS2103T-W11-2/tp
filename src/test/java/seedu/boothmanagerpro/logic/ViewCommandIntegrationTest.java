@@ -1,6 +1,7 @@
 package seedu.boothmanagerpro.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.boothmanagerpro.testutil.Assert.assertThrows;
 
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.boothmanagerpro.logic.commands.CommandResult;
+import seedu.boothmanagerpro.logic.commands.HelpCommand;
 import seedu.boothmanagerpro.logic.commands.ViewCommand;
 import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
@@ -112,7 +114,24 @@ public class ViewCommandIntegrationTest {
     public void execute_anotherCommand_cancelsPendingChoices() throws Exception {
         logic.execute("view n/Alicia Tan");
         logic.execute("list");
+        assertFalse(logic.isAwaitingViewSelection());
         assertThrows(ParseException.class, Messages.MESSAGE_UNKNOWN_COMMAND, () -> logic.execute("1"));
+    }
+
+    @Test
+    public void execute_helpDuringPendingChoices_preservesPromptAndSelection() throws Exception {
+        String originalFile = Files.readString(folder.resolve("contacts.json"));
+        String prompt = logic.execute("view n/Alicia Tan").getFeedbackToUser();
+        assertTrue(logic.isAwaitingViewSelection());
+
+        CommandResult helpResult = logic.execute("help");
+        assertTrue(helpResult.getFeedbackToUser().startsWith(HelpCommand.SHOWING_HELP_MESSAGE));
+        assertTrue(helpResult.getFeedbackToUser().endsWith("\n\n" + prompt));
+        assertTrue(logic.isAwaitingViewSelection());
+
+        assertEquals(ViewCommand.createDetailsResult(second), logic.execute("2"));
+        assertFalse(logic.isAwaitingViewSelection());
+        assertEquals(originalFile, Files.readString(folder.resolve("contacts.json")));
     }
 
     @Test

@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.MatchResult;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -36,6 +37,7 @@ import seedu.boothmanagerpro.logic.commands.TagCommand;
 import seedu.boothmanagerpro.logic.commands.UpdateCommand;
 import seedu.boothmanagerpro.logic.commands.ViewCommand;
 import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
+import seedu.boothmanagerpro.logic.parser.ArgumentTokenizer;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 import seedu.boothmanagerpro.model.person.ContactMethod;
 import seedu.boothmanagerpro.model.person.EnquiryStatus;
@@ -138,18 +140,23 @@ public class CommandBox extends UiPart<Region> {
      * @return whether the command text was changed
      */
     private boolean autocompleteCommand() {
-        String input = commandTextField.getText();
-        String trimmedInput = input.trim();
+        String rawInput = commandTextField.getText();
+        String leadingTrimmed = rawInput.stripLeading();
+        String trimmedInput = leadingTrimmed.stripTrailing();
+        boolean hasTrailingWhitespace = leadingTrimmed.length() > trimmedInput.length();
 
-        if (autocompleteAddField(trimmedInput)
-                || autocompleteNameField(trimmedInput)
+        if (autocompleteNameField(trimmedInput)
                 || autocompleteListField(trimmedInput)
-                || autocompleteFieldPrefix(trimmedInput)
-                || autocompleteFieldValue(trimmedInput)
+                || (!hasTrailingWhitespace && autocompleteFieldPrefix(trimmedInput))
+                || autocompleteFieldValue(leadingTrimmed)
+                || autocompleteAddField(trimmedInput)
                 || autocompleteTagField(trimmedInput)) {
             return true;
         }
 
+        if (hasTrailingWhitespace) {
+            return false;
+        }
         String lowerTrimmed = trimmedInput.toLowerCase(Locale.ROOT);
         List<String> matches = COMMAND_WORDS.stream()
                 .filter(command -> command.startsWith(lowerTrimmed))
@@ -162,8 +169,8 @@ public class CommandBox extends UiPart<Region> {
     }
 
     /**
-     * Adds the next required field prefix while the user is building an add command.
-     * A prefix is only advanced after the current field has a value.
+     * Adds the next missing required field prefix while the user is building an add command.
+     * A prefix is only advanced after the last supplied field has a completed value.
      */
     private boolean autocompleteAddField(String input) {
         if (input.equalsIgnoreCase(AddCommand.COMMAND_WORD)) {
@@ -174,36 +181,35 @@ public class CommandBox extends UiPart<Region> {
             return false;
         }
 
-        int lastPrefixPosition = -1;
-        int lastPrefixIndex = -1;
-        for (int i = 0; i < ADD_REQUIRED_PREFIXES.size(); i++) {
-            int position = input.lastIndexOf(" " + ADD_REQUIRED_PREFIXES.get(i));
-            if (position > lastPrefixPosition) {
-                lastPrefixPosition = position;
-                lastPrefixIndex = i;
-            }
-        }
-
-        if (lastPrefixIndex == -1) {
+        String arguments = input.substring(commandPrefix.length());
+        List<MatchResult> prefixes = ArgumentTokenizer.findSingleLetterPrefixes(arguments);
+        if (prefixes.isEmpty()) {
             return false;
         }
 
-        String currentPrefix = ADD_REQUIRED_PREFIXES.get(lastPrefixIndex);
-        int valueStart = lastPrefixPosition + 1 + currentPrefix.length();
-        boolean hasValue = !input.substring(valueStart).isBlank();
-        // All required prefixes are already present — nothing to add.
-        boolean allPresent = ADD_REQUIRED_PREFIXES.stream()
-                .allMatch(prefix -> input.contains(" " + prefix));
-        if (hasValue && !allPresent) {
-            // Find the next required prefix that is not yet present in the command.
-            for (int next = lastPrefixIndex + 1; next < ADD_REQUIRED_PREFIXES.size(); next++) {
-                String nextPrefix = ADD_REQUIRED_PREFIXES.get(next);
-                if (!input.contains(" " + nextPrefix)) {
-                    return setCommandText(input + " " + nextPrefix);
-                }
+        MatchResult lastMatch = prefixes.getLast();
+        String lastPrefix = lastMatch.group(1);
+        String currentValue = arguments.substring(lastMatch.end()).strip();
+        if (!isCompletedAddValue(lastPrefix, currentValue)) {
+            return false;
+        }
+
+        List<String> existingPrefixes = prefixes.stream().map(MatchResult::group).toList();
+        for (String requiredPrefix : ADD_REQUIRED_PREFIXES) {
+            if (!existingPrefixes.contains(requiredPrefix)) {
+                return setCommandText(input + " " + requiredPrefix);
             }
         }
         return false;
+    }
+
+    private boolean isCompletedAddValue(String prefix, String value) {
+        if (value.isEmpty()) {
+            return false;
+        }
+        List<String> allowedValues = PREFIX_VALUES.get(prefix);
+        return allowedValues == null
+                || allowedValues.stream().anyMatch(allowed -> allowed.equalsIgnoreCase(value));
     }
 
     /** Adds the name prefix while the user is building a view or find command. */
@@ -222,7 +228,7 @@ public class CommandBox extends UiPart<Region> {
         return false;
     }
 
-    /** Completes a partially typed field prefix supported by the current command. */
+    /** Completes a partially typed field prefix without duplicating single-value fields. */
     private boolean autocompleteFieldPrefix(String input) {
         int firstSpace = input.indexOf(' ');
         int lastSpace = input.lastIndexOf(' ');
@@ -232,14 +238,26 @@ public class CommandBox extends UiPart<Region> {
 
         String commandWord = input.substring(0, firstSpace).toLowerCase(Locale.ROOT);
         List<String> supportedPrefixes = COMMAND_PREFIXES.getOrDefault(commandWord, List.of());
+        String arguments = input.substring(firstSpace + 1);
+        List<String> existingPrefixes = ArgumentTokenizer.findSingleLetterPrefixes(arguments).stream()
+                .map(MatchResult::group)
+                .toList();
         String partialPrefix = input.substring(lastSpace + 1);
+        if (partialPrefix.endsWith("/")) {
+            return false;
+        }
         List<String> matches = supportedPrefixes.stream()
+                .filter(prefix -> isRepeatablePrefix(commandWord, prefix) || !existingPrefixes.contains(prefix))
                 .filter(prefix -> prefix.startsWith(partialPrefix))
                 .toList();
         if (matches.size() != 1) {
             return false;
         }
         return setCommandText(input.substring(0, lastSpace + 1) + matches.getFirst());
+    }
+
+    private static boolean isRepeatablePrefix(String commandWord, String prefix) {
+        return commandWord.equals(FindCommand.COMMAND_WORD) || prefix.equals(PREFIX_TAG.toString());
     }
 
     /** Completes contact methods, enquiry statuses, and list sort fields from an unambiguous prefix. */
@@ -251,28 +269,39 @@ public class CommandBox extends UiPart<Region> {
 
         String commandWord = input.substring(0, firstSpace).toLowerCase(Locale.ROOT);
         List<String> supportedPrefixes = COMMAND_PREFIXES.getOrDefault(commandWord, List.of());
-        for (Map.Entry<String, List<String>> entry : PREFIX_VALUES.entrySet()) {
-            String prefix = entry.getKey();
-            int prefixStart = input.lastIndexOf(" " + prefix);
-            if (!supportedPrefixes.contains(prefix) || prefixStart < firstSpace) {
-                continue;
-            }
-            String partialValue = input.substring(prefixStart + prefix.length() + 1);
-            List<String> matches = entry.getValue().stream()
-                    .filter(value -> value.regionMatches(true, 0, partialValue, 0, partialValue.length()))
-                    .toList();
-            if (matches.size() == 1) {
-                return setCommandText(input.substring(0, prefixStart + prefix.length() + 1) + matches.getFirst());
-            }
+        int argsOffset = firstSpace + 1;
+        List<MatchResult> prefixes = ArgumentTokenizer.findSingleLetterPrefixes(input.substring(argsOffset));
+        if (prefixes.isEmpty()) {
+            return false;
         }
-        return false;
+        MatchResult lastMatch = prefixes.getLast();
+        String prefix = lastMatch.group(1);
+        List<String> allowedValues = PREFIX_VALUES.get(prefix);
+        if (allowedValues == null || !supportedPrefixes.contains(prefix)) {
+            return false;
+        }
+        int valueStart = argsOffset + lastMatch.end();
+        String partialValue = input.substring(valueStart).stripLeading();
+        if (partialValue.isEmpty()) {
+            return false;
+        }
+        List<String> matches = allowedValues.stream()
+                .filter(value -> value.regionMatches(true, 0, partialValue, 0, partialValue.length()))
+                .toList();
+        if (matches.size() != 1) {
+            return false;
+        }
+        return setCommandText(input.substring(0, valueStart) + matches.getFirst());
     }
 
     /** Adds the first required tag prefix after a tag command target has been entered. */
     private boolean autocompleteTagField(String input) {
         String commandPrefix = TagCommand.COMMAND_WORD + " ";
-        if (!input.regionMatches(true, 0, commandPrefix, 0, commandPrefix.length())
-                || input.contains(" " + PREFIX_TAG)) {
+        if (!input.regionMatches(true, 0, commandPrefix, 0, commandPrefix.length())) {
+            return false;
+        }
+        String arguments = input.substring(commandPrefix.length());
+        if (!ArgumentTokenizer.findSingleLetterPrefixes(arguments).isEmpty()) {
             return false;
         }
         return setCommandText(input + " " + PREFIX_TAG);

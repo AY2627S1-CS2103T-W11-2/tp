@@ -12,6 +12,7 @@ import seedu.boothmanagerpro.commons.core.GuiSettings;
 import seedu.boothmanagerpro.commons.core.LogsCenter;
 import seedu.boothmanagerpro.logic.commands.Command;
 import seedu.boothmanagerpro.logic.commands.CommandResult;
+import seedu.boothmanagerpro.logic.commands.HelpCommand;
 import seedu.boothmanagerpro.logic.commands.ViewCommand;
 import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.logic.parser.AddressBookParser;
@@ -57,7 +58,7 @@ public class LogicManager implements Logic {
 
     /**
      * Executes a command or resolves a pending numbered view choice, saving only address-book mutations.
-     * A successfully parsed command cancels the previous pending choice, even if execution fails.
+     * A successfully parsed non-help command cancels the previous pending choice, even if execution fails.
      * If saving fails or execution fails, any changes made to the in-memory model are rolled back
      * to prevent unpersisted state from leaking or being persisted later.
      *
@@ -77,14 +78,20 @@ public class LogicManager implements Logic {
             }
             throw e;
         }
-        // A new recognized command cancels the previous selection, even if its execution fails.
-        pendingViewChoices = List.of();
+        // Any recognized command other than help cancels the previous selection, even if its execution fails.
+        if (!(command instanceof HelpCommand)) {
+            pendingViewChoices = List.of();
+        }
         ReadOnlyAddressBook previousAddressBook = new AddressBook(model.getAddressBook());
         Predicate<? super Person> previousPredicate = model.getFilteredPersonListPredicate();
         Comparator<Person> previousComparator = model.getPersonListComparator();
 
         CommandResult commandResult = executeOrRollback(
                 command, previousAddressBook, previousPredicate, previousComparator);
+
+        if (command instanceof HelpCommand && !pendingViewChoices.isEmpty()) {
+            commandResult = new CommandResult(commandResult.getFeedbackToUser() + "\n\n" + pendingViewPrompt);
+        }
 
         if (command instanceof ViewCommand) {
             pendingViewChoices = commandResult.getViewChoices();

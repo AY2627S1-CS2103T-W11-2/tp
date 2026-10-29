@@ -37,7 +37,8 @@ public class HelpCommand extends Command {
                     "view n/NAME",
                     "view n/Alicia Tan"),
             formatCommandHelp(5, UpdateCommand.COMMAND_WORD,
-                    "Updates supplied fields. Empty f/ clears the follow-up date; empty t/ clears all tags.",
+                    "Updates supplied fields. Empty m/ clears the contact method; "
+                            + "empty f/ clears the follow-up date; empty t/ clears all tags.",
                     "update NAME_OR_INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] "
                             + "[s/STATUS] [f/YYYYMMDD] [t/TAG]...",
                     "update Alicia Tan s/Completed f/20261028"),
