@@ -48,8 +48,8 @@ public class Email {
 
     /**
      * Returns true if a given string is a valid email.
-     * Enforces RFC 5321 length guardrails (maximum 254 characters total, 64 characters for the local part,
-     * and 255 characters for the domain part) before evaluating the validation pattern.
+     * Enforces RFC 5321 length guardrails (maximum 254 characters total and 64 characters for the local part)
+     * before evaluating the validation pattern.
      */
     public static boolean isValidEmail(String test) {
         requireNonNull(test);
@@ -62,7 +62,7 @@ public class Email {
             return false;
         }
         String domain = trimmed.substring(atIndex + 1);
-        if (domain.isEmpty() || domain.length() > MAX_DOMAIN_PART_LENGTH) {
+        if (domain.isEmpty()) {
             return false;
         }
         return VALIDATION_PATTERN.matcher(trimmed).matches();
