@@ -46,8 +46,8 @@ public class ViewCommandParserTest {
     @Test
     public void parse_unknownPrefixOrUnprefixedValue_failure() {
         for (String args : new String[]{"x/test", "n/Alice c/Acme",
-            "n/Alicia p/12345678", "m/email n/Alicia", "n/Alicia x/test", "n/Alicia i/1", "n/Alicia/extra",
-            "n/Raj s/o Kumar c/Acme", "n/Raj s/o"}) {
+            "n/Alicia p/12345678", "m/email n/Alicia", "n/Alicia x/test", "n/Alicia i/1",
+            "n/Raj s/o Kumar c/Acme", "n/Raj s/o", "n/Raj s/o/Kumar"}) {
             assertParseFailure(parser, args, ViewCommandParser.MESSAGE_UNKNOWN_FIELD);
         }
     }
@@ -70,7 +70,7 @@ public class ViewCommandParserTest {
     @Test
     public void parse_invalidName_failure() {
         for (String name : new String[]{"123", "Alicia2", "...", "---", "Alicia!",
-            "Raj2 s/o Kumar", "A".repeat(81)}) {
+            "John/Doe", "Alicia/extra", "/", "Raj s/o Kumar Jr/Sr", "Raj2 s/o Kumar", "A".repeat(81)}) {
             assertParseFailure(parser, "n/" + name, ViewCommandParser.MESSAGE_INVALID_NAME);
         }
     }

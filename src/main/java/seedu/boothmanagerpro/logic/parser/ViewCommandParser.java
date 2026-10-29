@@ -5,7 +5,6 @@ import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_NAME;
 
 import java.util.List;
 import java.util.regex.MatchResult;
-import java.util.regex.Pattern;
 
 import seedu.boothmanagerpro.logic.commands.ViewCommand;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
@@ -25,7 +24,6 @@ public class ViewCommandParser implements Parser<ViewCommand> {
 
     /** Contact fields that view does not accept, which are reported as a missing name when used alone. */
     private static final String OTHER_CONTACT_FIELD = "[cepmstfa]/";
-    private static final Pattern PATRONYMIC_IN_NAME = Pattern.compile("(?<=\\S)\\s+(?i:[sd]/o)\\s+(?=\\S)");
 
     /**
      * Parses exactly one {@code n/} field containing a name query.
@@ -70,18 +68,12 @@ public class ViewCommandParser implements Parser<ViewCommand> {
     }
 
     /**
-     * Validates the name query. A slash left after removing {@code s/o} and {@code d/o} is an unsupported field.
+     * Validates a non-empty name query using the shared {@link Name} rules.
      */
     private Name parseName(String name) throws ParseException {
         if (name.isEmpty()) {
             throw new ParseException(MESSAGE_EMPTY_NAME);
         }
-        if (Name.isValidName(name)) {
-            return new Name(name);
-        }
-        if (PATRONYMIC_IN_NAME.matcher(name).replaceAll(" ").contains("/")) {
-            throw new ParseException(MESSAGE_UNKNOWN_FIELD);
-        }
-        throw new ParseException(MESSAGE_INVALID_NAME);
+        return ParserUtil.parseName(name);
     }
 }

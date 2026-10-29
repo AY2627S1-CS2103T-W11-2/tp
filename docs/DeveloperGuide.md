@@ -952,6 +952,7 @@ Start with the sample data and run `list` first. Each command below is rejected 
 | `n/` before a tag target | `tag n/Alex Yeoh t/vip` | `Don't include n/ for tag. Use: tag NAME_OR_INDEX t/TAG [t/TAG]...` |
 | View without a prefix | `view alex` | `view needs the n/ prefix before the name. Use: view n/NAME, e.g. view n/Alicia Tan` |
 | View with an empty name | `view n/` | `Name cannot be empty. Use: view n/NAME, e.g. view n/Alicia Tan` |
+| View with invalid slash in name | `view n/John/Doe` | `Names must be 1 to 80 characters and contain a letter. Use only letters, spaces, hyphens, apostrophes, full stops, or s/o and d/o between words.` |
 | Phone with a disallowed character | `add n/Chris Tan c/Example Ltd e/chris@example.com p/(65) 6123-4567` | `Invalid value for p/: Phone number can only contain digits, spaces, hyphens, and a + at the start.` |
 | Phone with too few digits | `add n/Chris Tan c/Example Ltd e/chris@example.com p/123` | `Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +.` |
 
