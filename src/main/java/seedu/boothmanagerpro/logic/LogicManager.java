@@ -92,6 +92,9 @@ public class LogicManager implements Logic {
         if (command instanceof ViewCommand) {
             pendingViewChoices = commandResult.getViewChoices();
             pendingViewPrompt = commandResult.getFeedbackToUser();
+            if (!pendingViewChoices.isEmpty()) {
+                assert !pendingViewPrompt.isBlank() : "Selection prompt must not be empty when view choices exist";
+            }
             logger.fine("View request completed; pending choices: " + pendingViewChoices.size());
             return commandResult;
         }
@@ -154,6 +157,7 @@ public class LogicManager implements Logic {
 
     /** Returns the valid-range error followed by the pending prompt, so the user can see the choices to retry. */
     private CommandException createInvalidSelectionException() {
+        assert !pendingViewPrompt.isBlank() : "Pending view prompt should not be blank";
         return new CommandException(String.format(MESSAGE_VIEW_SELECTION, pendingViewChoices.size())
                 + "\n" + pendingViewPrompt);
     }
