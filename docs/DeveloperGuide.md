@@ -245,7 +245,7 @@ All contact workflows share `Person` and its validated value objects.
 | Attribute | Shared contract |
 | --- | --- |
 | Name | `Name` owns validation: 1-80 Unicode code points, at least one letter, digits and supported punctuation, and `s/o`, `d/o`, `a/l`, or `a/p` between words. `view` uses the same validator as `add` and prefixed `find`. |
-| Company | `Optional<Company>`; required by `add`, absent in legacy records. `find c/` matches the complete value ignoring case. |
+| Company | `Optional<Company>`; required by `add`, absent in legacy records. `find c/` matches full or partial values, ignoring case. |
 | Email / phone | Emails are stored lowercase. Phones preserve formatting and support extensions and multiple numbers; phone searches validate partial numbers separately and ignore spaces, hyphens, dots, and parentheses when matching. |
 | Contact method | `Optional<ContactMethod>`; `email`, `phone`, or `other`. An absent method is shown as `Not specified` and does not match `find m/`. |
 | Follow-up date | `Optional<FollowUpDate>`; validated and stored in JSON as `YYYYMMDD`, formatted as `d MMM uuuu` (e.g. `25 Oct 2026`) for display, and shown as `None` when absent. |
@@ -479,8 +479,8 @@ Planned requirements for BoothManagerPro; implementation status is tracked separ
 | US-07 | `***` | organiser | see clear errors for missing or invalid fields | I can correct my input. |
 | US-08 | `**` | first-time organiser | see features and usage instructions | I know how to begin. |
 | US-09 | `**` | organiser | update contact details | my records stay accurate. |
-| US-10 | `**` | organiser | find contacts by full names or whole name words, company, email, or phone | I can locate contacts quickly. |
-| US-11 | `**` | organiser | filter contacts by enquiry status `[Coming soon]` | I can review each enquiry stage. |
+| US-10 | `**` | organiser | find contacts by full names or whole name words, company, email, phone, or contact method | I can locate contacts quickly. |
+| US-11 | `**` | organiser | filter contacts by enquiry status | I can review each enquiry stage. |
 | US-12 | `**` | organiser | combine search fields and alternatives | I can narrow my results. |
 | US-13 | `**` | organiser | set enquiry status to Needs follow-up, In progress, Completed, or Cancelled | I can track progress. |
 | US-14 | `**` | organiser | set a next follow-up date | I know when to contact someone again. |
@@ -491,7 +491,7 @@ Planned requirements for BoothManagerPro; implementation status is tracked separ
 | US-36 | `**` | organiser | sort the contact list by name, company, or enquiry status | I can scan contacts in a predictable order and see who needs follow-up first. |
 
 - **US-05:** Duplicates share a normalised email or a name-and-company combination.
-- **US-11:** Enquiry-status filtering is planned (`[Coming soon]`; see [Appendix: Planned Enhancements](#appendix-planned-enhancements)). `list o/status` sorts all contacts by status; it does not filter them.
+- **US-11:** `find s/STATUS` filters contacts by enquiry status, for example `find s/In progress`. Separately, `list o/status` sorts all contacts by status without filtering them.
 - **US-12:** Repeated values within a field use OR; different fields use AND.
 - **US-15:** `find f/YYYYMMDD` matches one exact follow-up date, including a date supplied by the user for today. It does not automatically select today or include earlier dates. Automatic due or overdue filtering remains planned (`[Coming soon]`; see [Appendix: Planned Enhancements](#appendix-planned-enhancements)).
 
@@ -665,7 +665,7 @@ Use case ends.
 
 **MSS**
 
-1. Organiser requests to find contacts using name keywords, or one or more name, company, email, phone, tag, or follow-up date criteria.
+1. Organiser requests to find contacts using name keywords, or one or more name, company, email, phone, contact method, enquiry status, tag, or follow-up date criteria.
 2. BoothManagerPro reports the number of matching contacts, updates the displayed contact index set, and displays each match with its index and contact details.
 
 Use case ends.
@@ -673,8 +673,8 @@ Use case ends.
 **Matching rules**
 
 * Values for the same field are combined using OR; criteria for different fields are combined using AND.
-* Unprefixed keywords match whole name words using OR. Prefixed name criteria match a complete name or a single whole name word; other fields match complete values.
-* Name, company, email, and tag comparisons ignore case and surrounding spaces; phone comparisons ignore spaces, hyphens, full stops, and parentheses; follow-up date criteria match the exact calendar date (`YYYYMMDD`) and exclude contacts without a date.
+* Unprefixed keywords match whole name words using OR. Prefixed name criteria match a complete name or a single whole name word. Company, email, and phone criteria (`c/`, `e/`, `p/`) match full or partial values; contact method, enquiry status, tag, and follow-up date criteria (`m/`, `s/`, `t/`, `f/`) match complete values.
+* Name, company, email, contact method, enquiry status, and tag comparisons ignore case and surrounding spaces; phone comparisons ignore spaces, hyphens, full stops, and parentheses; follow-up date criteria match the exact calendar date (`YYYYMMDD`) and exclude contacts without a date.
 * Repeated identical search values are ignored.
 
 **Extensions**
@@ -811,7 +811,7 @@ These are requirements for the intended product, not claims that every target ha
 * **Enquiry**: An exchange between an organiser and an exhibitor about the exhibitor taking part in a convention
 * **Enquiry status**: The stage an exhibitor's enquiry has reached: `Needs follow-up`, `In progress`, `Completed`, or `Cancelled`. Also referred to as *status*
 * **Exhibitor**: An organisation that is interested in, or has been invited to, take a booth at a convention
-* **Exact match**: A search result where the search value matches the complete field value after its field-specific normalisation, not just part of it. For example, `find c/Tech` does not match company "TechNova". Name criteria additionally accept a whole name word, so `find n/Alicia` matches "Alicia Tan".
+* **Exact match**: A search result where the search value matches the complete field value after its field-specific normalisation, not just part of it. Contact method, enquiry status, tag, and follow-up date criteria use exact matching; for example, `find t/tech` does not match the tag "technology". Name criteria additionally accept a whole name word, so `find n/Alicia` matches "Alicia Tan". Company, email, and phone criteria match partial values instead, so `find c/Tech` matches "TechNova".
 * **Index**: The number shown beside a contact in a displayed list, used to select a specific contact when several share the same name
 * **Mainstream OS**: Windows, Linux, Unix, and macOS
 * **Normalisation**: Converting input to a standard form before storing or comparing it, such as lowercasing emails, collapsing repeated spaces in names, and removing formatting from phone numbers for search comparisons

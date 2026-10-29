@@ -46,15 +46,17 @@ Used to track contact details, it is best suited to organisers who:
 
 ## Core features
 
-BoothManagerPro's MVP centres on five contact-management workflows:
+BoothManagerPro centres on these contact-management workflows:
 
-1. **Add:** Save name, company, email, phone, optional contact method, and tags, with validation and duplicate detection.
+1. **Add:** Save name, company, email, phone, optional contact method, enquiry status, follow-up date, and tags, with validation and duplicate detection.
 1. **Delete:** Remove a contact by full name or displayed index; ambiguous names require an index.
-1. **List:** Display all contacts and their details, with a total count.
+1. **List:** Display all contacts and their details, with a total count, optionally sorted by name, company, or enquiry status.
 1. **View:** Search by name keywords and select a contact to see its full details.
-1. **Find and filter:** Match full names or whole name words and complete company, email, phone, tag, or follow-up date values; combine alternatives and criteria.
+1. **Update:** Change any contact field, by full name or displayed index.
+1. **Tag:** Toggle tags on a contact, by full name or displayed index.
+1. **Find and filter:** Match full names or whole name words (`n/`), partial company, email, or phone values (`c/`, `e/`, `p/`), and complete contact method, enquiry status, tag, or follow-up date values (`m/`, `s/`, `t/`, `f/`); alternatives within a field use OR, and different fields use AND.
 
-The `clear` command is also available. Add supports optional enquiry status and follow-up dates. Use `update` to change any contact field and `tag` to toggle tags by name or displayed index. Exact follow-up-date filtering is available; filtering by status or contact method remains planned. See the [User Guide](docs/UserGuide.md) for full syntax and examples.
+The `clear` command is also available. See the [User Guide](docs/UserGuide.md) for full syntax and examples.
 
 ### Future enhancements
 
@@ -63,11 +65,10 @@ The `clear` command is also available. Add supports optional enquiry status and 
 
 ## Getting started
 
-To build and run the current development version, see the [development setup guide](docs/SettingUp.md). The [User Guide](docs/UserGuide.md) covers all five workflows and the remaining inherited commands.
+To build and run the current development version, see the [development setup guide](docs/SettingUp.md). The [User Guide](docs/UserGuide.md) covers every command, including `update`, `tag`, and list sorting.
 
 ## Documentation
 
-<!-- Jenna (Docs & Links, Integration): Review these links alongside the final feature list and integrated README. -->
 - [User Guide](docs/UserGuide.md) - Learn how to use the application.
 - [Developer Guide](docs/DeveloperGuide.md) - Understand the architecture and development practices.
 - [Development setup](docs/SettingUp.md) - Set up the project to build and run locally.

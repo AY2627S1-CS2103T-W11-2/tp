@@ -105,7 +105,7 @@ Manual check in a separate test folder:
 
 Add-error regression coverage also checks grouped missing/repeated prefixes, unknown-prefix identification, empty fields, field-specific validation messages, and error precedence. `ExhibitorAddIntegrationTest` verifies that invalid input and a contact conflicting with two existing records preserve the complete contact list, current filter, and saved JSON.
 
-`MainWindowTest` exercises the actual FXML and typed commands. It verifies an empty startup prompt with saved contacts intact, numbered find/list output, filtered update/delete indices, view replies and cancellation, error recovery, keyboard focus/help/exit, and the absence of contact-list and details panels. Responsive UI previews are written to `build/reports/ui/cli-startup.png`, `cli-find.png`, `cli-list.png`, `cli-view.png`, and `cli-compact.png`.
+`MainWindowTest` exercises the actual FXML and typed commands. It verifies an empty startup prompt with saved contacts intact, numbered find/list output, filtered update/delete indices, view replies and cancellation, error recovery, keyboard focus/help/exit, and the absence of contact-list and details panels. UI previews are written to `build/reports/ui/`: `cli-startup.png`, `cli-find.png`, `cli-find-date.png`, `cli-list.png`, `cli-view.png`, `cli-status.png`, `cli-compact.png`, and `cli-recovery-warning.png`, plus the User Guide screenshots `ug-startup.png`, `ug-add.png`, `ug-list.png`, `ug-view.png`, `ug-find.png`, and `ug-delete.png`.
 
 Tag-order regression coverage runs `update` with repeated tags, verifies first-occurrence order after JSON reload, and checks the same order in update, list, and view feedback. Unsupported update prefixes must leave the contact and saved JSON unchanged.
 
