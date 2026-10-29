@@ -56,8 +56,9 @@ public class UpdateCommand extends Command {
         rejectDuplicates(model, original, updated);
         model.setPerson(original, updated);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        logger.info("Successfully updated contact: " + AddCommand.formatIdentity(updated));
-        return new CommandResult("Updated " + AddCommand.formatIdentity(updated) + ".");
+        String identity = AddCommand.formatIdentity(updated);
+        logger.info("Successfully updated contact: " + identity);
+        return new CommandResult("Updated " + identity + (identity.endsWith(".") ? "" : "."));
     }
 
     /** Resolves ambiguity without selecting an arbitrary matching contact. */
