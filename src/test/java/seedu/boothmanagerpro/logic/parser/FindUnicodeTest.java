@@ -34,12 +34,14 @@ public class FindUnicodeTest {
     }
 
     @Test
-    public void find_unicodeName_keepsExactMatchingAndFieldCombinations() throws Exception {
+    public void find_unicodeName_matchesWholeWordsAndKeepsFieldCombinations() throws Exception {
         Person person = new PersonBuilder().withName("\u0130pek Tan").withTags("vip").build();
         Model model = new ModelManager();
         model.addPerson(person);
         FindCommandParser parser = new FindCommandParser();
         parser.parse("n/ipek").execute(model);
+        assertEquals(List.of(person), List.copyOf(model.getFilteredPersonList()));
+        parser.parse("n/ipe").execute(model);
         assertEquals(List.of(), List.copyOf(model.getFilteredPersonList()));
         parser.parse("n/Nobody n/ipek tan t/VIP").execute(model);
         assertEquals(List.of(person), List.copyOf(model.getFilteredPersonList()));
