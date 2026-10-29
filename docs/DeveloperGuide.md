@@ -249,7 +249,7 @@ All contact workflows share `Person` and its validated value objects.
 | Email / phone | Stored lowercase email and normalised phone; search validates through the same value objects as `add`. |
 | Contact method | `Optional<ContactMethod>`; `email`, `phone`, or `other`. An absent method is shown as `Not specified`. Not a search criterion. |
 | Follow-up date | `Optional<FollowUpDate>`; validated and stored in JSON as `YYYYMMDD`, formatted as `d MMM uuuu` (e.g. `25 Oct 2026`) for display, and shown as `None` when absent. |
-| Tags | Exact duplicates collapse on `add`. Search ignores case and matches whole tags. `add`, `update`, `tag`, storage, and command feedback preserve stored order. Empty tags show `None` in text and on cards. |
+| Tags | Case-insensitive duplicates collapse on `add` and `update` while preserving display casing; consecutive spaces collapse. Search ignores case and matches whole tags. `add`, `update`, `tag`, storage, and command feedback preserve stored order. Empty tags show `None` in text and on cards. |
 | Storage | JSON stores `company`, `contactMethod`, `enquiryStatus`, and `followUpDate`; absent optional fields become empty optionals or default to `Needs follow-up`. The legacy address remains for compatibility. |
 
 | Feature | Selection / result |
@@ -297,7 +297,7 @@ Legacy address is preserved. Supplied tags replace the tag set; a sole blank `t/
 
 1. `AddressBookParser` routes `tag` to `TagCommandParser`, which rejects unsupported prefixes, requires a target and at least one `t/TAG` field, and validates each tag through `ContactFieldParser` and `Tag`. Duplicate `t/TAG` inputs in the same command collapse in input order.
 2. `TagCommand` follows the same execution flow illustrated in the update sequence diagram above: `resolveTarget` resolves a one-based index against `Model#getFilteredPersonList()` or an exact case-insensitive full name against `Model#getAddressBook()`, failing before mutation when the target is missing or ambiguous.
-3. Unlike `UpdateCommand`, `TagCommand` does not construct a `ContactUpdate` or run `rejectDuplicates`, because toggling tags never alters email, name, or company identity. Instead, each supplied tag is toggled against a copy of the contact's existing tag set using `Tag#equals` (case-sensitive): absent tags are appended and recorded as added, while present tags are removed and recorded as removed.
+3. Unlike `UpdateCommand`, `TagCommand` does not construct a `ContactUpdate` or run `rejectDuplicates`, because toggling tags never alters email, name, or company identity. Instead, each supplied tag is toggled against a copy of the contact's existing tag set using `Tag#equals` (case-insensitive): absent tags are appended and recorded as added, while present tags are removed and recorded as removed.
 4. `TagCommand` constructs a replacement `Person` with all other attributes preserved, calls `Model#setPerson`, resets the filtered list, and returns `Updated tags for NAME at COMPANY. Added: .... Removed: .... Current tags: ....` (`None` when a tag list is empty), after which `LogicManager` saves the updated address book.
 5. `TagIntegrationTest` and `MainWindowTest` verify toggling, exact change summaries, target resolution, persistence, and unchanged state on rejection.
 
@@ -919,8 +919,8 @@ Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibit
 1. Prerequisites: Ensure a uniquely named contact exists (`add n/Ben Lim c/GreenWorks e/ben@example.com p/87654321 t/priority`).
 1. Toggle existing and new tags by name: `tag Ben Lim t/priority t/sponsor t/keynote`<br>
    Expected: Output states `Updated tags for Ben Lim at GreenWorks. Added: sponsor, keynote. Removed: priority. Current tags: sponsor, keynote.` Running `view n/Ben Lim` shows `sponsor` and `keynote` chips on the card.
-1. Toggle by displayed index and verify case-sensitivity: Run `list`, then `tag 1 t/VIP` followed by `tag 1 t/vip` (adjust index if needed).<br>
-   Expected: Both `VIP` and `vip` are added as distinct tags; repeating `tag 1 t/VIP` removes only `VIP`.
+1. Toggle by displayed index and verify case-insensitivity: Run `list`, then `tag 1 t/VIP` followed by `tag 1 t/vip` (adjust index if needed).<br>
+   Expected: `t/VIP` adds `VIP`, and `tag 1 t/vip` removes `VIP` rather than adding a duplicate lowercase tag.
 1. Invalid tag commands: Try `tag Ben Lim`, `tag Ben Lim t/`, `tag Ben Lim s/Completed`, and `tag 999999 t/vip`.<br>
    Expected: Rejected with an error explanation; contacts, filter, and `data/addressbook.json` remain unchanged.
 
@@ -1053,17 +1053,12 @@ The features and improvements below represent acknowledged limitations, unfulfil
 * **Current behavior:** `CommandBox` Tab autocomplete checks the last textual prefix in a fixed canonical sequence (`n/` → `c/` → `e/` → `p/`). If an organizer enters fields in a non-canonical order (e.g. `add c/Acme n/Alicia Tan` and presses Tab), the completion logic appends `c/` because `n/` was the last prefix found, resulting in a duplicate prefix error.
 * **Proposed enhancement:** Update autocomplete to parse the command buffer into recognized prefix tokens, identifying which required fields are already present and proposing only the next *unsupplied* prefix.
 
-### 6. Case-insensitive tag matching and search
-
-* **Current behavior:** Tag toggling via `tag` uses case-sensitive matching (`Tag#equals`), so `VIP` and `vip` can coexist as distinct tags on the same contact. Meanwhile, name, company, email, and find queries use case-insensitive matching.
-* **Proposed enhancement:** Standardize tag equality to case-insensitive comparison (folding case or storing lowercase tags while preserving display casing), preventing accidental creation of casing variations of the same conceptual tag.
-
-### 7. Direct contact archiving (`archive`)
+### 6. Direct contact archiving (`archive`)
 
 * **Current behavior:** Contacts whose enquiries are finished (`Completed` or `Cancelled`) must either remain in the main address book or be permanently removed with `delete`.
 * **Proposed enhancement:** Add an `archive NAME_OR_INDEX` command that moves inactive contacts from `data/addressbook.json` into an `archive.json` file. An accompanying `list archive` command will allow viewing archived contacts without cluttering active convention workflows.
 
-### 8. Double-click launch warning and write-protection detection
+### 7. Double-click launch warning and write-protection detection
 
 * **Current behavior:** If the user attempts to launch `boothmanagerpro.jar` by double-clicking in an OS environment with an incompatible default file association or runs the JAR in a write-protected directory, the application may fail to start or report an unhandled file access error without clear graphical user guidance.
 * **Proposed enhancement:** Add a lightweight pre-launch check that displays an explicit JavaFX dialog or alert prompt if write permissions are absent in the working directory, providing instructions to launch via terminal or grant folder permissions.

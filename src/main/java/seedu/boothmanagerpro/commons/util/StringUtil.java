@@ -40,6 +40,18 @@ public class StringUtil {
     }
 
     /**
+     * Folds each Unicode code point using the same two-step ({@code toUpperCase} then {@code toLowerCase})
+     * case equivalence as {@link String#equalsIgnoreCase}.
+     */
+    public static String foldCase(String value) {
+        requireNonNull(value);
+        StringBuilder folded = new StringBuilder();
+        value.codePoints().map(Character::toUpperCase).map(Character::toLowerCase)
+                .forEach(folded::appendCodePoint);
+        return folded.toString();
+    }
+
+    /**
      * Returns a detailed message of {@code t}, including the stack trace.
      */
     public static String getDetails(Throwable t) {

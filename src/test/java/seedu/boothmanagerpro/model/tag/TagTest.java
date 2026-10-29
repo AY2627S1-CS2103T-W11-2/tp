@@ -13,16 +13,25 @@ import org.junit.jupiter.api.Test;
 public class TagTest {
 
     @Test
-    public void equality_trimmedDuplicatesCollapseButCaseIsPreserved() {
+    public void equality_caseInsensitiveAndInternalSpacesCollapsedWhileDisplayCasePreserved() {
         Tag tag = new Tag(" high-priority ");
         Tag duplicate = new Tag("high-priority");
+        Tag capitalised = new Tag("High-priority");
+        assertEquals("High-priority", capitalised.tagName);
         assertTrue(tag.equals(tag));
         assertTrue(tag.equals(duplicate));
+        assertTrue(tag.equals(capitalised));
         assertEquals(tag.hashCode(), duplicate.hashCode());
+        assertEquals(tag.hashCode(), capitalised.hashCode());
         assertFalse(tag.equals(null));
         assertFalse(tag.equals("high-priority"));
-        assertFalse(tag.equals(new Tag("High-priority")));
-        assertEquals(2, new LinkedHashSet<>(List.of(tag, duplicate, new Tag("High-priority"))).size());
+        assertFalse(tag.equals(new Tag("low-priority")));
+        assertEquals(1, new LinkedHashSet<>(List.of(tag, duplicate, capitalised)).size());
+
+        Tag multiSpaced = new Tag("  High   \t  Priority  ");
+        assertEquals("High Priority", multiSpaced.tagName);
+        assertEquals(new Tag("high priority"), multiSpaced);
+        assertEquals(new Tag("high priority").hashCode(), multiSpaced.hashCode());
     }
 
     @Test

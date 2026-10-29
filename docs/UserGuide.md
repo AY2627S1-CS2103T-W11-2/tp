@@ -117,7 +117,7 @@ Format: `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD]
 | `m/METHOD` | Optional: `email`, `phone`, or `other`, ignoring case. Omitted method is `Not specified`. |
 | `s/STATUS` | Optional: `Needs follow-up` (default), `In progress`, `Completed`, or `Cancelled`, ignoring case. |
 | `f/YYYYMMDD` | Optional calendar date, e.g. `20261025`; omitted date displays as `None`. Years 0001-9999; invalid dates are rejected. |
-| `t/TAG` | Optional and repeatable: 1-30 characters, nonblank, without `/`. Identical tags are ignored; comparisons are case-sensitive. |
+| `t/TAG` | Optional and repeatable: 1-30 characters, nonblank, without `/`. Consecutive spaces are collapsed; comparisons are case-insensitive while preserving the first supplied casing. |
 
 Leading and trailing spaces are removed from field values. Fields can appear in any order. Only `t/` may repeat. Dates contain no time or timezone; past dates are accepted. Omit `f/` for no date (do not enter `f/none`). Status does not advance automatically. `add` does not accept a postal address (`a/`).
 
@@ -325,7 +325,7 @@ Format: `tag NAME_OR_INDEX t/TAG [t/TAG]...`
 
 - Use an exact full name, ignoring case, or a displayed index from `list`, `find`, or `view` (`tag 2 t/vip`). Name lookup includes contacts hidden by a filter; ambiguous names require a displayed index.
 - Supply at least one nonblank `t/TAG` field (`1-30` characters, without `/`). Repeated identical `t/TAG` values in the same command are ignored in input order.
-- Tag matching is case-sensitive, consistent with `add` and `update`: `t/VIP` and `t/vip` are distinct tags.
+- Tag matching is case-insensitive, consistent with `add`, `update`, and `find`: `t/VIP` and `t/vip` refer to the same tag, and consecutive internal spaces are collapsed.
 - Only `t/` is accepted. Unknown prefixes, missing or blank `t/`, and invalid targets are rejected without changing contacts, filters, or saved data.
 - Don't put `n/` before the contact: `tag n/Alicia Tan t/vip` shows `Don't include n/ for tag. Use: tag NAME_OR_INDEX t/TAG [t/TAG]...`. Invalid indexes show the same messages as [`update`](#updating-an-exhibitor-contact-update).
 - Success prints the exact tag changes made (`Updated tags for NAME at COMPANY. Added: .... Removed: .... Current tags: ....`), clears the filter and command input, and retains keyboard focus. All other contact attributes remain unchanged.

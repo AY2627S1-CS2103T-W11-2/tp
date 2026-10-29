@@ -8,6 +8,9 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import seedu.boothmanagerpro.commons.util.StringUtil;
+import seedu.boothmanagerpro.model.tag.Tag;
+
 /**
  * Matches full names or name words and complete other fields, with OR within a field and AND across fields.
  * Criteria are copied so that changes to the caller's collections cannot affect a search.
@@ -29,10 +32,10 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
         if (field.equals("c/")) {
             return foldCompany(value);
         }
-        String nfc = Normalizer.normalize(value, Normalizer.Form.NFC).strip();
         if (field.equals("t/")) {
-            return foldCase(nfc);
+            return StringUtil.foldCase(Tag.normaliseWhitespace(value));
         }
+        String nfc = Normalizer.normalize(value, Normalizer.Form.NFC).strip();
         String result = nfc.toLowerCase(Locale.ROOT);
         return field.equals("p/") ? result.replace(" ", "").replace("-", "") : result;
     }
@@ -42,7 +45,7 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
      * then folds each code point to its case-equivalent.
      */
     private static String foldCompany(String value) {
-        return foldCase(Company.normaliseWhitespace(value));
+        return StringUtil.foldCase(Company.normaliseWhitespace(value));
     }
 
     /**
@@ -57,14 +60,7 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
      */
     private static String foldName(String value) {
         String nfc = Normalizer.normalize(value, Normalizer.Form.NFC);
-        return foldCase(Name.normaliseWhitespace(nfc));
-    }
-    /** Folds code points using the same case equivalence as String.equalsIgnoreCase. */
-    private static String foldCase(String value) {
-        StringBuilder folded = new StringBuilder();
-        value.codePoints().map(Character::toUpperCase).map(Character::toLowerCase)
-                .forEach(folded::appendCodePoint);
-        return folded.toString();
+        return StringUtil.foldCase(Name.normaliseWhitespace(nfc));
     }
 
     @Override
