@@ -81,7 +81,7 @@ class JsonAdaptedPerson {
      */
     public JsonAdaptedPerson(Person source) {
         enquiryStatus = source.getEnquiryStatus().toString();
-        followUpDate = source.getFollowUpDate().map(Object::toString).orElse(null);
+        followUpDate = source.getFollowUpDate().map(FollowUpDate::toIsoDate).orElse(null);
         name = source.getName().fullName;
         phone = source.getPhone().value;
         email = source.getEmail().value;
@@ -102,6 +102,9 @@ class JsonAdaptedPerson {
     public Person toModelType() throws IllegalValueException {
         final List<Tag> personTags = new ArrayList<>();
         for (JsonAdaptedTag tag : tags) {
+            if (tag == null) {
+                throw new IllegalValueException("Tags list must not contain null entries.");
+            }
             personTags.add(tag.toModelType());
         }
 

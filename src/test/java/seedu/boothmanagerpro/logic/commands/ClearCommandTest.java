@@ -1,5 +1,7 @@
 package seedu.boothmanagerpro.logic.commands;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.boothmanagerpro.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.boothmanagerpro.testutil.TypicalPersons.getTypicalAddressBook;
 
@@ -27,6 +29,23 @@ public class ClearCommandTest {
         expectedModel.setAddressBook(new AddressBook());
 
         assertCommandSuccess(new ClearCommand(), model, ClearCommand.MESSAGE_SUCCESS, expectedModel);
+    }
+
+    @Test
+    public void equals() {
+        ClearCommand clearCommand = new ClearCommand();
+
+        // same object -> returns true
+        assertTrue(clearCommand.equals(clearCommand));
+
+        // same type (different instance) -> returns true
+        assertTrue(clearCommand.equals(new ClearCommand()));
+
+        // null -> returns false
+        assertFalse(clearCommand.equals(null));
+
+        // different types -> returns false
+        assertFalse(clearCommand.equals(new Object()));
     }
 
 }

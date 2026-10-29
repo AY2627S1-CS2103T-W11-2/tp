@@ -43,7 +43,7 @@ This project has three types of tests:
 | `AddCommandTest` | Successful additions and duplicate rejection. |
 | `ExhibitorFieldsTest` | Field constraints and exhibitor identity rules. |
 | `PersonTest` / `UniquePersonListTest` | Contact identity and collection uniqueness. |
-| `ExhibitorAddIntegrationTest` | Parsing through logic, model, JSON saving/reloading, filtered-list duplicates, edit conflicts, and rejected commands leaving storage unchanged. |
+| `ExhibitorAddIntegrationTest` | Parsing through logic, model, JSON saving/reloading, filtered-list duplicates, update conflicts, and rejected commands leaving storage unchanged. |
 | `JsonAdaptedPersonTest` | Stored-field validation, including company and contact method. |
 
 Run the focused integration tests on Windows:
@@ -100,11 +100,11 @@ Manual check in a separate test folder:
 
 Add-error regression coverage also checks grouped missing/repeated prefixes, unknown-prefix identification, empty fields, field-specific validation messages, and error precedence. `ExhibitorAddIntegrationTest` verifies that invalid input and a contact conflicting with two existing records preserve the complete contact list, current filter, and saved JSON.
 
-`MainWindowTest` exercises the actual FXML and typed commands. It verifies an empty startup prompt with saved contacts intact, numbered find/list output, filtered edit/delete indices, view replies and cancellation, error recovery, keyboard focus/help/exit, and the absence of contact-list and details panels. Responsive UI previews are written to `build/reports/ui/cli-startup.png`, `cli-find.png`, `cli-list.png`, `cli-view.png`, and `cli-compact.png`.
+`MainWindowTest` exercises the actual FXML and typed commands. It verifies an empty startup prompt with saved contacts intact, numbered find/list output, filtered update/delete indices, view replies and cancellation, error recovery, keyboard focus/help/exit, and the absence of contact-list and details panels. Responsive UI previews are written to `build/reports/ui/cli-startup.png`, `cli-find.png`, `cli-list.png`, `cli-view.png`, and `cli-compact.png`.
 
-Tag-order regression coverage runs `edit` with repeated tags, verifies first-occurrence order after JSON reload, and checks the same order in edit, list, and view feedback. Unsupported edit prefixes must leave the contact and saved JSON unchanged.
+Tag-order regression coverage runs `update` with repeated tags, verifies first-occurrence order after JSON reload, and checks the same order in update, list, and view feedback. Unsupported update prefixes must leave the contact and saved JSON unchanged.
 
-Enquiry-field regression coverage: `EnquiryFieldsTest` checks status parsing, date boundaries/leap years, defaults, equality, and duplicate identity. `ExhibitorAddIntegrationTest` covers optional combinations, invalid input without mutation, JSON reload, and preservation through edit. `JsonAdaptedPersonTest` checks legacy defaults and invalid stored values. `MainWindowTest` checks both fields in rendered contact cards.
+Enquiry-field regression coverage: `EnquiryFieldsTest` checks status parsing, date boundaries/leap years, defaults, equality, and duplicate identity. `ExhibitorAddIntegrationTest` covers optional combinations, invalid input without mutation, JSON reload, and preservation through update. `JsonAdaptedPersonTest` checks legacy defaults and invalid stored values. `MainWindowTest` checks both fields in rendered contact cards.
 
 ## Follow-up-date search regression checks
 
@@ -123,6 +123,12 @@ Manual check in a separate test folder:
 4. Run `list o/name`, then `find f/20261025`. Use `update 1 f/20261028`; verify that the first displayed contact, not the first stored contact, changed and its other fields were preserved.
 5. Restart the app. `find f/20261028` must find the updated contact. Clear its date with `update NAME f/`, restart, and verify it no longer matches that date.
 6. With valid results visible, try `find f/`, `find f/20230229`, and `find f/2026-10-25`. Expect errors, no data changes, and no change to the model's current filtered index set. Error text may replace the visible output.
+
+## Storage recovery regression checks
+
+`StorageRecoveryTest` checks null JSON roots, null contact/tag entries, invalid JSON, unchanged source bytes after failed reads, unique recovery backups, failed-copy retry, successful manual repair, and saves through the command layer. `StartupRecoveryTest` checks the real startup fallbacks for contacts and preferences. `MainWindowTest` checks the visible loading warning and continued command entry.
+
+Manual check in a disposable folder: write `null` to `data/addressbook.json`, launch the JAR, and check the loading warning. Run `list`; verify that a same-directory `.recovery-` backup contains exactly `null`, while the active data file contains a valid empty collection. Restart and check ordinary startup. Keep all real contact files outside the test folder.
 
 ## Update regression checks
 

@@ -52,9 +52,9 @@ public class UpdateIntegrationTest {
         assertEquals("+6581234567", updated.getPhone().value);
         assertEquals("phone", updated.getContactMethod().orElseThrow().toString());
         assertEquals("Completed", updated.getEnquiryStatus().toString());
-        assertEquals("20280229", updated.getFollowUpDate().orElseThrow().toString());
+        assertEquals("29 Feb 2028", updated.getFollowUpDate().orElseThrow().toString());
         assertEquals("new, priority", Messages.formatTags(updated));
-        assertTrue(logic.execute("view n/Alice Tan").getFeedbackToUser().contains("Follow-up date: 20280229"));
+        assertTrue(logic.execute("view n/Alice Tan").getFeedbackToUser().contains("Follow-up date: 29 Feb 2028"));
     }
 
     @Test
@@ -165,7 +165,7 @@ public class UpdateIntegrationTest {
         assertTrue(logic.execute("tag Raj s/o Kumar t/vip").getFeedbackToUser()
                 .contains("Updated tags for Raj s/o Kumar at Acme. Added: vip."));
         logic.execute("list");
-        logic.execute("edit 3 n/Priya d/o Raman");
+        logic.execute("update 3 n/Priya d/o Raman");
         assertEquals("Priya d/o Raman", saved().get(2).getName().fullName);
         assertTrue(logic.execute("delete Priya d/o Raman").getFeedbackToUser()
                 .contains("Priya d/o Raman"));

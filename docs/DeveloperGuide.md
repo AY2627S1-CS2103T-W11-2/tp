@@ -169,6 +169,10 @@ The `Model` component,
 The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
+
+Invalid JSON objects and null contact/tag entries produce controlled loading errors. `MainApp` falls back to an empty contact collection and passes a visible loading warning to the UI; invalid preferences fall back to defaults. Optional legacy contact fields retain their existing defaults.
+
+`JsonAddressBookStorage` records failed loads using `DataFileRecovery`. Before the first subsequent save to that path, it copies the original bytes to a unique `.recovery-` JSON file in the same directory. Backup failure blocks the save and retains recovery protection for a retry. A successful backup or a successful reload clears that protection. Recovery files are never automatically loaded or overwritten; users must close the app and repair/restore data manually. This protection does not coordinate concurrent app instances.
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
 ### Common classes
@@ -186,17 +190,17 @@ still holds all saved contacts, but there is no contact-list widget, details wid
 
 `ListCommand` restores the full model filter, applies or clears the sort order, and prints every contact. `FindCommand` updates the filter and prints
 the match count plus every matching contact. Both use `Messages.formatNumberedContacts()` so the numbers in
-text match the one-based indices accepted by `edit` and `delete`. Empty results print a message without records.
+text match the one-based indices accepted by `update`, `tag`, and `delete`. Empty results print a message without records.
 
 `CommandResult` carries text, an exit flag, and an immutable `viewChoices` snapshot when a numbered view reply
 is required. It does not carry GUI contact-selection metadata. `MainWindow` sends the returned text to
 `ResultDisplay`, which fills the remaining workspace and scrolls for long output. Each command replaces the
 previous text; results are not a command-history transcript.
 
-Add and edit reset the model filter, and deletion shifts later indices. Users should run list or find again before
+Add, update, and tag reset the model filter, and deletion shifts later indices. Users should run list or find again before
 choosing a subsequent index. A restart keeps saved contacts and resets the output to the ready prompt.
 
-Regression tests cover text-only startup/restart, find before list, filtered edit/delete indices, view replies,
+Regression tests cover text-only startup/restart, find before list, filtered update/delete indices, view replies,
 errors, persistence, and keyboard-only operation. UI snapshots are generated as `build/reports/ui/cli-*.png`.
 
 ### Viewing an exhibitor contact
@@ -223,7 +227,7 @@ the old choice prompt. No UI selection state or deferred list listener is needed
 
 #### Shared contact attributes
 
-The five MVP workflows and the inherited edit command use `Person` and its validated value objects.
+The five MVP workflows use `Person` and its validated value objects.
 
 | Attribute | Shared contract |
 | --- | --- |
@@ -231,7 +235,7 @@ The five MVP workflows and the inherited edit command use `Person` and its valid
 | Company | `Optional<Company>`; required by add, absent in legacy records. `find c/` matches the complete value ignoring case. |
 | Email / phone | Stored lowercase email and normalised phone; search validates through the same value objects as add. |
 | Contact method | `Optional<ContactMethod>`; email, phone, or other. An absent method is shown as `Not specified`. Not a search criterion. |
-| Tags | Exact duplicates collapse on add. Search ignores case and matches whole tags. Add, edit, storage, and command feedback preserve stored order. Empty tags show `None`. |
+| Tags | Exact duplicates collapse on add. Search ignores case and matches whole tags. Add, update, storage, and command feedback preserve stored order. Empty tags show `None`. |
 | Storage | JSON uses `company` and `contactMethod`; absent fields become empty optionals. The legacy address remains for compatibility. |
 
 | Feature | Selection / result |
@@ -242,7 +246,7 @@ The five MVP workflows and the inherited edit command use `Person` and its valid
 | List | Restores every contact and displays all exhibitor attributes plus total; optionally sorts by name, company, or enquiry status (`o/name`, `o/company`, `o/status`); rejects other arguments. |
 | Find | Full names or whole name words and complete other field values, OR within each field and AND across fields; unprefixed keywords retain name-word matching. |
 
-Edit preserves company and method, rejects unsupported prefixes, and replaces tags in input order.
+Update preserves unmodified fields, rejects unsupported prefixes, and replaces tags in input order.
 `Messages.formatContactDetails()` supplies the shared list/view format; `Messages.formatTags()` and
 `Messages.formatOptional()` keep text placeholders consistent. Enquiry status and follow-up dates are included in contact details.
 
@@ -263,7 +267,7 @@ This section describes some noteworthy details on how certain features are imple
 5. The command constructs a replacement and checks every other contact for duplicate email or name/company, including hidden records. Target resolution, duplicate warnings, and successful updates are logged via `LogsCenter`. Only then does it call `Model.setPerson` and clear the filter.
 6. Existing `LogicManager` persistence saves the result; the UI shows a concise confirmation. `view`/`list`/`find` display the new attributes through the existing cards.
 
-Legacy address is preserved. Supplied tags replace the tag set; a sole blank `t/` clears it. Empty `f/` clears the follow-up date. Other empty fields fail validation. There is no new storage schema or persistent contact ID. The existing `edit` command retains its syntax.
+Legacy address is preserved. Supplied tags replace the tag set; a sole blank `t/` clears it. Empty `f/` clears the follow-up date. Other empty fields fail validation. There is no new storage schema or persistent contact ID.
 
 `UpdateIntegrationTest` covers command routing, normalisation, partial updates, clearing, duplicate rejection, ambiguity, filtered indices, and persisted JSON. Rejected requests preserve contacts, filters, and disk content. `MainWindowTest` checks confirmation, updated cards, and retained input after invalid updates.
 
@@ -293,7 +297,7 @@ Enquiry fields:
 - `EnquiryStatus` validates the four case-insensitive labels; omission defaults to `NEEDS_FOLLOW_UP`.
 - `FollowUpDate` wraps `LocalDate`, validates real calendar dates in `YYYYMMDD` (years 0001-9999), and accepts past dates. Omission is `Optional.empty()`. No time or timezone is stored.
 - JSON stores `enquiryStatus` as its display label and `followUpDate` as a date string or null. Missing/null fields in older files receive the defaults; invalid non-null values are rejected.
-- Existing edit commands preserve both fields. The `update` command changes status/date; empty `f/` clears the date. No transition order is enforced.
+- The `update` command changes status/date; empty `f/` clears the date. No transition order is enforced.
 - Neither field changes duplicate identity. List/find/view output and contact cards display both fields.
 
 Error-handling responsibilities:
@@ -309,7 +313,6 @@ Integration notes:
 
 - `Person.getCompany()` and `getContactMethod()` return optional values. New additions require company; legacy records may lack it. Omitted method displays as `Not specified`.
 - Name/company duplicate matching ignores case; contacts without a company match only by normalised email.
-- Existing edit commands preserve company/method. They do not yet accept `c/` or `m/`.
 - The legacy address field remains for compatibility, using `Not provided` for new contacts. `add` no longer accepts `a/`.
 - Prefix-like tokens are reserved. Other words between prefixes belong to that field, allowing multi-word names and companies.
 - JSON includes `company` and `contactMethod`; legacy files without them are accepted if their other values meet current validation rules.
@@ -331,7 +334,7 @@ the order they were added.
 2. `ListCommand#execute()` clears the filter, then calls `Model#updateSortedPersonList(comparator)` for a sort field,
    or `Model#resetPersonListOrder()` for plain `list`.
 3. `ModelManager` wraps its `FilteredList` in a JavaFX `SortedList`. `getFilteredPersonList()` returns the sorted
-   view, so every command that reads indices, such as `delete`, `edit`, and `update`, uses the order the user sees.
+   view, so every command that reads indices, such as `delete`, `tag`, and `update`, uses the order the user sees.
    A `null` comparator keeps the stored order.
 
 The sequence diagram below shows how `list o/name` is executed.
@@ -353,7 +356,7 @@ Status uses workflow order rather than alphabetical order, which would place `Co
 `EnquiryStatus` value therefore needs it declared in the right position to sort correctly.
 
 The comparator stays on the `SortedList` until the next plain `list`. Filters from `find` and `view`, and the filter
-reset after `add`, `update`, and `edit`, apply beneath it, so their results keep the chosen order.
+reset after `add`, `update`, and `tag`, apply beneath it, so their results keep the chosen order.
 
 **Design considerations**
 
@@ -365,7 +368,7 @@ reset after `add`, `update`, and `edit`, apply beneath it, so their results keep
   * Cons: Changes the saved file order and permanently loses the order in which contacts were added.
 * **Alternative 3:** Sort only the output inside `ListCommand`.
   * Pros: No model changes.
-  * Cons: Displayed numbers would no longer match the indices used by `delete`, `edit`, and `update`.
+  * Cons: Displayed numbers would no longer match the indices used by `delete`, `tag`, and `update`.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -505,7 +508,7 @@ Planned requirements for BoothManagerPro; implementation status is tracked separ
 | US-06 | `***` | organiser | distinguish same-name contacts when viewing or deleting | I select the correct record. |
 | US-07 | `***` | organiser | see clear errors for missing or invalid fields | I can correct my input. |
 | US-08 | `**` | first-time organiser | see features and usage instructions | I know how to begin. |
-| US-09 | `**` | organiser | edit contact details | my records stay accurate. |
+| US-09 | `**` | organiser | update contact details | my records stay accurate. |
 | US-10 | `**` | organiser | find contacts by full names or whole name words, company, email, or phone | I can locate contacts quickly. |
 | US-11 | `**` | organiser | filter contacts by enquiry status | I can review each enquiry stage. |
 | US-12 | `**` | organiser | combine search fields and alternatives | I can narrow my results. |
@@ -854,7 +857,7 @@ Use a disposable data folder. Do not run `clear` against real contact data.
 | Empty search | Run `find NobodyMatches`. | `0 contact(s) found.` with no stale contact details. |
 | View | Run `view n/NAME` for multiple matches, then reply with a valid number. | Numbered choices are replaced by the chosen contact's text details. |
 | Cancel choice | Request multiple view matches, then run `find NAME` or an out-of-range `delete INDEX`. | The new feedback replaces the choice prompt. A subsequent bare number is no longer accepted. |
-| Empty data | Run `clear`, restart, then `list`. | Ready prompt on restart; list prints no-contacts guidance. |
+| Empty data | Run `clear confirm`, restart, then `list`. | Ready prompt on restart; list prints no-contacts guidance. |
 | Restart | Add contacts, exit, and relaunch from the same folder. | Only a ready prompt appears; list prints the saved records. |
 
 ### Testing exhibitor additions

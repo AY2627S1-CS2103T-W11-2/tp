@@ -33,6 +33,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import seedu.boothmanagerpro.MainApp;
 import seedu.boothmanagerpro.logic.LogicManager;
 import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.UserPrefs;
@@ -71,7 +72,7 @@ public class MainWindowTest {
             assertEquals("Enquiry status: In progress", status.getAccessibleText());
             assertTrue(status.getStyleClass().contains("status-in-progress"));
             assertTrue(card.getStyleClass().contains("status-in-progress"));
-            assertEquals("Follow-up date: 20261025", ((Label) card.lookup("#followUpDate")).getText());
+            assertEquals("Follow-up date: 25 Oct 2026", ((Label) card.lookup("#followUpDate")).getText());
         });
     }
 
@@ -87,7 +88,7 @@ public class MainWindowTest {
             assertEquals(1, cards.getChildren().size(), "One contact and no total, as the heading has the count");
             Parent card = (Parent) cards.getChildren().getFirst();
             assertEquals("1. Alicia Tan", ((Label) card.lookup("#name")).getText());
-            assertEquals("Follow-up date: 20261025", ((Label) card.lookup("#followUpDate")).getText());
+            assertEquals("Follow-up date: 25 Oct 2026", ((Label) card.lookup("#followUpDate")).getText());
             savePreview(root, 1180, 820, "cli-find-date.png");
             enterCommand(root, "find f/20230229");
             assertTrue(output(root).contains("Invalid value for f/"));
@@ -136,7 +137,7 @@ public class MainWindowTest {
             assertEquals("Completed", status.getText());
             assertTrue(status.getStyleClass().contains("status-completed"));
             assertFalse(status.getStyleClass().contains("status-in-progress"));
-            assertEquals("Follow-up date: 20261025", ((Label) card.lookup("#followUpDate")).getText());
+            assertEquals("Follow-up date: 25 Oct 2026", ((Label) card.lookup("#followUpDate")).getText());
             enterCommand(root, "update Alicia Tan f/20230229");
             assertTrue(output(root).contains("Invalid value for f/"));
             assertEquals("update Alicia Tan f/20230229", input(root).getText());
@@ -186,8 +187,8 @@ public class MainWindowTest {
             assertEquals(2, foundCards.getChildren().size(), "2 cards and no total, as the heading has the count");
             savePreview(root, 1180, 820, "cli-find.png");
             savePreview(root, 860, 640, "cli-compact.png");
-            enterCommand(root, "edit 2 p/91234567");
-            assertTrue(output(root).startsWith("Edited contact: David Li"));
+            enterCommand(root, "update 2 p/91234567");
+            assertTrue(output(root).startsWith("Updated David Li"));
             enterCommand(root, "find Alex David");
             assertTrue(output(root).contains("Phone: 91234567"));
             enterCommand(root, "delete 2");
@@ -224,6 +225,9 @@ public class MainWindowTest {
             assertEquals(before, Files.readString(dataPath()));
             assertNoContactPanels(root);
             enterCommand(root, "clear");
+            assertTrue(output(root).contains("This will delete all contacts! Type 'clear confirm' to proceed."));
+            assertEquals(1, model.getFilteredPersonList().size());
+            enterCommand(root, "clear confirm");
             enterCommand(root, "list");
             assertTrue(output(root).startsWith("No contacts found."));
             assertTrue(storage.readAddressBook().orElseThrow().getPersonList().isEmpty());
@@ -334,7 +338,7 @@ public class MainWindowTest {
 
             commandInput.setText("e");
             pressKey(commandInput, KeyCode.TAB);
-            assertEquals("e", commandInput.getText());
+            assertEquals("exit ", commandInput.getText());
 
             commandInput.setText("not-a-command");
             pressKey(commandInput, KeyCode.TAB);
@@ -420,9 +424,9 @@ public class MainWindowTest {
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("find n/", commandInput.getText());
 
-            commandInput.setText("edit 1 a");
+            commandInput.setText("update 1 c");
             pressKey(commandInput, KeyCode.TAB);
-            assertEquals("edit 1 a/", commandInput.getText());
+            assertEquals("update 1 c/", commandInput.getText());
 
             commandInput.setText("view n");
             pressKey(commandInput, KeyCode.TAB);
@@ -495,14 +499,66 @@ public class MainWindowTest {
         return testFolder.resolve("contacts.json");
     }
 
+    @Test
+    public void startup_loadingFailure_showsWarningAndKeepsCommandsUsable() throws Exception {
+        withWindow(new ModelManager(), MainApp.MESSAGE_DATA_LOAD_FAILURE, (window, root, storage) -> {
+            assertEquals(MainApp.MESSAGE_DATA_LOAD_FAILURE, output(root));
+            savePreview(root, 1180, 820, "cli-recovery-warning.png");
+            enterCommand(root, "help");
+            assertFalse(output(root).contains("Contact data could not be loaded"));
+            assertEquals("", input(root).getText());
+        });
+    }
+
+    @Test
+    public void uiManager_start_propagatesRecoveryWarningAndSupportsNormalStartup() throws Exception {
+        runOnFxThread(() -> {
+            StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath()),
+                    new JsonUserPrefsStorage(testFolder.resolve("preferences.json")));
+            for (String warning : List.of("", MainApp.MESSAGE_DATA_LOAD_FAILURE)) {
+                Stage stage = new Stage();
+                stage.setOpacity(0);
+                LogicManager logic = new LogicManager(new ModelManager(), storage);
+                UiManager manager = warning.isEmpty() ? new UiManager(logic, dataPath())
+                        : new UiManager(logic, dataPath(), warning);
+                try {
+                    manager.start(stage);
+                    Parent root = stage.getScene().getRoot();
+                    root.applyCss();
+                    root.layout();
+                    if (warning.isEmpty()) {
+                        assertTrue(output(root).startsWith("Ready."));
+                    } else {
+                        assertEquals(warning, output(root));
+                        assertTrue(root.lookup("#resultDisplay").getStyleClass().contains("error"));
+                    }
+                    enterCommand(root, "help");
+                    assertFalse(output(root).contains("Contact data could not be loaded"));
+                    assertEquals("", input(root).getText());
+                } finally {
+                    stage.hide();
+                }
+            }
+            return null;
+        });
+    }
+
     private void withWindow(ModelManager model, UiAction action) throws Exception {
+        withWindow(model, "", action);
+    }
+
+    private void withWindow(ModelManager model, String startupWarning, UiAction action) throws Exception {
         runOnFxThread(() -> {
             StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath()),
                     new JsonUserPrefsStorage(testFolder.resolve("preferences.json")));
             Stage stage = new Stage();
             stage.setOpacity(0);
             MainWindow window = new MainWindow(stage, new LogicManager(model, storage), dataPath());
-            window.fillInnerParts();
+            if (startupWarning.isEmpty()) {
+                window.fillInnerParts();
+            } else {
+                window.fillInnerParts(startupWarning);
+            }
             window.show();
             try {
                 Parent root = stage.getScene().getRoot();
