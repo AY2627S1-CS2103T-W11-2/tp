@@ -46,10 +46,10 @@ Person *--> Name
 Person *--> Phone
 Person *--> Email
 Person *--> Address
-Person *--> Company
-Person *--> ContactMethod
+Person *--> "0..1" Company
+Person *--> "0..1" ContactMethod
 Person *--> EnquiryStatus
-Person *--> FollowUpDate
+Person *--> "0..1" FollowUpDate
 Person *--> "*" Tag
 
 Person -[hidden]up--> I

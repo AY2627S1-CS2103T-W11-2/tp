@@ -3,6 +3,7 @@
 skinparam arrowThickness 1.1
 skinparam arrowColor STORAGE_COLOR
 skinparam classBackgroundColor STORAGE_COLOR
+skinparam nodesep 100
 
 package Storage as StoragePackage {
 
@@ -18,6 +19,8 @@ Class JsonAddressBookStorage
 Class JsonSerializableAddressBook
 Class JsonAdaptedPerson
 Class JsonAdaptedTag
+Class DataFileRecovery
+Class ConcurrentDataModificationException
 }
 
 }
@@ -26,11 +29,14 @@ Class HiddenOutside #FFFFFF
 HiddenOutside ..> Storage
 
 StorageManager .up.|> Storage
-StorageManager -down-> "1" JsonUserPrefsStorage
+StorageManager -left-> "1" JsonUserPrefsStorage
 StorageManager -down-> "1" JsonAddressBookStorage
 
 JsonAddressBookStorage ..> JsonSerializableAddressBook
 JsonSerializableAddressBook --> "*" JsonAdaptedPerson
 JsonAdaptedPerson --> "*" JsonAdaptedTag
+JsonAddressBookStorage -left-> "1" DataFileRecovery
+JsonAddressBookStorage ..> ConcurrentDataModificationException : <<throws>>
+DataFileRecovery -[hidden]down- ConcurrentDataModificationException
 
 @enduml

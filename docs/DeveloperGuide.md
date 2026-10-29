@@ -312,6 +312,10 @@ Legacy address is preserved. Supplied tags replace the tag set; a sole blank `t/
 5. `LogicManager` saves through `JsonAddressBookStorage` before returning the success result, rolling back the in-memory model, filter, and display ordering if saving fails.
 6. The result contains a concise identity confirmation. `MainWindow` displays it in `ResultDisplay` and focuses command input. `CommandBox` clears successful input and retains failed input. A later `view`, `find`, or `list` displays the saved contact as a `ContactCard`.
 
+The sequence diagram below shows a successful `add` request.
+
+<img src="images/AddSequenceDiagram.png" alt="Interactions for adding an exhibitor contact" width="950" style="max-width: 100%; height: auto;" />
+
 Enquiry fields:
 
 - `EnquiryStatus` validates the four case-insensitive labels; omission defaults to `NEEDS_FOLLOW_UP`.

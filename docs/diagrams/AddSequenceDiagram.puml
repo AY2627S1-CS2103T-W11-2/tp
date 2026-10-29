@@ -2,6 +2,10 @@
 !include style.puml
 title Adding an exhibitor contact - successful request
 skinparam ArrowFontStyle plain
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ParticipantFontColor #FFFFFF
+skinparam SequenceBoxFontColor #222222
 
 box Logic LOGIC_COLOR_T1
 participant ":LogicManager" as LogicManager LOGIC_COLOR
@@ -12,6 +16,7 @@ participant "r:CommandResult" as CommandResult LOGIC_COLOR
 end box
 
 box Model MODEL_COLOR_T1
+participant "<<class>>\nPerson" as PersonClass MODEL_COLOR
 participant "toAdd:Person" as Person MODEL_COLOR
 participant "m:Model" as Model MODEL_COLOR
 end box
@@ -31,11 +36,15 @@ AddressBookParser -> AddCommandParser : AddCommandParser()
 AddressBookParser -> AddCommandParser : parse(" n/Alicia Tan c/TechNova...")
 activate AddCommandParser
 
+AddCommandParser -> PersonClass : createExhibitor(...)
+activate PersonClass
 create Person
-AddCommandParser -> Person : Person.createExhibitor(...)
+PersonClass -> Person : Person(...)
 activate Person
-Person --> AddCommandParser : toAdd
+Person --> PersonClass : toAdd
 deactivate Person
+PersonClass --> AddCommandParser : toAdd
+deactivate PersonClass
 
 create AddCommand
 AddCommandParser -> AddCommand : AddCommand(toAdd)
@@ -75,7 +84,7 @@ Model --> AddCommand
 deactivate Model
 
 create CommandResult
-AddCommand -> CommandResult
+AddCommand -> CommandResult : CommandResult(...)
 activate CommandResult
 
 CommandResult --> AddCommand : r
