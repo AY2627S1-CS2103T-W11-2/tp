@@ -16,6 +16,12 @@ import java.util.stream.Collectors;
  */
 public class ArgumentTokenizer {
     private static final Pattern SINGLE_LETTER_PREFIX = Pattern.compile("(?<!\\S)([a-zA-Z]/)");
+    private static final Pattern BEFORE_PATRONYMIC = Pattern.compile(
+            "(?:^|.*\\s)(?!(?i:[sd]/o)\\s)(?:[a-zA-Z]/)?(?=[^\\s/]*\\p{L})[^\\s/]+\\s+",
+            Pattern.DOTALL);
+    private static final Pattern FROM_PATRONYMIC = Pattern.compile(
+            "(?i:[sd]/o)\\s+(?=[^\\s/]*\\p{L})[^\\s/]+(?:\\s.*|$)",
+            Pattern.DOTALL);
 
     /**
      * Tokenizes an arguments string and returns an {@code ArgumentMultimap} object that maps prefixes to their
@@ -47,58 +53,8 @@ public class ArgumentTokenizer {
      * rather than a command field prefix.
      */
     static boolean isPatronymicToken(String args, int start) {
-        if (start + 3 >= args.length()) {
-            return false;
-        }
-        char first = Character.toLowerCase(args.charAt(start));
-        if ((first != 's' && first != 'd')
-                || args.charAt(start + 1) != '/'
-                || Character.toLowerCase(args.charAt(start + 2)) != 'o'
-                || !Character.isWhitespace(args.charAt(start + 3))) {
-            return false;
-        }
-
-        int prevEnd = start - 1;
-        while (prevEnd >= 0 && Character.isWhitespace(args.charAt(prevEnd))) {
-            prevEnd--;
-        }
-        if (prevEnd < 0) {
-            return false;
-        }
-        int prevStart = prevEnd;
-        while (prevStart > 0 && !Character.isWhitespace(args.charAt(prevStart - 1))) {
-            prevStart--;
-        }
-        String prevToken = args.substring(prevStart, prevEnd + 1);
-        if (prevToken.equalsIgnoreCase("s/o") || prevToken.equalsIgnoreCase("d/o")) {
-            return false;
-        }
-        String prevWord = prevToken.length() >= 2
-                && isAsciiLetter(prevToken.charAt(0)) && prevToken.charAt(1) == '/'
-                ? prevToken.substring(2)
-                : prevToken;
-        if (prevWord.isEmpty() || prevWord.contains("/")
-                || prevWord.codePoints().noneMatch(Character::isLetter)) {
-            return false;
-        }
-
-        int nextStart = start + 3;
-        while (nextStart < args.length() && Character.isWhitespace(args.charAt(nextStart))) {
-            nextStart++;
-        }
-        if (nextStart >= args.length()) {
-            return false;
-        }
-        int nextEnd = nextStart;
-        while (nextEnd < args.length() && !Character.isWhitespace(args.charAt(nextEnd))) {
-            nextEnd++;
-        }
-        String nextWord = args.substring(nextStart, nextEnd);
-        return !nextWord.contains("/") && nextWord.codePoints().anyMatch(Character::isLetter);
-    }
-
-    private static boolean isAsciiLetter(char ch) {
-        return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
+        return BEFORE_PATRONYMIC.matcher(args.substring(0, start)).matches()
+                && FROM_PATRONYMIC.matcher(args.substring(start)).matches();
     }
 
     /**

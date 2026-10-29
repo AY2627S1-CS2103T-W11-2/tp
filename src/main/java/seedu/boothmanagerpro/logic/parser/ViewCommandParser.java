@@ -60,7 +60,7 @@ public class ViewCommandParser implements Parser<ViewCommand> {
         if (nameFields > 1) {
             throw new ParseException(MESSAGE_DUPLICATE_FIELD);
         }
-        if (!input.startsWith(PREFIX_NAME.getPrefix()) || nameFields == 0) {
+        if (!input.startsWith(PREFIX_NAME.getPrefix())) {
             throw new ParseException(MESSAGE_UNKNOWN_FIELD);
         }
         String name = input.substring(PREFIX_NAME.getPrefix().length()).strip();
