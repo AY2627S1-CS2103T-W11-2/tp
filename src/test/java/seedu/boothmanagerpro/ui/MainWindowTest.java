@@ -438,6 +438,25 @@ public class MainWindowTest {
     }
 
     @Test
+    public void tabAutocomplete_preservesUndoHistory() throws Exception {
+        withWindow(new ModelManager(), (window, root, storage) -> {
+            TextField commandInput = input(root);
+
+            commandInput.appendText("add n/Undo Tester");
+            assertEquals("add n/Undo Tester", commandInput.getText());
+
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add n/Undo Tester c/", commandInput.getText());
+
+            commandInput.undo();
+            assertEquals("add n/Undo Tester", commandInput.getText());
+
+            commandInput.undo();
+            assertEquals("", commandInput.getText());
+        });
+    }
+
+    @Test
     public void commandBox_blankAndRepeatedInvalidInput_areHandledSafely() throws Exception {
         withWindow(new ModelManager(), (window, root, storage) -> {
             TextField commandInput = input(root);

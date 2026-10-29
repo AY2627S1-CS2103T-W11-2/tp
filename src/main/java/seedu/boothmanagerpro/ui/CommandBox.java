@@ -285,8 +285,9 @@ public class CommandBox extends UiPart<Region> {
         if (text.equals(commandTextField.getText())) {
             return false;
         }
-        commandTextField.setText(text);
+        commandTextField.replaceText(0, commandTextField.getLength(), text);
         commandTextField.positionCaret(text.length());
+        commandTextField.deselect();
         commandTextField.requestFocus();
         return true;
     }
