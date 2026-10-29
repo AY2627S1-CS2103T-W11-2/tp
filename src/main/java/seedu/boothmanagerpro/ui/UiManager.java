@@ -26,14 +26,21 @@ public class UiManager implements Ui {
     private Logic logic;
     private Path dataFilePath;
     private MainWindow mainWindow;
+    private final String startupWarning;
 
     /**
      * Creates a {@code UiManager} with the given {@code Logic} and the data file path
      * to show in the status bar.
      */
     public UiManager(Logic logic, Path dataFilePath) {
+        this(logic, dataFilePath, "");
+    }
+
+    /** Creates the UI with a loading warning to show instead of the ordinary ready message. */
+    public UiManager(Logic logic, Path dataFilePath, String startupWarning) {
         this.logic = logic;
         this.dataFilePath = dataFilePath;
+        this.startupWarning = startupWarning;
     }
 
     @Override
@@ -46,7 +53,7 @@ public class UiManager implements Ui {
         try {
             mainWindow = new MainWindow(primaryStage, logic, dataFilePath);
             mainWindow.show(); //This should be called before creating other UI parts
-            mainWindow.fillInnerParts();
+            mainWindow.fillInnerParts(startupWarning);
 
         } catch (Throwable e) {
             logger.severe(StringUtil.getDetails(e));

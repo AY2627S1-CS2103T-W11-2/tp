@@ -124,6 +124,12 @@ Manual check in a separate test folder:
 5. Restart the app. `find f/20261028` must find the updated contact. Clear its date with `update NAME f/`, restart, and verify it no longer matches that date.
 6. With valid results visible, try `find f/`, `find f/20230229`, and `find f/2026-10-25`. Expect errors, no data changes, and no change to the model's current filtered index set. Error text may replace the visible output.
 
+## Storage recovery regression checks
+
+`StorageRecoveryTest` checks null JSON roots, null contact/tag entries, invalid JSON, unchanged source bytes after failed reads, unique recovery backups, failed-copy retry, successful manual repair, and saves through the command layer. `StartupRecoveryTest` checks the real startup fallbacks for contacts and preferences. `MainWindowTest` checks the visible loading warning and continued command entry.
+
+Manual check in a disposable folder: write `null` to `data/addressbook.json`, launch the JAR, and check the loading warning. Run `list`; verify that a same-directory `.recovery-` backup contains exactly `null`, while the active data file contains a valid empty collection. Restart and check ordinary startup. Keep all real contact files outside the test folder.
+
 ## Update regression checks
 
 `UpdateIntegrationTest` exercises all eight supported fields through actual command routing and JSON storage. It checks preservation of omitted values, date/tag clearing, duplicate names, hidden duplicate contacts, filtered indices, normalisation, invalid values/prefixes, and unchanged memory/filter/disk on rejection. `TagIntegrationTest` covers `tag` toggling (adding new tags and removing existing ones), change summaries, target resolution, and rejection preservation. `MainWindowTest` checks update and tag feedback and rendered enquiry fields.

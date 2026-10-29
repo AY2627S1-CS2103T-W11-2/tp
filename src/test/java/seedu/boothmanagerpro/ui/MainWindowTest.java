@@ -33,6 +33,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import seedu.boothmanagerpro.MainApp;
 import seedu.boothmanagerpro.logic.LogicManager;
 import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.UserPrefs;
@@ -453,14 +454,29 @@ public class MainWindowTest {
         return testFolder.resolve("contacts.json");
     }
 
+    @Test
+    public void startup_loadingFailure_showsWarningAndKeepsCommandsUsable() throws Exception {
+        withWindow(new ModelManager(), MainApp.MESSAGE_DATA_LOAD_FAILURE, (window, root, storage) -> {
+            assertEquals(MainApp.MESSAGE_DATA_LOAD_FAILURE, output(root));
+            savePreview(root, 1180, 820, "cli-recovery-warning.png");
+            enterCommand(root, "help");
+            assertFalse(output(root).contains("Contact data could not be loaded"));
+            assertEquals("", input(root).getText());
+        });
+    }
+
     private void withWindow(ModelManager model, UiAction action) throws Exception {
+        withWindow(model, "", action);
+    }
+
+    private void withWindow(ModelManager model, String startupWarning, UiAction action) throws Exception {
         runOnFxThread(() -> {
             StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath()),
                     new JsonUserPrefsStorage(testFolder.resolve("preferences.json")));
             Stage stage = new Stage();
             stage.setOpacity(0);
             MainWindow window = new MainWindow(stage, new LogicManager(model, storage), dataPath());
-            window.fillInnerParts();
+            window.fillInnerParts(startupWarning);
             window.show();
             try {
                 Parent root = stage.getScene().getRoot();

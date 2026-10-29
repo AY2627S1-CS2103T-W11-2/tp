@@ -22,6 +22,7 @@ public class JsonAddressBookStorage {
     private static final Logger logger = LogsCenter.getLogger(JsonAddressBookStorage.class);
 
     private Path filePath;
+    private final DataFileRecovery recovery = new DataFileRecovery();
 
     public JsonAddressBookStorage(Path filePath) {
         this.filePath = filePath;
@@ -49,18 +50,20 @@ public class JsonAddressBookStorage {
      */
     public Optional<ReadOnlyAddressBook> readAddressBook(Path filePath) throws DataLoadingException {
         requireNonNull(filePath);
-
-        Optional<JsonSerializableAddressBook> jsonAddressBook = JsonUtil.readJsonFile(
-                filePath, JsonSerializableAddressBook.class);
-        if (!jsonAddressBook.isPresent()) {
-            return Optional.empty();
-        }
-
         try {
-            return Optional.of(jsonAddressBook.get().toModelType());
+            Optional<JsonSerializableAddressBook> jsonAddressBook = JsonUtil.readJsonFile(
+                    filePath, JsonSerializableAddressBook.class);
+            Optional<ReadOnlyAddressBook> loaded = jsonAddressBook.isEmpty()
+                    ? Optional.empty() : Optional.of(jsonAddressBook.get().toModelType());
+            recovery.markLoaded(filePath);
+            return loaded;
         } catch (IllegalValueException ive) {
+            recovery.markFailed(filePath);
             logger.info("Illegal values found in " + filePath + ": " + ive.getMessage());
             throw new DataLoadingException(ive);
+        } catch (DataLoadingException e) {
+            recovery.markFailed(filePath);
+            throw e;
         }
     }
 
@@ -82,6 +85,7 @@ public class JsonAddressBookStorage {
         requireNonNull(addressBook);
         requireNonNull(filePath);
 
+        recovery.preserveBeforeSave(filePath);
         FileUtil.createIfMissing(filePath);
         JsonUtil.saveJsonFile(new JsonSerializableAddressBook(addressBook), filePath);
     }
