@@ -28,7 +28,7 @@ public final class Company {
      */
     public Company(String company) {
         requireNonNull(company);
-        String nfc = Normalizer.normalize(company.trim(), Normalizer.Form.NFC);
+        String nfc = Normalizer.normalize(company, Normalizer.Form.NFC).strip();
         checkArgument(isValidCompany(nfc), MESSAGE_CONSTRAINTS);
         value = nfc;
     }
@@ -39,7 +39,7 @@ public final class Company {
      * either form.
      */
     public static boolean isValidCompany(String company) {
-        String trimmed = company.trim();
+        String trimmed = Normalizer.normalize(company, Normalizer.Form.NFC).strip();
         return !trimmed.isBlank() && trimmed.codePointCount(0, trimmed.length()) <= 100;
     }
 

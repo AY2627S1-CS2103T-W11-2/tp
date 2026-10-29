@@ -80,6 +80,21 @@ public class TagIntegrationTest {
     }
 
     @Test
+    public void tag_unicodeWhitespaceAndCanonicalEquivalence_normalisesAndToggles() throws Exception {
+        assertEquals(
+                "Updated tags for Alicia Tan at TechNova. Added: r\u00E9sum\u00E9. Removed: vip. "
+                        + "Current tags: technology, r\u00E9sum\u00E9.",
+                logic.execute("tag 1 t/\u2003vip\u2003 t/re\u0301sume\u0301").getFeedbackToUser());
+        logic.execute("find t/r\u00E9sum\u00E9");
+        assertEquals(1, model.getFilteredPersonList().size());
+
+        assertEquals(
+                "Updated tags for Alicia Tan at TechNova. Added: None. Removed: r\u00E9sum\u00E9. "
+                        + "Current tags: technology.",
+                logic.execute("tag 1 t/\u2003r\u00E9sum\u00E9\u2003").getFeedbackToUser());
+    }
+
+    @Test
     public void tag_filteredIndexAndHiddenName_resolveCorrectContactAndResetFilter() throws Exception {
         logic.execute("find c/GreenWorks");
         assertEquals(

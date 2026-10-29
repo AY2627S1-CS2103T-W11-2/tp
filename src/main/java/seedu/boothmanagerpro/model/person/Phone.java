@@ -32,7 +32,7 @@ public class Phone {
      */
     public static boolean isValidPhone(String test) {
         requireNonNull(test);
-        String trimmed = test.trim();
+        String trimmed = test.strip();
         if (trimmed.length() > MAX_INPUT_LENGTH) {
             return false;
         }
@@ -41,7 +41,7 @@ public class Phone {
 
     /** Returns digits and an optional leading plus, with internal spaces and hyphens removed. */
     public static String normalize(String rawPhone) {
-        return rawPhone.trim().replace(" ", "").replace("-", "");
+        return rawPhone.strip().replace(" ", "").replace("-", "");
     }
 
     @Override

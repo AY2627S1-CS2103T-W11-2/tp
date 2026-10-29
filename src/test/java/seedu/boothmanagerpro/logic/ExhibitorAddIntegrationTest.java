@@ -377,6 +377,28 @@ public class ExhibitorAddIntegrationTest {
     }
 
     @Test
+    public void add_unicodeWhitespace_stripsFieldsAndDetectsDuplicates() throws Exception {
+        logic.execute("add n/Alice Tan c/Acme e/alice1@example.com p/91234567");
+        CommandException duplicateError = assertThrows(CommandException.class, () ->
+                logic.execute("add n/Alice Tan c/\u2003Acme\u2003 e/alice2@example.com p/91234567"));
+        assertEquals("This contact may already exist: Alice Tan at Acme.\n"
+                + "Use the update command if you want to change the existing contact.",
+                duplicateError.getMessage());
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+
+        logic.execute("add n/\u2003Bob Lim\u2003 c/\u2003Acme\u2003 e/bob@example.com p/81234567 t/\u2003vip\u2003");
+        Person bob = model.getAddressBook().getPersonList().get(1);
+        assertEquals("Bob Lim", bob.getName().fullName);
+        assertEquals("Acme", bob.getCompany().orElseThrow().value);
+        assertEquals("vip", bob.getTags().iterator().next().tagName);
+
+        logic.execute("find c/Acme");
+        assertEquals(2, model.getFilteredPersonList().size());
+        logic.execute("find t/vip");
+        assertEquals(java.util.List.of(bob), model.getFilteredPersonList());
+    }
+
+    @Test
     public void add_saveFailure_rollsBackInMemoryModelAndPreventsPersistence() throws Exception {
         // Save initial state with one contact
         logic.execute(ADD);

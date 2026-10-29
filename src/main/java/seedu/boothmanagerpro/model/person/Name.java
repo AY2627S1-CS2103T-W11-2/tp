@@ -58,7 +58,7 @@ public class Name {
      */
     static String normaliseWhitespace(String name) {
         String nfc = Normalizer.normalize(name, Normalizer.Form.NFC);
-        return nfc.trim().replaceAll(" +", " ");
+        return nfc.strip().replaceAll(" +", " ");
     }
 
     @Override

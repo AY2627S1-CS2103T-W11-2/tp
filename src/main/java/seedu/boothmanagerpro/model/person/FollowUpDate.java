@@ -16,7 +16,7 @@ public final class FollowUpDate {
     /** Validates actual calendar dates, including leap years; past dates are allowed. */
     public FollowUpDate(String input) {
         requireNonNull(input);
-        String trimmed = input.trim();
+        String trimmed = input.strip();
         if (!trimmed.matches("[0-9]{8}")) {
             throw new IllegalArgumentException(MESSAGE_CONSTRAINTS);
         }
