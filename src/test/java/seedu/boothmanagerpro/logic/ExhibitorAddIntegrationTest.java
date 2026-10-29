@@ -45,17 +45,17 @@ public class ExhibitorAddIntegrationTest {
     }
 
     @Test
-    public void add_enquiryMetadata_roundTripsAndSurvivesEdit() throws Exception {
+    public void add_enquiryMetadata_roundTripsAndSurvivesUpdate() throws Exception {
         logic.execute(ADD + " s/IN PROGRESS f/20240229");
         Person saved = storage.readAddressBook().orElseThrow().getPersonList().getFirst();
         assertEquals("In progress", saved.getEnquiryStatus().toString());
-        assertEquals("20240229", saved.getFollowUpDate().orElseThrow().toString());
-        logic.execute("edit 1 p/98765432");
+        assertEquals("29 Feb 2024", saved.getFollowUpDate().orElseThrow().toString());
+        logic.execute("update 1 p/98765432");
         Person edited = storage.readAddressBook().orElseThrow().getPersonList().getFirst();
         assertEquals(saved.getEnquiryStatus(), edited.getEnquiryStatus());
         assertEquals(saved.getFollowUpDate(), edited.getFollowUpDate());
         String details = logic.execute("view n/Alicia").getFeedbackToUser();
-        assertTrue(details.contains("Enquiry status: In progress\nFollow-up date: 20240229"));
+        assertTrue(details.contains("Enquiry status: In progress\nFollow-up date: 29 Feb 2024"));
         assertThrows(CommandException.class, () -> logic.execute(ADD + " s/Completed f/20261025"));
     }
 
@@ -67,7 +67,7 @@ public class ExhibitorAddIntegrationTest {
             assertEquals(options.contains("s/") ? "Completed" : "Needs follow-up",
                     saved.getEnquiryStatus().toString());
             assertEquals(options.contains("f/"), saved.getFollowUpDate().isPresent());
-            logic.execute("clear");
+            logic.execute("clear confirm");
         }
     }
 
@@ -139,7 +139,7 @@ public class ExhibitorAddIntegrationTest {
         assertThrows(CommandException.class, () -> logic.execute("delete Alicia Tan"));
         logic.execute("find c/TechNova Pte Ltd");
         String deleted = logic.execute("delete 1").getFeedbackToUser();
-        assertTrue(deleted.contains("Company: TechNova Pte Ltd"));
+        assertTrue(deleted.contains("TechNova Pte Ltd"));
         assertTrue(deleted.contains("Contact method: email"));
         assertEquals(1, storage.readAddressBook().orElseThrow().getPersonList().size());
         assertEquals("Other Ltd", model.getAddressBook().getPersonList().getFirst()
@@ -155,11 +155,11 @@ public class ExhibitorAddIntegrationTest {
     }
 
     @Test
-    public void add_saveReloadAndEdit_preservesExhibitorFields() throws Exception {
+    public void add_saveReloadAndUpdate_preservesExhibitorFields() throws Exception {
         logic.execute(ADD + " m/email t/high-priority t/technology");
         ModelManager reloaded = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
         assertEquals(model.getAddressBook(), reloaded.getAddressBook());
-        logic.execute("edit 1 p/+65 9876-5432");
+        logic.execute("update 1 p/+65 9876-5432");
         Person edited = storage.readAddressBook().orElseThrow().getPersonList().getFirst();
         assertEquals("TechNova Pte Ltd", edited.getCompany().orElseThrow().value);
         assertEquals(ContactMethod.EMAIL, edited.getContactMethod().orElseThrow());
@@ -168,37 +168,37 @@ public class ExhibitorAddIntegrationTest {
     }
 
     @Test
-    public void edit_tags_keepInputOrderAcrossFeedbackAndReload() throws Exception {
+    public void update_tags_keepInputOrderAcrossFeedbackAndReload() throws Exception {
         logic.execute(ADD);
-        String feedback = logic.execute("edit 1 t/technology t/high-priority t/technology").getFeedbackToUser();
+        String feedback = logic.execute("update 1 t/technology t/high-priority t/technology").getFeedbackToUser();
         Person reloaded = storage.readAddressBook().orElseThrow().getPersonList().getFirst();
         assertEquals(List.of("technology", "high-priority"),
                 reloaded.getTags().stream().map(tag -> tag.tagName).toList());
-        assertTrue(feedback.contains("Tags: technology, high-priority"));
+        assertTrue(feedback.contains("Updated Alicia Tan at TechNova Pte Ltd."));
         assertTrue(logic.execute("list").getFeedbackToUser().contains("Tags: technology, high-priority"));
         assertTrue(logic.execute("view n/Alicia Tan").getFeedbackToUser()
                 .contains("Tags: technology, high-priority"));
     }
 
     @Test
-    public void edit_unknownField_preservesContactAndSavedData() throws Exception {
+    public void update_unknownField_preservesContactAndSavedData() throws Exception {
         logic.execute(ADD);
         String before = Files.readString(storage.getAddressBookFilePath());
         Person original = model.getAddressBook().getPersonList().getFirst();
-        assertThrows(ParseException.class, () -> logic.execute("edit 1 a/123 Main Street c/New Company"));
+        assertThrows(ParseException.class, () -> logic.execute("update 1 a/123 Main Street"));
         assertEquals(original, model.getAddressBook().getPersonList().getFirst());
         assertEquals(before, Files.readString(storage.getAddressBookFilePath()));
     }
 
     @Test
-    public void edit_emptyFields_useSharedMessagesAndPreserveData() throws Exception {
+    public void update_emptyFields_useSharedMessagesAndPreserveData() throws Exception {
         logic.execute(ADD);
         Person original = model.getAddressBook().getPersonList().getFirst();
         String before = Files.readString(storage.getAddressBookFilePath());
         String[][] cases = {
-            {"edit 1 n/", "n/"},
-            {"edit 1 a/", "a/"},
-            {"edit 1 t/ t/new", "t/"}
+            {"update 1 n/", "n/"},
+            {"update 1 c/", "c/"},
+            {"update 1 t/ t/new", "t/"}
         };
 
         for (String[] testCase : cases) {
@@ -260,13 +260,13 @@ public class ExhibitorAddIntegrationTest {
     }
 
     @Test
-    public void edit_duplicateEmailWhileNameAndCompanyUnchanged_rejected() throws Exception {
+    public void update_duplicateEmailWhileNameAndCompanyUnchanged_rejected() throws Exception {
         logic.execute(ADD);
         logic.execute("add n/Ben Lim c/Other e/ben@example.com p/98765432");
         CommandException error = assertThrows(CommandException.class, () ->
-                logic.execute("edit 1 e/ben@example.com"));
-        assertEquals("This edit conflicts with another contact: Ben Lim at Other. "
-                + "Check the email and name/company fields. No contact was edited.", error.getMessage());
+                logic.execute("update 1 e/ben@example.com"));
+        assertEquals("This update conflicts with another contact: Ben Lim at Other. "
+                + "Check the email and name/company fields. No contact was updated.", error.getMessage());
         Person original = model.getAddressBook().getPersonList().getFirst();
         Person conflicting = new PersonBuilder(original).withEmail("ben@example.com").build();
         assertThrows(DuplicatePersonException.class, () -> model.setPerson(original, conflicting));
@@ -279,10 +279,10 @@ public class ExhibitorAddIntegrationTest {
         logic.execute("add n/Chloe Ng c/Acme e/chloe@acme.com p/97776666");
         logic.execute("add n/John Tan c/GreenWorks e/john1@gw.com p/81234567");
 
-        CommandException editError = assertThrows(CommandException.class, () ->
-                logic.execute("edit 1 e/chloe@acme.com"));
-        assertEquals("This edit conflicts with another contact: Chloe Ng at Acme. "
-                + "Check the email and name/company fields. No contact was edited.", editError.getMessage());
+        CommandException updateError = assertThrows(CommandException.class, () ->
+                logic.execute("update 1 e/chloe@acme.com"));
+        assertEquals("This update conflicts with another contact: Chloe Ng at Acme. "
+                + "Check the email and name/company fields. No contact was updated.", updateError.getMessage());
 
         CommandException addError = assertThrows(CommandException.class, () ->
                 logic.execute("add n/john tan c/greenworks e/new@x.com p/91234560"));
@@ -299,23 +299,23 @@ public class ExhibitorAddIntegrationTest {
     }
 
     @Test
-    public void edit_nameCompanyCollisionOutsideFilter_rejectedWithoutChangingDisk() throws Exception {
+    public void update_nameCompanyCollisionOutsideFilter_rejectedWithoutChangingDisk() throws Exception {
         logic.execute(ADD);
         logic.execute("add n/Ben Lim c/TechNova Pte Ltd e/ben@example.com p/98765432");
         logic.execute("find Ben");
         String before = Files.readString(storage.getAddressBookFilePath());
-        assertThrows(CommandException.class, () -> logic.execute("edit 1 n/Alicia Tan"));
+        assertThrows(CommandException.class, () -> logic.execute("update 1 n/Alicia Tan"));
         assertEquals(before, Files.readString(storage.getAddressBookFilePath()));
         assertEquals("Ben Lim", model.getFilteredPersonList().getFirst().getName().fullName);
     }
 
     @Test
-    public void edit_nameCompanyCollisionWithCaseOrRepeatedSpaces_rejected() throws Exception {
+    public void update_nameCompanyCollisionWithCaseOrRepeatedSpaces_rejected() throws Exception {
         logic.execute("add n/Ben Lim c/Acme e/ben@acme.com p/98765432");
         logic.execute("add n/Chloe Ng c/Acme e/chloe@acme.com p/97776666");
         String before = Files.readString(storage.getAddressBookFilePath());
 
-        for (String command : List.of("edit 1 n/CHLOE NG", "edit 1 n/chloe  ng")) {
+        for (String command : List.of("update 1 n/CHLOE NG", "update 1 n/chloe  ng")) {
             assertThrows(CommandException.class, () -> logic.execute(command));
             assertEquals(before, Files.readString(storage.getAddressBookFilePath()));
         }
@@ -374,6 +374,28 @@ public class ExhibitorAddIntegrationTest {
         assertThrows(CommandException.class, () ->
                 logic.execute("add n/Alice Tan c/Cafe\u0301 Co e/alice2@example.com p/82345678"));
         assertEquals(1, model.getAddressBook().getPersonList().size());
+    }
+
+    @Test
+    public void add_unicodeWhitespace_stripsFieldsAndDetectsDuplicates() throws Exception {
+        logic.execute("add n/Alice Tan c/Acme e/alice1@example.com p/91234567");
+        CommandException duplicateError = assertThrows(CommandException.class, () ->
+                logic.execute("add n/Alice Tan c/\u2003Acme\u2003 e/alice2@example.com p/91234567"));
+        assertEquals("This contact may already exist: Alice Tan at Acme.\n"
+                + "Use the update command if you want to change the existing contact.",
+                duplicateError.getMessage());
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+
+        logic.execute("add n/\u2003Bob Lim\u2003 c/\u2003Acme\u2003 e/bob@example.com p/81234567 t/\u2003vip\u2003");
+        Person bob = model.getAddressBook().getPersonList().get(1);
+        assertEquals("Bob Lim", bob.getName().fullName);
+        assertEquals("Acme", bob.getCompany().orElseThrow().value);
+        assertEquals("vip", bob.getTags().iterator().next().tagName);
+
+        logic.execute("find c/Acme");
+        assertEquals(2, model.getFilteredPersonList().size());
+        logic.execute("find t/vip");
+        assertEquals(java.util.List.of(bob), model.getFilteredPersonList());
     }
 
     @Test

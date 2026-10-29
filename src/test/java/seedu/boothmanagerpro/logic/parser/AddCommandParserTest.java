@@ -148,6 +148,26 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_patronymicLegalName_acceptedWithoutStatusCollision() throws Exception {
+        ModelManager model = new ModelManager();
+        String feedback = parser.parse(" n/Raj s/o Kumar c/Acme e/raj@example.com p/91234567")
+                .execute(model).getFeedbackToUser();
+        assertEquals("Added Raj s/o Kumar at Acme.", feedback);
+        assertEquals("Raj s/o Kumar", model.getFilteredPersonList().getFirst().getName().fullName);
+
+        ModelManager model2 = new ModelManager();
+        parser.parse(" n/Priya d/o Raman c/Acme e/priya@example.com p/91234568 s/In progress").execute(model2);
+        Person priya = model2.getFilteredPersonList().getFirst();
+        assertEquals("Priya d/o Raman", priya.getName().fullName);
+        assertEquals(EnquiryStatus.IN_PROGRESS, priya.getEnquiryStatus());
+
+        assertParseFailure(parser, valid + " s/o",
+                "Invalid value for s/: " + EnquiryStatus.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, " n/Alice s/o c/Acme e/alice@example.com p/91234567",
+                "Invalid value for s/: " + EnquiryStatus.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
     public void parse_boundaryValues_success() throws Exception {
         for (String method : new String[]{"email", "PHONE", "Other"}) {
             ModelManager model = new ModelManager();

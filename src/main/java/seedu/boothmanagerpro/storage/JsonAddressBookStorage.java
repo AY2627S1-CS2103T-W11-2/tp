@@ -5,11 +5,13 @@ import static java.util.Objects.requireNonNull;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Logger;
@@ -31,6 +33,7 @@ public class JsonAddressBookStorage {
 
     private Path filePath;
     private FileState lastKnownFileState;
+    private final DataFileRecovery recovery = new DataFileRecovery();
 
     public JsonAddressBookStorage(Path filePath) {
         this.filePath = filePath;
@@ -38,6 +41,11 @@ public class JsonAddressBookStorage {
 
     public Path getAddressBookFilePath() {
         return filePath;
+    }
+
+    /** Returns whether the configured path needs its failed-load contents preserved before saving. */
+    public boolean isRecoveryPending() {
+        return recovery.isPending(filePath);
     }
 
     /**
@@ -66,8 +74,7 @@ public class JsonAddressBookStorage {
         synchronized (getJvmFileLock(normalisedPath)) {
             try (FileChannel lockChannel = openLockChannel(normalisedPath);
                     FileLock ignored = lockChannel.lock()) {
-                FileState fileState = FileState.capture(normalisedPath);
-                lastKnownFileState = fileState;
+                lastKnownFileState = FileState.capture(normalisedPath);
                 return readAddressBookFile(normalisedPath);
             } catch (IOException ioe) {
                 throw new DataLoadingException(ioe);
@@ -95,10 +102,12 @@ public class JsonAddressBookStorage {
 
         Path normalisedPath = normalise(filePath);
         if (!isConfiguredPath(normalisedPath)) {
+            recovery.preserveBeforeSave(normalisedPath);
             FileUtil.createIfMissing(normalisedPath);
             JsonUtil.saveJsonFile(new JsonSerializableAddressBook(addressBook), normalisedPath);
             return;
         }
+        recovery.preserveBeforeSave(normalisedPath);
         synchronized (getJvmFileLock(normalisedPath)) {
             try (FileChannel lockChannel = openLockChannel(normalisedPath);
                     FileLock ignored = lockChannel.lock()) {
@@ -114,19 +123,22 @@ public class JsonAddressBookStorage {
         }
     }
 
-    /** Reads and converts one address book file without changing concurrency state. */
+    /** Reads and converts one address book file while tracking whether failed data needs recovery protection. */
     private Optional<ReadOnlyAddressBook> readAddressBookFile(Path path) throws DataLoadingException {
-        Optional<JsonSerializableAddressBook> jsonAddressBook = JsonUtil.readJsonFile(
-                path, JsonSerializableAddressBook.class);
-        if (jsonAddressBook.isEmpty()) {
-            return Optional.empty();
-        }
-
         try {
-            return Optional.of(jsonAddressBook.get().toModelType());
+            Optional<JsonSerializableAddressBook> jsonAddressBook = JsonUtil.readJsonFile(
+                    path, JsonSerializableAddressBook.class);
+            Optional<ReadOnlyAddressBook> loaded = jsonAddressBook.isEmpty()
+                    ? Optional.empty() : Optional.of(jsonAddressBook.get().toModelType());
+            recovery.markLoaded(path);
+            return loaded;
         } catch (IllegalValueException ive) {
+            recovery.markFailed(path);
             logger.info("Illegal values found in " + path + ": " + ive.getMessage());
             throw new DataLoadingException(ive);
+        } catch (DataLoadingException e) {
+            recovery.markFailed(path);
+            throw e;
         }
     }
 
@@ -144,13 +156,13 @@ public class JsonAddressBookStorage {
         return JVM_FILE_LOCKS.computeIfAbsent(path, unused -> new Object());
     }
 
-    /** Opens the persistent sibling lock file shared by every application instance using this data path. */
+    /** Opens the process lock shared by every application instance using this data path. */
     private static FileChannel openLockChannel(Path addressBookPath) throws IOException {
-        Path lockPath = addressBookPath.resolveSibling("." + addressBookPath.getFileName() + ".lock");
-        Path parent = lockPath.getParent();
-        if (parent != null) {
-            Files.createDirectories(parent);
-        }
+        Path lockDirectory = Path.of(System.getProperty("java.io.tmpdir"), "boothmanagerpro-locks");
+        Files.createDirectories(lockDirectory);
+        String lockName = UUID.nameUUIDFromBytes(addressBookPath.toString()
+                .getBytes(StandardCharsets.UTF_8)) + ".lock";
+        Path lockPath = lockDirectory.resolve(lockName);
         return FileChannel.open(lockPath, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
     }
 

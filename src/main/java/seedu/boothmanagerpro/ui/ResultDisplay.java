@@ -8,6 +8,8 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import seedu.boothmanagerpro.logic.commands.ListCommand;
@@ -42,7 +44,18 @@ public class ResultDisplay extends UiPart<Region> {
 
     /** Creates an empty result display; feedback appears once a command runs. */
     public ResultDisplay() {
+        this(null);
+    }
+
+    /** Creates a result display with a callback to return focus to the command box. */
+    public ResultDisplay(Runnable onFocusCommandBox) {
         super(FXML);
+        getRoot().addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == KeyCode.TAB && onFocusCommandBox != null) {
+                onFocusCommandBox.run();
+                event.consume();
+            }
+        });
     }
 
     /** Shows {@code feedbackToUser} as successful command feedback. */
@@ -63,7 +76,7 @@ public class ResultDisplay extends UiPart<Region> {
 
     /**
      * Shows {@code contacts} as static cards in place of the text output, which keeps the same feedback.
-     * Numbered cards use the one-based indices accepted by edit and delete. The total is shown below the cards
+     * Numbered cards use the one-based indices accepted by update and delete. The total is shown below the cards
      * only when {@code isShowingTotal}, since other results already state their count in the heading.
      */
     public void showContacts(List<Person> contacts, boolean isNumbered, boolean isShowingTotal) {
@@ -80,6 +93,15 @@ public class ResultDisplay extends UiPart<Region> {
         }
         contactScroll.setVvalue(0);
         showCards(!contacts.isEmpty());
+    }
+
+    /** Focuses the currently active result output component. */
+    public void focus() {
+        if (contactScroll.isVisible()) {
+            contactScroll.requestFocus();
+        } else {
+            resultDisplay.requestFocus();
+        }
     }
 
     /** Adds the error style to the text output when {@code isError}, and removes it otherwise. */
@@ -103,8 +125,10 @@ public class ResultDisplay extends UiPart<Region> {
     private void showCards(boolean isShowingCards) {
         contactScroll.setVisible(isShowingCards);
         contactScroll.setManaged(isShowingCards);
+        contactScroll.setFocusTraversable(isShowingCards);
         resultDisplay.setVisible(!isShowingCards);
         resultDisplay.setManaged(!isShowingCards);
+        resultDisplay.setFocusTraversable(!isShowingCards);
     }
 
 }

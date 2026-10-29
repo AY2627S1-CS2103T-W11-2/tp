@@ -36,13 +36,14 @@ public class HelpCommandTest {
                 + "   Description: Toggles one or more tags on a contact using their full name or displayed index.\n"
                 + "   Format:      tag NAME_OR_INDEX t/TAG [t/TAG]...\n"
                 + "   Example:     tag Alicia Tan t/high-priority t/sponsor"));
-        assertTrue(SHOWING_HELP_MESSAGE.contains("11. EXIT\n"
+        assertTrue(SHOWING_HELP_MESSAGE.contains("10. EXIT\n"
                 + "   Description: Closes BoothManagerPro.\n"
                 + "   Format:      exit\n"
                 + "   Example:     exit"));
         assertTrue(SHOWING_HELP_MESSAGE.contains("list [o/name|o/company|o/status]"));
         assertTrue(SHOWING_HELP_MESSAGE.contains("find f/20261025 t/high-priority"));
         assertTrue(SHOWING_HELP_MESSAGE.contains("update Alicia Tan s/Completed f/20261028"));
+        assertTrue(SHOWING_HELP_MESSAGE.contains("clear confirm"));
         assertFalse(SHOWING_HELP_MESSAGE.contains("Keyboard shortcuts"));
     }
 }

@@ -22,7 +22,7 @@ public enum EnquiryStatus {
     public static EnquiryStatus fromString(String value) {
         requireNonNull(value);
         for (EnquiryStatus status : values()) {
-            if (status.label.equalsIgnoreCase(value.trim())) {
+            if (status.label.equalsIgnoreCase(value.strip())) {
                 return status;
             }
         }

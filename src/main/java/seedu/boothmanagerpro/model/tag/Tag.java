@@ -3,6 +3,8 @@ package seedu.boothmanagerpro.model.tag;
 import static java.util.Objects.requireNonNull;
 import static seedu.boothmanagerpro.commons.util.AppUtil.checkArgument;
 
+import java.text.Normalizer;
+
 /**
  * Represents a Tag in the address book.
  * Guarantees: immutable; name is valid as declared in {@link #isValidTagName(String)}
@@ -16,15 +18,16 @@ public class Tag {
     public final String tagName;
 
     /**
-     * Creates a trimmed, non-blank tag of at most 30 characters without the reserved slash character.
-     * Equality is case-sensitive, so only identical trimmed tags collapse in a set.
+     * Creates a trimmed, NFC-normalised, non-blank tag of at most 30 characters without the reserved slash character.
+     * Equality is case-sensitive, so only identical normalised tags collapse in a set.
      *
      * @param tagName A valid tag name.
      */
     public Tag(String tagName) {
         requireNonNull(tagName);
-        checkArgument(isValidTagName(tagName), MESSAGE_CONSTRAINTS);
-        this.tagName = tagName.trim();
+        String normalised = normalise(tagName);
+        checkArgument(isValidTagName(normalised), MESSAGE_CONSTRAINTS);
+        this.tagName = normalised;
     }
 
     /**
@@ -34,12 +37,16 @@ public class Tag {
      */
     public static boolean isValidTagName(String test) {
         requireNonNull(test);
-        String trimmed = test.trim();
+        String trimmed = normalise(test);
         return !trimmed.isBlank()
                 && !trimmed.contains("/")
                 && !trimmed.contains("\r")
                 && !trimmed.contains("\n")
                 && trimmed.codePointCount(0, trimmed.length()) <= MAX_LENGTH;
+    }
+
+    private static String normalise(String tagName) {
+        return Normalizer.normalize(tagName, Normalizer.Form.NFC).strip();
     }
 
     @Override

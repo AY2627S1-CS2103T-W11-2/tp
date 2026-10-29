@@ -26,10 +26,11 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
         if (field.equals("n/")) {
             return foldName(value);
         }
+        String nfc = Normalizer.normalize(value, Normalizer.Form.NFC).strip();
         if (field.equals("c/") || field.equals("t/")) {
-            return foldCase(value.trim());
+            return foldCase(nfc);
         }
-        String result = value.trim().toLowerCase(Locale.ROOT);
+        String result = nfc.toLowerCase(Locale.ROOT);
         return field.equals("p/") ? result.replace(" ", "").replace("-", "") : result;
     }
 
@@ -70,7 +71,8 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
             case "t/" -> person.getTags().stream()
                     .anyMatch(tag -> values.contains(normalise(field, tag.tagName)));
             case "f/" -> person.getFollowUpDate()
-                    .map(date -> values.contains(date.toString())).orElse(false);
+                    .map(date -> values.contains(date.toIsoDate())
+                            || values.contains(date.toString().toLowerCase(Locale.ROOT))).orElse(false);
             default -> false;
         };
     }

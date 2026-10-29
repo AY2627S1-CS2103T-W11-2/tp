@@ -54,7 +54,7 @@ BoothManagerPro's MVP centres on five contact-management workflows:
 1. **View:** Search by name keywords and select a contact to see its full details.
 1. **Find and filter:** Match full names or whole name words and complete company, email, phone, tag, or follow-up date values; combine alternatives and criteria.
 
-The inherited `edit` and `clear` commands are also available. Edit supports name, phone, email, legacy address, and tags; company and contact method are preserved. See the [User Guide](docs/UserGuide.md) for syntax and examples. Company and contact method are included in contact text output. Add supports optional enquiry status and follow-up dates. Use `update` to change supplied contact fields and `tag` to toggle tags by name or displayed index. Exact follow-up-date filtering is available; filtering by status or contact method remains planned.
+The `clear` command is also available. Add supports optional enquiry status and follow-up dates. Use `update` to change any contact field and `tag` to toggle tags by name or displayed index. Exact follow-up-date filtering is available; filtering by status or contact method remains planned. See the [User Guide](docs/UserGuide.md) for full syntax and examples.
 
 ### Future enhancements
 

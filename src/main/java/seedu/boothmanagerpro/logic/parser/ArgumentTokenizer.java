@@ -2,6 +2,7 @@ package seedu.boothmanagerpro.logic.parser;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -14,6 +15,13 @@ import java.util.stream.Collectors;
  *    in the above example.<br>
  */
 public class ArgumentTokenizer {
+    private static final Pattern SINGLE_LETTER_PREFIX = Pattern.compile("(?<!\\S)([a-zA-Z]/)");
+    private static final Pattern BEFORE_PATRONYMIC = Pattern.compile(
+            "(?:^|.*\\s)(?!(?i:[sd]/o)\\s)(?:[a-zA-Z]/)?(?=[^\\s/]*\\p{L})[^\\s/]+\\s+",
+            Pattern.DOTALL);
+    private static final Pattern FROM_PATRONYMIC = Pattern.compile(
+            "(?i:[sd]/o)\\s+(?=[^\\s/]*\\p{L})[^\\s/]+(?:\\s.*|$)",
+            Pattern.DOTALL);
 
     /**
      * Tokenizes an arguments string and returns an {@code ArgumentMultimap} object that maps prefixes to their
@@ -27,6 +35,26 @@ public class ArgumentTokenizer {
     public static ArgumentMultimap tokenize(String argsString, Prefix... prefixes) {
         List<PrefixPosition> positions = findAllPrefixPositions(argsString, prefixes);
         return extractArguments(argsString, positions);
+    }
+
+    /**
+     * Finds all whitespace-delimited single-letter prefix tokens (e.g. {@code n/}, {@code c/}),
+     * excluding legal-name patronymic markers ({@code s/o} and {@code d/o}) appearing between words.
+     */
+    static List<MatchResult> findSingleLetterPrefixes(String argsString) {
+        return SINGLE_LETTER_PREFIX.matcher(argsString).results()
+                .filter(match -> !isPatronymicToken(argsString, match.start()))
+                .toList();
+    }
+
+    /**
+     * Returns true if the token starting at {@code start} is a legal-name patronymic marker
+     * ({@code s/o} or {@code d/o}, case-insensitive) appearing between two words containing letters,
+     * rather than a command field prefix.
+     */
+    static boolean isPatronymicToken(String args, int start) {
+        return BEFORE_PATRONYMIC.matcher(args.substring(0, start)).matches()
+                && FROM_PATRONYMIC.matcher(args.substring(start)).matches();
     }
 
     /**
@@ -47,6 +75,7 @@ public class ArgumentTokenizer {
      */
     private static List<PrefixPosition> findPrefixPositions(String argsString, Prefix prefix) {
         return Pattern.compile("(?<!\\S)" + Pattern.quote(prefix.getPrefix())).matcher(argsString).results()
+                .filter(match -> !isPatronymicToken(argsString, match.start()))
                 .map(match -> new PrefixPosition(prefix, match.start()))
                 .collect(Collectors.toList());
     }
@@ -97,7 +126,7 @@ public class ArgumentTokenizer {
         int valueStartPos = currentPrefixPosition.getStartPosition() + prefix.getPrefix().length();
         String value = argsString.substring(valueStartPos, nextPrefixPosition.getStartPosition());
 
-        return value.trim();
+        return value.strip();
     }
 
     /**

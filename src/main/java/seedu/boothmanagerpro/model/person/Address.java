@@ -38,8 +38,9 @@ public class Address {
      */
     public static boolean isValidAddress(String test) {
         requireNonNull(test);
-        String trimmed = test.trim();
+        String trimmed = test.strip();
         return !trimmed.isBlank()
+                && !Character.isWhitespace(test.codePointAt(0))
                 && test.matches(VALIDATION_REGEX)
                 && trimmed.codePointCount(0, trimmed.length()) <= MAX_LENGTH;
     }
