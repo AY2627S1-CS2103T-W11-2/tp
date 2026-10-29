@@ -365,6 +365,12 @@ public class MainWindowTest {
             assertEquals("add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567",
                     commandInput.getText());
 
+            // Reordered add: all four required fields present in a different order must not gain a duplicate prefix.
+            commandInput.setText("add c/OtherCo e/gamma@example.com p/91234569 n/Gamma Tester");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add c/OtherCo e/gamma@example.com p/91234569 n/Gamma Tester",
+                    commandInput.getText());
+
             commandInput.setText("view");
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("view n/", commandInput.getText());

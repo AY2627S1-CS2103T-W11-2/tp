@@ -193,9 +193,17 @@ public class CommandBox extends UiPart<Region> {
         String currentPrefix = ADD_REQUIRED_PREFIXES.get(lastPrefixIndex);
         int valueStart = lastPrefixPosition + 1 + currentPrefix.length();
         boolean hasValue = !input.substring(valueStart).isBlank();
-        boolean hasNextPrefix = lastPrefixIndex + 1 < ADD_REQUIRED_PREFIXES.size();
-        if (hasValue && hasNextPrefix) {
-            return setCommandText(input + " " + ADD_REQUIRED_PREFIXES.get(lastPrefixIndex + 1));
+        // All required prefixes are already present — nothing to add.
+        boolean allPresent = ADD_REQUIRED_PREFIXES.stream()
+                .allMatch(prefix -> input.contains(" " + prefix));
+        if (hasValue && !allPresent) {
+            // Find the next required prefix that is not yet present in the command.
+            for (int next = lastPrefixIndex + 1; next < ADD_REQUIRED_PREFIXES.size(); next++) {
+                String nextPrefix = ADD_REQUIRED_PREFIXES.get(next);
+                if (!input.contains(" " + nextPrefix)) {
+                    return setCommandText(input + " " + nextPrefix);
+                }
+            }
         }
         return false;
     }
