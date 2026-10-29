@@ -440,7 +440,8 @@ BoothManagerPro automatically saves data after successful commands, except `view
 By default, BoothManagerPro saves data as `data/addressbook.json`, relative to the folder from which you launch the app. Close the app before editing or replacing this file so that a running session does not overwrite your changes.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, BoothManagerPro starts with an empty contact collection at the next run. The invalid file remains on disk until a command other than `view` or a numbered view reply executes successfully and saves data (including `list`, `help`, or `exit`). Still, we recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, BoothManagerPro starts with an empty contact collection and shows a loading-failure warning. Before a later command saves new data, the original file is copied to a unique backup beside it, named `addressbook.json.recovery-<unique suffix>.json`. Existing backups are not replaced. If this backup cannot be created, saving is blocked and an error is shown.<br>
+To recover contacts, close BoothManagerPro first. Keep a separate copy of the recovery backup, repair the invalid values, and restore the repaired contents to `data/addressbook.json` before restarting. Backups are not loaded automatically. We still recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause BoothManagerPro to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 

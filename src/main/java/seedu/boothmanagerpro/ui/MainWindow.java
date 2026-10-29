@@ -76,10 +76,18 @@ public class MainWindow extends UiPart<Stage> {
      * Fills up all the placeholders of this window.
      */
     void fillInnerParts() {
+        fillInnerParts("");
+    }
+
+    /** Displays a startup loading failure prominently while keeping the command box usable. */
+    void fillInnerParts(String startupWarning) {
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
         resultDisplay.setFeedbackToUser("Ready. Type list to show all contacts, find to search, "
                 + "or help for usage instructions.");
+        if (!startupWarning.isEmpty()) {
+            resultDisplay.setFeedbackToUser(startupWarning, true);
+        }
 
         StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());

@@ -169,6 +169,10 @@ The `Model` component,
 The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
+
+Invalid JSON objects and null contact/tag entries produce controlled loading errors. `MainApp` falls back to an empty contact collection and passes a visible loading warning to the UI; invalid preferences fall back to defaults. Optional legacy contact fields retain their existing defaults.
+
+`JsonAddressBookStorage` records failed loads using `DataFileRecovery`. Before the first subsequent save to that path, it copies the original bytes to a unique `.recovery-` JSON file in the same directory. Backup failure blocks the save and retains recovery protection for a retry. A successful backup or a successful reload clears that protection. Recovery files are never automatically loaded or overwritten; users must close the app and repair/restore data manually. This protection does not coordinate concurrent app instances.
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
 ### Common classes
