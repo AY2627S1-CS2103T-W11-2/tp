@@ -414,6 +414,12 @@ public class MainWindowTest {
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("find f/", commandInput.getText());
 
+            commandInput.setText("fi");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("find ", commandInput.getText());
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("find n/", commandInput.getText());
+
             commandInput.setText("edit 1 a");
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("edit 1 a/", commandInput.getText());
@@ -443,6 +449,42 @@ public class MainWindowTest {
             commandInput.fireEvent(new ActionEvent());
             assertTrue(commandInput.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
         });
+    }
+
+    @Test
+    public void tabFocusReturn_keepsCommandInputUnselected() throws Exception {
+        Stage stage = runOnFxThread(() -> {
+            StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath()),
+                    new JsonUserPrefsStorage(testFolder.resolve("preferences.json")));
+            Stage newStage = new Stage();
+            newStage.setOpacity(0);
+            MainWindow window = new MainWindow(newStage, new LogicManager(new ModelManager(), storage), dataPath());
+            window.fillInnerParts();
+            window.show();
+            Parent root = newStage.getScene().getRoot();
+            input(root).setText("find n/Alicia");
+            pressKey(input(root), KeyCode.TAB);
+            assertEquals(root.lookup("#resultDisplay"), root.getScene().getFocusOwner());
+            pressKey(root.getScene().getFocusOwner(), KeyCode.TAB);
+            assertEquals(input(root), root.getScene().getFocusOwner());
+            return newStage;
+        });
+        try {
+            // Runs after the deferred caret update queued when the command input regained focus.
+            runOnFxThread(() -> {
+                TextField commandInput = input(stage.getScene().getRoot());
+                assertEquals("", commandInput.getSelectedText());
+                assertEquals(commandInput.getLength(), commandInput.getCaretPosition());
+                return null;
+            });
+        } finally {
+            runOnFxThread(() -> {
+                for (Window open : List.copyOf(Window.getWindows())) {
+                    open.hide();
+                }
+                return null;
+            });
+        }
     }
 
     private ModelManager sampleModel() {

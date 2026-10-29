@@ -15,8 +15,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -102,6 +105,21 @@ public class CommandBox extends UiPart<Region> {
                 event.consume();
             }
         });
+        // JavaFX selects all text when keyboard focus returns, so the next keystroke would replace the command.
+        // The caret is moved to the end after that selection is made instead.
+        ChangeListener<Node> keepCaretOnFocusReturn = (unused, oldOwner, newOwner) -> {
+            if (newOwner == commandTextField) {
+                Platform.runLater(() -> commandTextField.positionCaret(commandTextField.getLength()));
+            }
+        };
+        commandTextField.sceneProperty().addListener((unused, oldScene, newScene) -> {
+            if (oldScene != null) {
+                oldScene.focusOwnerProperty().removeListener(keepCaretOnFocusReturn);
+            }
+            if (newScene != null) {
+                newScene.focusOwnerProperty().addListener(keepCaretOnFocusReturn);
+            }
+        });
     }
 
     /**
@@ -114,7 +132,7 @@ public class CommandBox extends UiPart<Region> {
         String trimmedInput = input.trim();
 
         if (autocompleteAddField(trimmedInput)
-                || autocompleteViewField(trimmedInput)
+                || autocompleteNameField(trimmedInput)
                 || autocompleteListField(trimmedInput)
                 || autocompleteFieldPrefix(trimmedInput)
                 || autocompleteFieldValue(trimmedInput)
@@ -168,10 +186,10 @@ public class CommandBox extends UiPart<Region> {
         return false;
     }
 
-    /** Adds the required name prefix while the user is building a view command. */
-    private boolean autocompleteViewField(String input) {
-        if (input.equals(ViewCommand.COMMAND_WORD)) {
-            return setCommandText(ViewCommand.COMMAND_WORD + " " + PREFIX_NAME);
+    /** Adds the name prefix while the user is building a view or find command. */
+    private boolean autocompleteNameField(String input) {
+        if (input.equals(ViewCommand.COMMAND_WORD) || input.equals(FindCommand.COMMAND_WORD)) {
+            return setCommandText(input + " " + PREFIX_NAME);
         }
         return false;
     }
