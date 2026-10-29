@@ -71,7 +71,7 @@ public class MainWindowTest {
             assertEquals("Enquiry status: In progress", status.getAccessibleText());
             assertTrue(status.getStyleClass().contains("status-in-progress"));
             assertTrue(card.getStyleClass().contains("status-in-progress"));
-            assertEquals("Follow-up date: 20261025", ((Label) card.lookup("#followUpDate")).getText());
+            assertEquals("Follow-up date: 25 Oct 2026", ((Label) card.lookup("#followUpDate")).getText());
         });
     }
 
@@ -87,7 +87,7 @@ public class MainWindowTest {
             assertEquals(1, cards.getChildren().size(), "One contact and no total, as the heading has the count");
             Parent card = (Parent) cards.getChildren().getFirst();
             assertEquals("1. Alicia Tan", ((Label) card.lookup("#name")).getText());
-            assertEquals("Follow-up date: 20261025", ((Label) card.lookup("#followUpDate")).getText());
+            assertEquals("Follow-up date: 25 Oct 2026", ((Label) card.lookup("#followUpDate")).getText());
             savePreview(root, 1180, 820, "cli-find-date.png");
             enterCommand(root, "find f/20230229");
             assertTrue(output(root).contains("Invalid value for f/"));
@@ -136,7 +136,7 @@ public class MainWindowTest {
             assertEquals("Completed", status.getText());
             assertTrue(status.getStyleClass().contains("status-completed"));
             assertFalse(status.getStyleClass().contains("status-in-progress"));
-            assertEquals("Follow-up date: 20261025", ((Label) card.lookup("#followUpDate")).getText());
+            assertEquals("Follow-up date: 25 Oct 2026", ((Label) card.lookup("#followUpDate")).getText());
             enterCommand(root, "update Alicia Tan f/20230229");
             assertTrue(output(root).contains("Invalid value for f/"));
             assertEquals("update Alicia Tan f/20230229", input(root).getText());

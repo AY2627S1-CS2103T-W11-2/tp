@@ -81,7 +81,7 @@ class JsonAdaptedPerson {
      */
     public JsonAdaptedPerson(Person source) {
         enquiryStatus = source.getEnquiryStatus().toString();
-        followUpDate = source.getFollowUpDate().map(Object::toString).orElse(null);
+        followUpDate = source.getFollowUpDate().map(FollowUpDate::toIsoDate).orElse(null);
         name = source.getName().fullName;
         phone = source.getPhone().value;
         email = source.getEmail().value;

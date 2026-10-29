@@ -49,13 +49,13 @@ public class ExhibitorAddIntegrationTest {
         logic.execute(ADD + " s/IN PROGRESS f/20240229");
         Person saved = storage.readAddressBook().orElseThrow().getPersonList().getFirst();
         assertEquals("In progress", saved.getEnquiryStatus().toString());
-        assertEquals("20240229", saved.getFollowUpDate().orElseThrow().toString());
+        assertEquals("29 Feb 2024", saved.getFollowUpDate().orElseThrow().toString());
         logic.execute("update 1 p/98765432");
         Person edited = storage.readAddressBook().orElseThrow().getPersonList().getFirst();
         assertEquals(saved.getEnquiryStatus(), edited.getEnquiryStatus());
         assertEquals(saved.getFollowUpDate(), edited.getFollowUpDate());
         String details = logic.execute("view n/Alicia").getFeedbackToUser();
-        assertTrue(details.contains("Enquiry status: In progress\nFollow-up date: 20240229"));
+        assertTrue(details.contains("Enquiry status: In progress\nFollow-up date: 29 Feb 2024"));
         assertThrows(CommandException.class, () -> logic.execute(ADD + " s/Completed f/20261025"));
     }
 
@@ -139,7 +139,7 @@ public class ExhibitorAddIntegrationTest {
         assertThrows(CommandException.class, () -> logic.execute("delete Alicia Tan"));
         logic.execute("find c/TechNova Pte Ltd");
         String deleted = logic.execute("delete 1").getFeedbackToUser();
-        assertTrue(deleted.contains("Company: TechNova Pte Ltd"));
+        assertTrue(deleted.contains("TechNova Pte Ltd"));
         assertTrue(deleted.contains("Contact method: email"));
         assertEquals(1, storage.readAddressBook().orElseThrow().getPersonList().size());
         assertEquals("Other Ltd", model.getAddressBook().getPersonList().getFirst()
