@@ -14,7 +14,6 @@ import seedu.boothmanagerpro.model.person.EnquiryStatus;
 import seedu.boothmanagerpro.model.person.FollowUpDate;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.Person;
-import seedu.boothmanagerpro.model.person.Phone;
 import seedu.boothmanagerpro.model.tag.Tag;
 
 public class AddCommandParserTest {
@@ -106,9 +105,13 @@ public class AddCommandParserTest {
             assertParseFailure(parser, valid.replace("TechNova Pte Ltd", company),
                     "Invalid value for c/: " + Company.MESSAGE_CONSTRAINTS);
         }
-        for (String phone : new String[]{"123456", "1".repeat(16), "1234567+", "abc1234567"}) {
+        for (String phone : new String[]{"123456", "1".repeat(16)}) {
             assertParseFailure(parser, valid.replace("91234567", phone),
-                    "Invalid value for p/: " + Phone.MESSAGE_CONSTRAINTS);
+                    "Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +.");
+        }
+        for (String phone : new String[]{"1234567+", "abc1234567", "(65) 6123-4567"}) {
+            assertParseFailure(parser, valid.replace("91234567", phone), "Invalid value for p/: "
+                    + "Phone number can only contain digits, spaces, hyphens, and a + at the start.");
         }
         assertParseFailure(parser, valid.replace("alicia@technova.com", "a@@example.com"),
                     "Invalid value for e/: " + Email.MESSAGE_CONSTRAINTS);

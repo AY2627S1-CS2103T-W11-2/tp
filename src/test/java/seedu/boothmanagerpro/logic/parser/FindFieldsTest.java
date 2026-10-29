@@ -64,6 +64,9 @@ public class FindFieldsTest {
                 "e/not-an-email", "n/@", "t/tag/with/slash")) {
             assertThrows(ParseException.class, () -> parser.parse(input));
         }
+        assertParseFailure(parser, "p/(65) 6123-4567",
+                "Phone number can only contain digits, spaces, hyphens, and a + at the start.");
+        assertParseFailure(parser, "p/12", "Phone number must contain 7 to 15 digits, optionally starting with +.");
     }
 
     @Test

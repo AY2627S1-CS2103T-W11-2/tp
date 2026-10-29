@@ -85,8 +85,9 @@ BoothManagerPro is a desktop contact manager for **convention organisers followi
 ### Viewing help: `help`
 
 Prints every command's description, format, example, and the User Guide link in the text output area. This includes
-optional fields and features such as list sorting, follow-up-date searches, status updates, and tag toggling. You can
-also press **F1**. Keyboard focus stays in the command box.
+optional fields and features such as list sorting, follow-up-date searches, status updates, field clearing, and tag
+toggling. It also summarizes displayed-index targeting and the **Tab**, **F1**, and **Ctrl+L**/**Command+L** keyboard
+controls. You can also press **F1** to open it. Keyboard focus stays in the command box.
 
 Format: `help`
 
@@ -102,7 +103,7 @@ Format: `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD]
 | `n/NAME` | 1-80 characters; at least one letter. Allows letters, spaces, hyphens, apostrophes, full stops, and `s/o` or `d/o` between words. |
 | `c/COMPANY` | 1-100 characters; cannot be blank. |
 | `e/EMAIL` | Valid email format, such as `alicia@example.com`; stored in lowercase. |
-| `p/PHONE` | 7-15 digits, optionally starting with `+`. Spaces and hyphens are removed. |
+| `p/PHONE` | 7-15 digits, optionally starting with `+`. Only digits, spaces, hyphens, and a leading `+` are allowed, so `+65 9123-4567` works but `(65) 6123-4567` and `1234 5678 (HP)` do not. Spaces and hyphens are removed. |
 | `m/METHOD` | Optional: `email`, `phone`, or `other`, ignoring case. Omitted method is `Not specified`. |
 | `s/STATUS` | Optional: `Needs follow-up` (default), `In progress`, `Completed`, or `Cancelled`, ignoring case. |
 | `f/YYYYMMDD` | Optional calendar date, e.g. `20261025`; omitted date displays as `None`. Years 0001-9999; invalid dates are rejected. |
@@ -155,6 +156,24 @@ If the email matches one record and the name/company matches another, both confl
 An error identifies missing, repeated, empty or invalid fields. Correct the command retained in the input box and press Enter again. Required fields are `n/`, `c/`, `e/` and `p/`; only `t/` can repeat. For example, `Empty field: c/. Supply a value after this prefix.` means that you need to enter a company after `c/`.
 
 Use the field rules above to correct invalid values. Rejected input does not add a contact. If a duplicate is reported, check the existing contact before using `update`.
+| Problem | Feedback |
+| --- | --- |
+| Missing required prefixes (example: company and email) | `Missing required fields: c/, e/. Supply a value after each prefix.` |
+| Repeated fields (example: name and phone) | `Repeated fields: n/, p/. Keep one value per field; only t/ may repeat.` |
+| Unknown prefix (example: `x/`) | `Unknown field prefix: x/. Use n/, c/, e/, p/, m/, s/, f/, or t/.` |
+| Text before the first prefix | `Unexpected text before the first field.` followed by a complete example command. |
+| Empty field (example: `c/`) | `Empty field: c/. Supply a value after this prefix.` |
+| Invalid name | `Invalid value for n/: Names must be 1 to 80 characters and contain a letter. Use only letters, spaces, hyphens, apostrophes, full stops, or s/o and d/o between words.` |
+| Invalid company | `Invalid value for c/: Company name must contain 1 to 100 characters.` |
+| Invalid email | `Invalid value for e/: Email address is invalid.` |
+| Phone with another character, e.g. `(` or a letter | `Invalid value for p/: Phone number can only contain digits, spaces, hyphens, and a + at the start.` |
+| Phone with too few or too many digits | `Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +.` |
+| Invalid method | `Invalid value for m/: Contact method must be email, phone, or other.` |
+| Invalid status | `Invalid value for s/: Enquiry status must be Needs follow-up, In progress, Completed, or Cancelled.` |
+| Invalid date | `Invalid value for f/: Follow-up date must be a valid date in YYYYMMDD format (years 0001 to 9999), e.g. 20261025.` |
+| Invalid tag | `Invalid value for t/: Tag must be 1 to 30 characters and cannot contain '/'.` |
+
+Each missing-field or repeated-field error lists all affected prefixes in n/, c/, e/, p/, m/, s/, f/ order. A present but empty field is reported separately from a missing prefix. Words between prefixes belong to the preceding field; prefix-like tokens are reserved. If several errors occur, unknown prefixes/preamble are checked first, then repeated fields, then missing prefixes, then values in n/, c/, e/, p/, m/, s/, f/, t/ order. Invalid input and duplicates do not add a contact.
 
 ### Listing all exhibitor contacts: `list`
 
@@ -240,6 +259,8 @@ Format: `view n/NAME`
   instead of also listing `Alex Yeoh`; `view n/Alex` still lists both.
 * An invalid number shows the valid range followed by the numbered choices again, and lets you try again. Another successfully parsed command cancels the pending choice, even if execution fails. A command with invalid syntax leaves the choice pending. Cancelling a choice clears its prompt; a subsequent bare number is no longer a selection reply.
 * Only `n/` is accepted. Repeated names, other prefixes, missing/invalid names, and unprefixed requests are rejected.
+  A name without `n/`, such as `view alex`, shows `view needs the n/ prefix before the name. Use: view n/NAME, e.g. view n/Alicia Tan`;
+  `view n/` with no name shows `Name cannot be empty. Use: view n/NAME, e.g. view n/Alicia Tan`.
 * No match produces an error and keeps the current filter unchanged.
 * Viewing does not change saved data. It filters the current index set to the matches; use `list` to print everyone again. A unique match has index `1`.
 * An omitted contact method or a company missing from saved data is shown as `Not specified`.
@@ -274,6 +295,8 @@ Format: `update NAME_OR_INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD
 - Only `t/` may repeat. Supplied tags replace existing tags, with duplicates ignored in input order. Empty `t/` clears tags; do not combine it with nonempty tags.
 - Empty `f/` clears the date. Other blank fields are rejected. Status may be changed to any of the four supported values; there is no enforced transition order.
 - Unknown prefixes, invalid values, missing/ambiguous targets, and duplicate email or name/company combinations are rejected without changing contacts or saved data. Duplicate checks include hidden contacts.
+- Don't put `n/` before the contact: `update n/Alicia Tan s/Completed` shows `Don't include n/ for update. Use: update NAME_OR_INDEX FIELD... (n/ only sets a new name, e.g. update Alicia Tan n/Alicia Lim)`.
+- An index of `0` or below shows `Index must be a positive integer.`; an index too large to be a list position, such as `99999999999999`, shows `Index is too large. Use a number shown in the current list, find or view results.`
 - Success prints `Updated NAME at COMPANY.`, clears the filter and command input, and retains keyboard focus. Run `list` or `find` before reusing an index, or `view n/NAME` to check details.
 - Updating contact details does not change any postal address saved in the data file.
 
@@ -294,6 +317,7 @@ Format: `tag NAME_OR_INDEX t/TAG [t/TAG]...`
 - Supply at least one nonblank `t/TAG` field (`1-30` characters, without `/`). Repeated identical `t/TAG` values in the same command are ignored in input order.
 - Tag matching is case-sensitive, consistent with `add` and `update`: `t/VIP` and `t/vip` are distinct tags.
 - Only `t/` is accepted. Unknown prefixes, missing or blank `t/`, and invalid targets are rejected without changing contacts, filters, or saved data.
+- Don't put `n/` before the contact: `tag n/Alicia Tan t/vip` shows `Don't include n/ for tag. Use: tag NAME_OR_INDEX t/TAG [t/TAG]...`. Invalid indexes show the same messages as [`update`](#updating-an-exhibitor-contact-update).
 - Success prints the exact tag changes made (`Updated tags for NAME at COMPANY. Added: .... Removed: .... Current tags: ....`), clears the filter and command input, and retains keyboard focus. All other contact attributes remain unchanged.
 
 ```text
@@ -372,7 +396,8 @@ Format: `delete NAME` or `delete INDEX`
   then delete the intended contact by its displayed index.
 * Alternatively, deletes the contact at the specified `INDEX`.
 * The index refers to the index number shown in the current numbered command results.
-* The index **must be a positive integer** 1, 2, 3, …​
+* The index **must be a positive integer** 1, 2, 3, …​ `delete 0` or `delete -1` shows `Index must be a positive integer.`, and an index too large to be a list position, such as `delete 99999999999999`, shows `Index is too large. Use a number shown in the current list, find or view results.`
+* Don't include `n/`: `delete n/Alex Yeoh` shows `Don't include n/ for delete. Use: delete NAME or delete INDEX`.
 
 Examples:
 

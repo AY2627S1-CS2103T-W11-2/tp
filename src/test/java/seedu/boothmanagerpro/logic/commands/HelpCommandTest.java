@@ -1,6 +1,5 @@
 package seedu.boothmanagerpro.logic.commands;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.boothmanagerpro.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.boothmanagerpro.logic.commands.HelpCommand.SHOWING_HELP_MESSAGE;
@@ -29,7 +28,8 @@ public class HelpCommandTest {
                 + "   Example:     add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567 "
                 + "m/email s/In progress f/20261025 t/high-priority"));
         assertTrue(SHOWING_HELP_MESSAGE.contains("4. VIEW\n"
-                + "   Description: Displays the full details of a contact matching the given name.\n"
+                + "   Description: Displays full contact details. If several contacts match, reply with a displayed "
+                + "number.\n"
                 + "   Format:      view n/NAME\n"
                 + "   Example:     view n/Alicia Tan"));
         assertTrue(SHOWING_HELP_MESSAGE.contains("6. TAG\n"
@@ -43,7 +43,14 @@ public class HelpCommandTest {
         assertTrue(SHOWING_HELP_MESSAGE.contains("list [o/name|o/company|o/status]"));
         assertTrue(SHOWING_HELP_MESSAGE.contains("find f/20261025 t/high-priority"));
         assertTrue(SHOWING_HELP_MESSAGE.contains("update Alicia Tan s/Completed f/20261028"));
+        assertTrue(SHOWING_HELP_MESSAGE.contains("Empty f/ clears the follow-up date; empty t/ clears all tags."));
+        assertTrue(SHOWING_HELP_MESSAGE.contains("Repeated fields are alternatives (OR); different fields must all "
+                + "match (AND)."));
+        assertTrue(SHOWING_HELP_MESSAGE.contains("Use an exact full name or a displayed number for NAME_OR_INDEX."));
         assertTrue(SHOWING_HELP_MESSAGE.contains("clear confirm"));
-        assertFalse(SHOWING_HELP_MESSAGE.contains("Keyboard shortcuts"));
+        assertTrue(SHOWING_HELP_MESSAGE.contains("Enter: run command  |  Tab: autofill or focus output"));
+        assertTrue(SHOWING_HELP_MESSAGE.contains("F1: show help       |  Ctrl/Cmd+L: focus command box"));
+        assertTrue(SHOWING_HELP_MESSAGE.contains(
+                "Use numbers from list, find, or view for update, tag, and delete."));
     }
 }

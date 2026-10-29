@@ -37,15 +37,18 @@ public class UpdateCommandParser implements Parser<UpdateCommand> {
     private static final Logger logger = LogsCenter.getLogger(UpdateCommandParser.class);
     private static final List<Prefix> PREFIXES = List.of(PREFIX_NAME, PREFIX_COMPANY, PREFIX_EMAIL,
             PREFIX_PHONE, PREFIX_METHOD, PREFIX_STATUS, PREFIX_FOLLOW_UP, PREFIX_TAG);
+    private static final String TARGET_USAGE =
+            "update NAME_OR_INDEX FIELD... (n/ only sets a new name, e.g. update Alicia Tan n/Alicia Lim)";
 
     @Override
     public UpdateCommand parse(String args) throws ParseException {
         logger.finer("Parsing UpdateCommand arguments: " + args);
+        ParserUtil.rejectNamePrefix(args, UpdateCommand.COMMAND_WORD, TARGET_USAGE);
         ArgumentMultimap fields = tokenize(args);
         validateStructure(fields);
         ContactUpdate changes = parseChanges(fields);
         String target = fields.getPreamble();
-        UpdateCommand command = target.matches("[0-9]+")
+        UpdateCommand command = ParserUtil.isIndexLike(target)
                 ? new UpdateCommand(ParserUtil.parseIndex(target), changes)
                 : new UpdateCommand(ParserUtil.parseName(target), changes);
         logger.fine("Successfully parsed UpdateCommand targeting: " + target);
@@ -82,7 +85,7 @@ public class UpdateCommandParser implements Parser<UpdateCommand> {
     private ContactUpdate parseChanges(ArgumentMultimap fields) throws ParseException {
         return new ContactUpdate(optional(fields, PREFIX_NAME, Name::new),
                 optional(fields, PREFIX_COMPANY, Company::new), optional(fields, PREFIX_EMAIL, Email::new),
-                optional(fields, PREFIX_PHONE, Phone::new), optional(fields, PREFIX_METHOD, ContactMethod::fromString),
+                parsePhone(fields), optional(fields, PREFIX_METHOD, ContactMethod::fromString),
                 optional(fields, PREFIX_STATUS, EnquiryStatus::fromString), parseDate(fields), parseTags(fields));
     }
 
@@ -92,6 +95,11 @@ public class UpdateCommandParser implements Parser<UpdateCommand> {
             return Optional.empty();
         }
         return Optional.of(parseValue(prefix, fields.getValue(prefix).orElseThrow(), constructor));
+    }
+
+    private Optional<Phone> parsePhone(ArgumentMultimap fields) throws ParseException {
+        Optional<String> value = fields.getValue(PREFIX_PHONE);
+        return value.isEmpty() ? Optional.empty() : Optional.of(ContactFieldParser.parsePhone(value.orElseThrow()));
     }
 
     /** Distinguishes an omitted date (preserve), blank date (clear), and supplied date (replace). */

@@ -14,14 +14,16 @@ import seedu.boothmanagerpro.model.tag.Tag;
 /** Parses a contact target and one or more t/TAG fields to toggle. */
 public class TagCommandParser implements Parser<TagCommand> {
     public static final String MESSAGE_UNKNOWN_FIELD = "Unknown field prefix: %s. Use t/.";
+    private static final String TARGET_USAGE = "tag NAME_OR_INDEX t/TAG [t/TAG]...";
 
     @Override
     public TagCommand parse(String args) throws ParseException {
+        ParserUtil.rejectNamePrefix(args, TagCommand.COMMAND_WORD, TARGET_USAGE);
         ArgumentMultimap fields = tokenize(args);
         validateStructure(fields);
         Set<Tag> tags = parseTags(fields);
         String target = fields.getPreamble();
-        return target.matches("[0-9]+")
+        return ParserUtil.isIndexLike(target)
                 ? new TagCommand(ParserUtil.parseIndex(target), tags)
                 : new TagCommand(ParserUtil.parseName(target), tags);
     }

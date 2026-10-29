@@ -45,7 +45,7 @@ public class ViewCommandParserTest {
 
     @Test
     public void parse_unknownPrefixOrUnprefixedValue_failure() {
-        for (String args : new String[]{"Alicia Tan", "1", "x/test", "Alicia n/Tan", "n/Alice c/Acme",
+        for (String args : new String[]{"x/test", "n/Alice c/Acme",
             "n/Alicia p/12345678", "m/email n/Alicia", "n/Alicia x/test", "n/Alicia i/1", "n/Alicia/extra",
             "n/Raj s/o Kumar c/Acme", "n/Raj s/o"}) {
             assertParseFailure(parser, args, ViewCommandParser.MESSAGE_UNKNOWN_FIELD);
@@ -53,8 +53,23 @@ public class ViewCommandParserTest {
     }
 
     @Test
+    public void parse_missingNamePrefix_failure() {
+        for (String args : new String[]{"alex", "Alicia Tan", "1", "Alicia n/Tan"}) {
+            assertParseFailure(parser, args,
+                    "view needs the n/ prefix before the name. Use: view n/NAME, e.g. view n/Alicia Tan");
+        }
+    }
+
+    @Test
+    public void parse_emptyName_failure() {
+        for (String args : new String[]{"n/", " n/ ", "n/\t"}) {
+            assertParseFailure(parser, args, "Name cannot be empty. Use: view n/NAME, e.g. view n/Alicia Tan");
+        }
+    }
+
+    @Test
     public void parse_invalidName_failure() {
-        for (String name : new String[]{"", " ", "123", "Alicia2", "...", "---", "Alicia!",
+        for (String name : new String[]{"123", "Alicia2", "...", "---", "Alicia!",
             "Raj2 s/o Kumar", "A".repeat(81)}) {
             assertParseFailure(parser, "n/" + name, ViewCommandParser.MESSAGE_INVALID_NAME);
         }
