@@ -12,6 +12,8 @@ import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -34,6 +36,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.Window;
@@ -43,6 +46,12 @@ import seedu.boothmanagerpro.logic.commands.CommandResult;
 import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.UserPrefs;
+import seedu.boothmanagerpro.model.person.Address;
+import seedu.boothmanagerpro.model.person.Email;
+import seedu.boothmanagerpro.model.person.EnquiryStatus;
+import seedu.boothmanagerpro.model.person.Name;
+import seedu.boothmanagerpro.model.person.Person;
+import seedu.boothmanagerpro.model.person.Phone;
 import seedu.boothmanagerpro.model.util.SampleDataUtil;
 import seedu.boothmanagerpro.storage.JsonAddressBookStorage;
 import seedu.boothmanagerpro.storage.StorageManager;
@@ -617,6 +626,23 @@ public class MainWindowTest {
 
             ContactCard.copyToClipboard("test@example.com");
             ContactCard.copyToClipboard(null);
+        });
+    }
+
+    @Test
+    public void contactCard_missingCompanyAndTags_matchesUserGuidePlaceholders() throws Exception {
+        runOnFxThread(() -> {
+            Person person = new Person(new Name("No Field"), new Phone("91234567"),
+                    new Email("nofield@example.com"), new Address("Blk 123"),
+                    Set.of(), Optional.empty(), Optional.empty(),
+                    EnquiryStatus.NEEDS_FOLLOW_UP, Optional.empty());
+            ContactCard card = new ContactCard(person, 1);
+            Label company = (Label) card.getRoot().lookup("#company");
+            FlowPane tags = (FlowPane) card.getRoot().lookup("#tags");
+            assertEquals("Not specified", company.getText());
+            assertEquals(1, tags.getChildren().size());
+            assertEquals("None", ((Label) tags.getChildren().getFirst()).getText());
+            return null;
         });
     }
 

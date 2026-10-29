@@ -26,8 +26,8 @@ public class ContactCard extends UiPart<Region> {
     public static final int NO_INDEX = 0;
 
     private static final String FXML = "ContactCard.fxml";
-    private static final String NO_COMPANY = "Company not specified";
-    private static final String NO_TAGS = "No tags";
+    private static final String NO_COMPANY = "Not specified";
+    private static final String NO_TAGS = Messages.EMPTY_TAGS;
     private static final String DETAIL_STYLE_CLASS = "card-detail";
 
     @FXML
