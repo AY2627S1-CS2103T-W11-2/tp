@@ -180,7 +180,7 @@ public class MainWindowTest {
             enterCommand(root, "find Alex David");
             String found = output(root);
             assertTrue(found.startsWith("2 contact(s) found.\n\n1. Alex Yeoh"));
-            assertTrue(found.contains("2. David Li at Not specified\nEmail: lidavid@example.com"));
+            assertTrue(found.contains("2. David Li at Quantum Dynamics\nEmail: lidavid@example.com"));
             assertFalse(found.contains("Bernice Yu"));
             assertEquals("", input(root).getText());
             assertNoContactPanels(root);
