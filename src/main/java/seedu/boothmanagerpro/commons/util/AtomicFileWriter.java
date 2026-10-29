@@ -29,12 +29,17 @@ final class AtomicFileWriter {
             Files.writeString(temporary, content, StandardCharsets.UTF_8);
             Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException failure) {
-            try {
-                Files.deleteIfExists(temporary);
-            } catch (IOException cleanupFailure) {
-                failure.addSuppressed(cleanupFailure);
-            }
+            cleanupAfterFailure(temporary, failure);
             throw failure;
+        }
+    }
+
+    /** Retains the original save failure even if an incomplete temporary file cannot be removed. */
+    static void cleanupAfterFailure(Path temporary, IOException failure) {
+        try {
+            Files.deleteIfExists(temporary);
+        } catch (IOException cleanupFailure) {
+            failure.addSuppressed(cleanupFailure);
         }
     }
 }

@@ -65,4 +65,16 @@ public class AtomicFileWriterTest {
             assertEquals(List.of(expected), files.toList());
         }
     }
+
+    @Test
+    public void cleanup_failure_preservesOriginalExceptionAndRecordsCleanupFailure() throws Exception {
+        Path temporary = Files.createDirectory(folder.resolve("incomplete"));
+        Files.writeString(temporary.resolve("child"), "cannot delete a nonempty directory");
+        IOException original = new IOException("save failed");
+        AtomicFileWriter.cleanupAfterFailure(temporary, original);
+        assertEquals("save failed", original.getMessage());
+        assertEquals(1, original.getSuppressed().length);
+        assertEquals(true, original.getSuppressed()[0] instanceof IOException);
+        assertEquals("cannot delete a nonempty directory", Files.readString(temporary.resolve("child")));
+    }
 }
