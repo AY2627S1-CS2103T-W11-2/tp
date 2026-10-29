@@ -95,6 +95,27 @@ public class FindCompanyTagUnicodeIntegrationTest {
         assertEquals(List.of(stored), List.copyOf(model.getFilteredPersonList()));
     }
 
+    @Test
+    public void find_companyWithInternalMultipleSpacesAndTabs_matchesStoredContacts() throws Exception {
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(folder.resolve("spaces-contacts.json"));
+        StorageManager manager = IntegrationTestFixture.createStorage(storage, folder.resolve("spaces-prefs.json"));
+        ModelManager model = new ModelManager();
+        LogicManager logic = new LogicManager(model, manager);
+
+        logic.execute("add n/Tech Guy c/TechNova\n  Pte Ltd e/tech@example.com p/81234567");
+        Person stored = model.getAddressBook().getPersonList().getFirst();
+        assertEquals("TechNova Pte Ltd", stored.getCompany().orElseThrow().value);
+
+        logic.execute("find c/TechNova Pte Ltd");
+        assertEquals(List.of(stored), List.copyOf(model.getFilteredPersonList()));
+
+        logic.execute("find c/TechNova  Pte Ltd");
+        assertEquals(List.of(stored), List.copyOf(model.getFilteredPersonList()));
+
+        logic.execute("find c/TechNova\tPte Ltd");
+        assertEquals(List.of(stored), List.copyOf(model.getFilteredPersonList()));
+    }
+
     private void assertCaseVariantsMatch(String field) throws Exception {
         for (List<String> pair : List.of(List.of("\u039f\u03a3", "\u03bf\u03c3"),
                 List.of("\u03bf\u03c3", "\u039f\u03a3"), List.of("\u03bf\u03c2", "\u03bf\u03c3"),

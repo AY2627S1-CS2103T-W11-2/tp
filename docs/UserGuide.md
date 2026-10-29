@@ -150,7 +150,7 @@ If validation or duplicate detection fails, the typed command remains available 
 
 **Duplicate handling**
 
-A contact is rejected if any stored contact has the same normalised email, or the same name and company ignoring case. Names are stored after surrounding whitespace is removed and consecutive spaces are collapsed, so `Chloe Ng` and `chloe  ng` are treated as the same name. This includes contacts hidden by the current search. Sharing only a name or company is allowed if the email is different. Contacts saved without a company are compared by email only. Company punctuation is significant: `Acme Pte. Ltd.` and `Acme Pte Ltd` are different company names, so check for spelling variants before adding a contact.
+A contact is rejected if any stored contact has the same normalised email, or the same name and company ignoring case. Names and company names are stored after surrounding whitespace is removed and consecutive spaces (including tabs and newlines) are collapsed, so `Chloe Ng` and `chloe  ng` are treated as the same name, and `TechNova  Pte Ltd` and `TechNova Pte Ltd` are treated as the same company. This includes contacts hidden by the current search. Sharing only a name or company is allowed if the email is different. Contacts saved without a company are compared by email only. Company punctuation is significant: `Acme Pte. Ltd.` and `Acme Pte Ltd` are different company names, so check for spelling variants before adding a contact.
 
 For a match against Alicia's record above:
 

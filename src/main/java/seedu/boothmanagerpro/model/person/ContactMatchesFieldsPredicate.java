@@ -26,12 +26,23 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
         if (field.equals("n/")) {
             return foldName(value);
         }
+        if (field.equals("c/")) {
+            return foldCompany(value);
+        }
         String nfc = Normalizer.normalize(value, Normalizer.Form.NFC).strip();
-        if (field.equals("c/") || field.equals("t/")) {
+        if (field.equals("t/")) {
             return foldCase(nfc);
         }
         String result = nfc.toLowerCase(Locale.ROOT);
         return field.equals("p/") ? result.replace(" ", "").replace("-", "") : result;
+    }
+
+    /**
+     * Applies NFC Unicode normalisation, collapses whitespace (including spaces, tabs, and newlines),
+     * then folds each code point to its case-equivalent.
+     */
+    private static String foldCompany(String value) {
+        return foldCase(Company.normaliseWhitespace(value));
     }
 
     /**
