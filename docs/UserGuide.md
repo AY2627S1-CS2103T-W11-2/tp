@@ -347,11 +347,12 @@ Format: `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG] [f/YYYYMMDD]...`
 * Tags match complete tag names; any matching tag satisfies that field.
 * Duplicate criteria have no effect. Results always search all stored contacts, not just the current displayed list.
 * Unknown prefixes and empty/invalid values are rejected without changing the filter or stored contacts.
-* `find` prints the number of matches followed by each matching contact's number, name, company, email, phone, method, and tags. No preliminary `list` command is needed.
+* `find` prints the number of matches followed by each matching contact's number, name, company, email, phone, method, enquiry status, follow-up date, and tags. No preliminary `list` command is needed.
 * With no matches, it prints `0 contact(s) found.` and no contact details.
 * Company (`c/`) matches the complete stored company name. Legacy contacts without a company do not match this field.
 * Follow-up date (`f/`) matches the exact stored calendar date in `YYYYMMDD` format, using the same date validation as `add` and `update`. Contacts without a follow-up date do not match. Past dates are accepted; date ranges and overdue searches are not supported.
 * Repeat `f/` to match any of the supplied dates (OR), or combine it with another field to require both (AND). An empty `f/` is invalid in `find`; it does not search for contacts without dates. Invalid dates are rejected without changing the existing results or saved data.
+* To find contacts scheduled for today, supply today's date explicitly, for example `find f/20261029` on 29 October 2026. This matches that date only; it does not include earlier dates or check enquiry status.
 * Enquiry status (`s/`) and contact method (`m/`) are not searchable.
 * `list` restores all contacts. A result count of zero means no contacts matched.
 

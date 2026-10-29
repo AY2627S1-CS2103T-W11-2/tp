@@ -516,7 +516,9 @@ Planned requirements for BoothManagerPro; implementation status is tracked separ
 | US-36 | `**` | organiser | sort the contact list by name, company, or enquiry status | I can scan contacts in a predictable order and see who needs follow-up first. |
 
 - **US-05:** Duplicates share a normalised email or a name-and-company combination.
+- **US-11:** Enquiry-status filtering is planned. `list o/status` sorts all contacts by status; it does not filter them.
 - **US-12:** Repeated values within a field use OR; different fields use AND.
+- **US-15:** `find f/YYYYMMDD` matches one exact follow-up date, including a date supplied by the user for today. It does not automatically select today or include earlier dates. Automatic due or overdue filtering remains planned.
 
 #### Considered user stories
 
