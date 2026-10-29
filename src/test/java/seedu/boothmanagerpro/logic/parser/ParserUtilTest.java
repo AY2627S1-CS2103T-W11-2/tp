@@ -35,6 +35,21 @@ public class ParserUtilTest {
     private static final String WHITESPACE = " \t\r\n";
 
     @Test
+    public void parseIndex_zeroAndLeadingZeros_handlesBoundaries() throws Exception {
+        assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndex("000"));
+        assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("0001"));
+        assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndex("abc"));
+    }
+
+    @Test
+    public void rejectNamePrefix_rejectsPrefixAndAcceptsPlainTarget() throws Exception {
+        assertThrows(ParseException.class,
+                String.format(ParserUtil.MESSAGE_NAME_PREFIX_NOT_ALLOWED, "delete", "delete NAME"), ()
+                -> ParserUtil.rejectNamePrefix(" n/Alicia Tan", "delete", "delete NAME"));
+        ParserUtil.rejectNamePrefix(" Alicia Tan", "delete", "delete NAME");
+    }
+
+    @Test
     public void parseIndex_invalidInput_throwsParseException() {
         assertThrows(ParseException.class, () -> ParserUtil.parseIndex("10 a"));
     }

@@ -86,4 +86,9 @@ public interface Model {
 
     /** Displays the filtered person list in the order contacts are stored, which is the order they were added. */
     void resetPersonListOrder();
+
+    /** Returns the current display comparator, or null when contacts use stored order. */
+    default Comparator<Person> getPersonListComparator() {
+        return null;
+    }
 }
