@@ -29,6 +29,7 @@ import seedu.boothmanagerpro.model.tag.Tag;
 class JsonAdaptedPerson {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Person's %s field is missing!";
+    public static final String DEFAULT_ADDRESS = "Not provided";
 
     private final String name;
     private final String phone;
@@ -100,6 +101,52 @@ class JsonAdaptedPerson {
      * @throws IllegalValueException if there were any data constraints violated in the adapted person.
      */
     public Person toModelType() throws IllegalValueException {
+        return new Person(getModelName(), getModelPhone(), getModelEmail(), getModelAddress(),
+                getModelTags(), getModelCompany(), getModelContactMethod(),
+                getModelEnquiryStatus(), getModelFollowUpDate());
+    }
+
+    private Name getModelName() throws IllegalValueException {
+        if (name == null) {
+            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Name.class.getSimpleName()));
+        }
+        if (!Name.isValidName(name)) {
+            throw new IllegalValueException(Name.MESSAGE_CONSTRAINTS);
+        }
+        return new Name(name);
+    }
+
+    private Phone getModelPhone() throws IllegalValueException {
+        if (phone == null) {
+            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Phone.class.getSimpleName()));
+        }
+        if (!Phone.isValidPhone(phone)) {
+            throw new IllegalValueException(Phone.MESSAGE_CONSTRAINTS);
+        }
+        return new Phone(phone);
+    }
+
+    private Email getModelEmail() throws IllegalValueException {
+        if (email == null) {
+            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Email.class.getSimpleName()));
+        }
+        if (!Email.isValidEmail(email)) {
+            throw new IllegalValueException(Email.MESSAGE_CONSTRAINTS);
+        }
+        return new Email(email);
+    }
+
+    private Address getModelAddress() throws IllegalValueException {
+        if (address == null) {
+            return new Address(DEFAULT_ADDRESS);
+        }
+        if (!Address.isValidAddress(address)) {
+            throw new IllegalValueException(Address.MESSAGE_CONSTRAINTS);
+        }
+        return new Address(address);
+    }
+
+    private Set<Tag> getModelTags() throws IllegalValueException {
         final List<Tag> personTags = new ArrayList<>();
         for (JsonAdaptedTag tag : tags) {
             if (tag == null) {
@@ -107,48 +154,48 @@ class JsonAdaptedPerson {
             }
             personTags.add(tag.toModelType());
         }
+        return new LinkedHashSet<>(personTags);
+    }
 
-        if (name == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Name.class.getSimpleName()));
+    private Optional<Company> getModelCompany() throws IllegalValueException {
+        if (company == null) {
+            return Optional.empty();
         }
-        if (!Name.isValidName(name)) {
-            throw new IllegalValueException(Name.MESSAGE_CONSTRAINTS);
-        }
-        final Name modelName = new Name(name);
-
-        if (phone == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Phone.class.getSimpleName()));
-        }
-        if (!Phone.isValidPhone(phone)) {
-            throw new IllegalValueException(Phone.MESSAGE_CONSTRAINTS);
-        }
-        final Phone modelPhone = new Phone(phone);
-
-        if (email == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Email.class.getSimpleName()));
-        }
-        if (!Email.isValidEmail(email)) {
-            throw new IllegalValueException(Email.MESSAGE_CONSTRAINTS);
-        }
-        final Email modelEmail = new Email(email);
-
-        if (address == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Address.class.getSimpleName()));
-        }
-        if (!Address.isValidAddress(address)) {
-            throw new IllegalValueException(Address.MESSAGE_CONSTRAINTS);
-        }
-        final Address modelAddress = new Address(address);
-
-        final Set<Tag> modelTags = new LinkedHashSet<>(personTags);
         try {
-            Optional<Company> modelCompany = Optional.ofNullable(company).map(Company::new);
-            Optional<ContactMethod> modelMethod = Optional.ofNullable(contactMethod).map(ContactMethod::fromString);
-            EnquiryStatus modelStatus = enquiryStatus == null ? EnquiryStatus.NEEDS_FOLLOW_UP
-                    : EnquiryStatus.fromString(enquiryStatus);
-            Optional<FollowUpDate> modelDate = Optional.ofNullable(followUpDate).map(FollowUpDate::new);
-            return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags, modelCompany, modelMethod,
-                    modelStatus, modelDate);
+            return Optional.of(new Company(company));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalValueException(e.getMessage());
+        }
+    }
+
+    private Optional<ContactMethod> getModelContactMethod() throws IllegalValueException {
+        if (contactMethod == null) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(ContactMethod.fromString(contactMethod));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalValueException(e.getMessage());
+        }
+    }
+
+    private EnquiryStatus getModelEnquiryStatus() throws IllegalValueException {
+        if (enquiryStatus == null) {
+            return EnquiryStatus.NEEDS_FOLLOW_UP;
+        }
+        try {
+            return EnquiryStatus.fromString(enquiryStatus);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalValueException(e.getMessage());
+        }
+    }
+
+    private Optional<FollowUpDate> getModelFollowUpDate() throws IllegalValueException {
+        if (followUpDate == null) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(new FollowUpDate(followUpDate));
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(e.getMessage());
         }
