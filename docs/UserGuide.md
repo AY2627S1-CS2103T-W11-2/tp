@@ -144,7 +144,7 @@ After a successful add:
 * Use `view n/NAME` to print the saved details, or `list` to print all contacts.
 * The command box clears and keeps keyboard focus, ready for the next command.
 
-The second example stores `ben@example.com` and `+6587654321`. A subsequent `view n/Ben Lim` shows `Not specified` for the omitted method and `None` for an empty tag set.
+The second example stores the email in lowercase as `ben@example.com` and keeps the phone as typed, `+65 8765-4321`. A subsequent `view n/Ben Lim` shows `Not specified` for the omitted method and `None` for an empty tag set.
 
 If validation or duplicate detection fails, the typed command remains available for correction. No contact is added.
 
