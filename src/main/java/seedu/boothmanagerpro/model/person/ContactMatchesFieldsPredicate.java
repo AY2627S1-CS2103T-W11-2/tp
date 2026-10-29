@@ -1,5 +1,6 @@
 package seedu.boothmanagerpro.model.person;
 
+import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
@@ -23,7 +24,7 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
     /** Normalises search values, including spaces and hyphens in phone numbers. */
     public static String normalise(String field, String value) {
         if (field.equals("n/")) {
-            return foldCase(Name.normaliseWhitespace(value));
+            return foldName(value);
         }
         if (field.equals("c/") || field.equals("t/")) {
             return foldCase(value.trim());
@@ -32,6 +33,20 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
         return field.equals("p/") ? result.replace(" ", "").replace("-", "") : result;
     }
 
+    /**
+     * Applies NFC Unicode normalisation, collapses whitespace, then folds each code point to its
+     * case-equivalent using the same two-step (toUpperCase then toLowerCase) strategy as
+     * {@link String#equalsIgnoreCase}.
+     *
+     * <p>NFC normalisation ensures that canonically equivalent representations — e.g. {@code é} as
+     * U+00E9 versus {@code e} followed by combining accent U+0301 — produce the same folded string,
+     * so {@code find n/José} finds contacts regardless of which Unicode encoding was used when they
+     * were added.
+     */
+    private static String foldName(String value) {
+        String nfc = Normalizer.normalize(value, Normalizer.Form.NFC);
+        return foldCase(Name.normaliseWhitespace(nfc));
+    }
     /** Folds code points using the same case equivalence as String.equalsIgnoreCase. */
     private static String foldCase(String value) {
         StringBuilder folded = new StringBuilder();

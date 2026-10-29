@@ -12,16 +12,26 @@ import java.util.Locale;
 public class Email {
 
     public static final String MESSAGE_CONSTRAINTS = "Email address is invalid.";
+    public static final int MAX_LENGTH = 254; // RFC 5321 standard maximum email length
+    public static final int MAX_LOCAL_PART_LENGTH = 64; // RFC 5321 standard maximum local-part length
+    public static final int MAX_DOMAIN_PART_LENGTH = 255; // RFC 5321 standard maximum domain length
+
     private static final String SPECIAL_CHARACTERS = "+_.-";
-    // alphanumeric and special characters
-    private static final String ALPHANUMERIC_NO_UNDERSCORE = "[^\\W_]+"; // alphanumeric characters except underscore
+    // single alphanumeric character except underscore
+    private static final String ALPHANUMERIC_NO_UNDERSCORE_CHAR = "[^\\W_]";
+    private static final String ALPHANUMERIC_NO_UNDERSCORE = ALPHANUMERIC_NO_UNDERSCORE_CHAR + "+";
     private static final String LOCAL_PART_REGEX = "^" + ALPHANUMERIC_NO_UNDERSCORE + "([" + SPECIAL_CHARACTERS + "]"
             + ALPHANUMERIC_NO_UNDERSCORE + ")*";
     private static final String DOMAIN_PART_REGEX = ALPHANUMERIC_NO_UNDERSCORE
             + "(-" + ALPHANUMERIC_NO_UNDERSCORE + ")*";
-    private static final String DOMAIN_LAST_PART_REGEX = "(" + DOMAIN_PART_REGEX + "){2,}$"; // At least two chars
+    // The top-level or final domain label must have at least two characters.
+    // Specifying character count explicitly rather than repeating DOMAIN_PART_REGEX avoids nested quantifiers
+    // that would otherwise cause catastrophic backtracking (ReDoS) on malformed inputs.
+    private static final String DOMAIN_LAST_PART_REGEX = "(" + ALPHANUMERIC_NO_UNDERSCORE_CHAR + "{2,}|"
+            + ALPHANUMERIC_NO_UNDERSCORE + "(-" + ALPHANUMERIC_NO_UNDERSCORE + ")+)$";
     private static final String DOMAIN_REGEX = "(" + DOMAIN_PART_REGEX + "\\.)*" + DOMAIN_LAST_PART_REGEX;
     public static final String VALIDATION_REGEX = LOCAL_PART_REGEX + "@" + DOMAIN_REGEX;
+    private static final java.util.regex.Pattern VALIDATION_PATTERN = java.util.regex.Pattern.compile(VALIDATION_REGEX);
 
     public final String value;
 
@@ -38,9 +48,24 @@ public class Email {
 
     /**
      * Returns true if a given string is a valid email.
+     * Enforces RFC 5321 length guardrails (maximum 254 characters total and 64 characters for the local part)
+     * before evaluating the validation pattern.
      */
     public static boolean isValidEmail(String test) {
-        return test.trim().matches(VALIDATION_REGEX);
+        requireNonNull(test);
+        String trimmed = test.trim();
+        if (trimmed.length() > MAX_LENGTH) {
+            return false;
+        }
+        int atIndex = trimmed.indexOf('@');
+        if (atIndex <= 0 || atIndex > MAX_LOCAL_PART_LENGTH) {
+            return false;
+        }
+        String domain = trimmed.substring(atIndex + 1);
+        if (domain.isEmpty()) {
+            return false;
+        }
+        return VALIDATION_PATTERN.matcher(trimmed).matches();
     }
 
     @Override

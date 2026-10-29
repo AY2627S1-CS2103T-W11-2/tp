@@ -3,6 +3,7 @@ package seedu.boothmanagerpro.logic;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -15,7 +16,9 @@ import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.logic.parser.AddressBookParser;
 import seedu.boothmanagerpro.logic.parser.ParserUtil;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
+import seedu.boothmanagerpro.model.AddressBook;
 import seedu.boothmanagerpro.model.Model;
+import seedu.boothmanagerpro.model.ReadOnlyAddressBook;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.storage.Storage;
 
@@ -52,6 +55,8 @@ public class LogicManager implements Logic {
     /**
      * Executes a command or resolves a pending numbered view choice without saving read-only view requests.
      * A successfully parsed command cancels the previous pending choice, even if execution fails.
+     * If saving fails or execution fails, any changes made to the in-memory model are rolled back
+     * to prevent unpersisted state from leaking or being persisted later.
      *
      * @throws CommandException If execution, selection, or saving fails.
      * @throws ParseException If the input cannot be parsed as a command or a pending selection.
@@ -71,7 +76,17 @@ public class LogicManager implements Logic {
         }
         // A new recognized command cancels the previous selection, even if its execution fails.
         pendingViewChoices = List.of();
-        CommandResult commandResult = command.execute(model);
+        ReadOnlyAddressBook previousAddressBook = new AddressBook(model.getAddressBook());
+        Predicate<? super Person> previousPredicate = model.getFilteredPersonListPredicate();
+
+        CommandResult commandResult;
+        try {
+            commandResult = command.execute(model);
+        } catch (CommandException | RuntimeException e) {
+            rollbackModel(previousAddressBook, previousPredicate);
+            throw e;
+        }
+
         if (command instanceof ViewCommand) {
             pendingViewChoices = commandResult.getViewChoices();
             logger.fine("View request completed; pending choices: " + pendingViewChoices.size());
@@ -81,12 +96,27 @@ public class LogicManager implements Logic {
         try {
             storage.saveAddressBook(model.getAddressBook());
         } catch (AccessDeniedException e) {
+            rollbackModel(previousAddressBook, previousPredicate);
             throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
         } catch (IOException ioe) {
+            rollbackModel(previousAddressBook, previousPredicate);
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
         }
 
         return commandResult;
+    }
+
+    /**
+     * Restores the in-memory address book and filter predicate to the state prior to command execution.
+     */
+    private void rollbackModel(ReadOnlyAddressBook previousAddressBook,
+                               Predicate<? super Person> previousPredicate) {
+        model.setAddressBook(previousAddressBook);
+        if (previousPredicate != null) {
+            model.updateFilteredPersonList(previousPredicate::test);
+        } else {
+            model.updateFilteredPersonList(Model.PREDICATE_SHOW_ALL_PERSONS);
+        }
     }
 
     /**

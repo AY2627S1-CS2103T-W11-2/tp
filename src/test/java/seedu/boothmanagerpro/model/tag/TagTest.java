@@ -43,9 +43,20 @@ public class TagTest {
         assertTrue(Tag.isValidTagName("high-priority"));
         assertTrue(Tag.isValidTagName("A".repeat(30)));
         assertFalse(Tag.isValidTagName("A".repeat(31)));
+        assertFalse(Tag.isValidTagName("A".repeat(1000))); // thousands of characters long
         assertFalse(Tag.isValidTagName(" "));
         assertFalse(Tag.isValidTagName("industry/technology"));
         assertFalse(Tag.isValidTagName("two\nlines"));
+        assertFalse(Tag.isValidTagName("two\rlines"));
+
+        // different languages and special characters
+        assertTrue(Tag.isValidTagName("赞助商")); // Chinese
+        assertTrue(Tag.isValidTagName("出展者")); // Japanese
+        assertTrue(Tag.isValidTagName("priorité-haute")); // French with diacritic
+        assertTrue(Tag.isValidTagName("Hauptsponsor")); // German
+        assertTrue(Tag.isValidTagName("vip_client#1")); // underscore and hash
+        assertTrue(Tag.isValidTagName("测".repeat(30))); // 30 multi-byte code points
+        assertFalse(Tag.isValidTagName("测".repeat(31))); // 31 multi-byte code points
     }
 
 }

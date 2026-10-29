@@ -32,6 +32,12 @@ public class PhoneTest {
         assertFalse(Phone.isValidPhone("9011p041")); // alphabets within digits
         assertTrue(Phone.isValidPhone("9312 1534")); // spaces within digits
 
+        // length guardrails
+        assertFalse(Phone.isValidPhone("1".repeat(16))); // more than 15 digits
+        assertFalse(Phone.isValidPhone("1".repeat(1000))); // thousands of digits
+        assertFalse(Phone.isValidPhone("+65" + " ".repeat(30) + "91234567")); // excessively padded input
+        assertTrue(Phone.isValidPhone("+123456789012345")); // boundary value exactly 15 digits with plus
+
         // valid phone numbers
         assertFalse(Phone.isValidPhone("911")); // too short
         assertTrue(Phone.isValidPhone("93121534"));

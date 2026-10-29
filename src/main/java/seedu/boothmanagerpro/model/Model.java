@@ -74,6 +74,11 @@ public interface Model {
     void updateFilteredPersonList(Predicate<Person> predicate);
 
     /**
+     * Returns the current predicate of the filtered person list, or {@code null} if no predicate is set.
+     */
+    Predicate<? super Person> getFilteredPersonListPredicate();
+
+    /**
      * Displays the filtered person list in the order given by {@code comparator}, without changing stored data.
      * @throws NullPointerException if {@code comparator} is null.
      */

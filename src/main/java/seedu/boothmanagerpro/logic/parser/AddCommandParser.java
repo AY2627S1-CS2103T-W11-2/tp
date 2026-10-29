@@ -35,8 +35,9 @@ import seedu.boothmanagerpro.model.tag.Tag;
 
 /**
  * Parses exhibitor additions with required name, company, email and phone fields.
- * Unlike the shared tokenizer, this parser detects unknown prefix-like tokens instead of treating them as values.
- * Other commands retain their existing syntax.
+ * Only single-letter prefixes (e.g. {@code n/}, {@code c/}) are treated as field delimiters, so slashes
+ * embedded in field values (e.g. a company name like {@code Acme Design/ Build}) are accepted without error.
+ * Single-letter tokens that do not match a supported prefix are still reported as unknown fields.
  */
 public class AddCommandParser implements Parser<AddCommand> {
     public static final String MESSAGE_MISSING_FIELD = "Missing required fields: %s. Supply a value after each prefix.";
@@ -47,7 +48,13 @@ public class AddCommandParser implements Parser<AddCommand> {
     public static final String MESSAGE_PREAMBLE = "Unexpected text before the first field. "
             + "Start with a prefix, for example: add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567";
     private static final Logger logger = LogsCenter.getLogger(AddCommandParser.class);
-    private static final Pattern FIELD_PREFIX = Pattern.compile("(?<!\\S)([^\\s/]+/)");
+    /**
+     * Matches only single-letter prefixes (e.g. {@code n/}, {@code c/}) preceded by whitespace or at the
+     * start of input. This deliberately excludes multi-character tokens such as {@code Design/} so that
+     * slash characters embedded in field values (e.g. a company name like {@code Acme Design/ Build})
+     * are never mistaken for field delimiters.
+     */
+    private static final Pattern FIELD_PREFIX = Pattern.compile("(?<!\\S)([a-zA-Z]/)");
     private static final Set<Prefix> ALLOWED_PREFIXES = Set.of(PREFIX_NAME, PREFIX_COMPANY, PREFIX_EMAIL,
             PREFIX_PHONE, PREFIX_METHOD, PREFIX_STATUS, PREFIX_FOLLOW_UP, PREFIX_TAG);
     private static final List<Prefix> SINGLE_VALUE_PREFIXES = List.of(PREFIX_NAME, PREFIX_COMPANY,
@@ -124,10 +131,12 @@ public class AddCommandParser implements Parser<AddCommand> {
     }
 
     /**
-     * Splits fields at whitespace-delimited prefix-like tokens, preserving repeated values and their order.
-     * Words between prefixes belong to the preceding value, allowing multi-word names and companies.
+     * Splits fields at whitespace-delimited single-letter prefix tokens (e.g. {@code n/}, {@code c/}),
+     * preserving repeated values and their order. Words between prefixes belong to the preceding value,
+     * allowing multi-word names and company names that contain slash characters (e.g. {@code Acme Design/ Build}).
+     * Multi-character tokens such as {@code Design/} are never treated as delimiters.
      *
-     * @throws ParseException If text precedes the first prefix or a prefix is not supported.
+     * @throws ParseException If text precedes the first prefix or a single-letter prefix is not supported.
      */
     private ArgumentMultimap tokenize(String args) throws ParseException {
         List<MatchResult> matches = FIELD_PREFIX.matcher(args).results().toList();

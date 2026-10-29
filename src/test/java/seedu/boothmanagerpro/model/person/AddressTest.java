@@ -27,11 +27,28 @@ public class AddressTest {
         // invalid addresses
         assertFalse(Address.isValidAddress("")); // empty string
         assertFalse(Address.isValidAddress(" ")); // spaces only
+        assertFalse(Address.isValidAddress(" Blk 456, Den Road, #01-355")); // starts with whitespace
+        assertFalse(Address.isValidAddress("   123 Main Street")); // leading spaces
+        assertFalse(Address.isValidAddress("\t456 Orchard Road")); // leading tab
+
+        // length guardrails
+        assertFalse(Address.isValidAddress("A".repeat(201))); // exceeds max length of 200
+        assertFalse(Address.isValidAddress("A".repeat(1000))); // thousands of characters long
+        assertTrue(Address.isValidAddress("A".repeat(200))); // boundary value exactly 200
 
         // valid addresses
         assertTrue(Address.isValidAddress("Blk 456, Den Road, #01-355"));
         assertTrue(Address.isValidAddress("-")); // one character
         assertTrue(Address.isValidAddress("Leng Inc; 1234 Market St; San Francisco CA 2349879; USA")); // long address
+
+        // different languages and special characters
+        assertTrue(Address.isValidAddress("北京市海淀区中关村南大街5号")); // Chinese
+        assertTrue(Address.isValidAddress("東京都千代田区千代田1-1")); // Japanese
+        // French with accents and apostrophe
+        assertTrue(Address.isValidAddress("12 Rue de l'Élysée, 75008 Paris, France"));
+        assertTrue(Address.isValidAddress("Al-Madinah Al-Munawwarah Rd, حي الشرفية, Jeddah")); // Arabic mixed
+        // Slashes, ampersand, hyphen
+        assertTrue(Address.isValidAddress("Level 12 / Suite 4B & 4C, 50-60 King's Cross Road"));
     }
 
     @Test

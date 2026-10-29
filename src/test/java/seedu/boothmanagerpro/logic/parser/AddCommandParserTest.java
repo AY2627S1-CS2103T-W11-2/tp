@@ -73,7 +73,7 @@ public class AddCommandParserTest {
 
     @Test
     public void parse_unknownPrefixOrPreamble_identifiesProblem() {
-        for (String prefix : new String[]{"a/", "x/", "company/"}) {
+        for (String prefix : new String[]{"a/", "x/"}) {
             assertParseFailure(parser, valid + " " + prefix + "value",
                     String.format(AddCommandParser.MESSAGE_UNKNOWN_FIELD, prefix));
         }
@@ -112,6 +112,8 @@ public class AddCommandParserTest {
         }
         assertParseFailure(parser, valid.replace("alicia@technova.com", "a@@example.com"),
                     "Invalid value for e/: " + Email.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, valid.replace("alicia@technova.com", "a@" + "a".repeat(1000) + "!"),
+                "Invalid value for e/: " + Email.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, valid + " m/fax",
                     "Invalid value for m/: " + ContactMethod.MESSAGE_CONSTRAINTS);
         for (String tag : new String[]{"a/b", "a".repeat(31)}) {
@@ -128,6 +130,21 @@ public class AddCommandParserTest {
                 "Invalid value for f/: " + FollowUpDate.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, valid + " s/Completed s/In progress f/20261025 f/20261026",
                 String.format(AddCommandParser.MESSAGE_REPEATED_FIELD, "s/, f/"));
+    }
+
+    @Test
+    public void parse_companyNameWithSlash_acceptedAsValue() throws Exception {
+        // Regression test: slashes inside field values must not be mistaken for field prefix delimiters.
+        // e.g. "Acme Design/ Build" should be stored as-is, not trigger an unknown-prefix error.
+        ModelManager model = new ModelManager();
+        parser.parse(" n/Slash Person c/Acme Design/ Build e/slash@example.com p/81234567").execute(model);
+        assertEquals("Acme Design/ Build",
+                model.getFilteredPersonList().getFirst().getCompany().orElseThrow().value);
+        // Slash at the start of the value segment after c/ is also accepted.
+        ModelManager model2 = new ModelManager();
+        parser.parse(" n/Another Person c/A/B Corp e/ab@example.com p/91234567").execute(model2);
+        assertEquals("A/B Corp",
+                model2.getFilteredPersonList().getFirst().getCompany().orElseThrow().value);
     }
 
     @Test
