@@ -78,24 +78,9 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_recoverySaveFails_restoresDisplayedOrder() {
-        assertRecoveryFailureRestoresOrder(false);
-    }
-
-    @Test
-    public void execute_recoverySaveFails_restoresPreviousComparator() {
-        assertRecoveryFailureRestoresOrder(true);
-    }
-
-    private void assertRecoveryFailureRestoresOrder(boolean sorted) {
-        Person zoe = new PersonBuilder().withName("Zoe Tan").withEmail("zoe@example.com").build();
-        Person amy = new PersonBuilder().withName("Amy Tan").withEmail("amy@example.com").build();
-        model.addPerson(zoe);
-        model.addPerson(amy);
-        if (sorted) {
-            model.updateSortedPersonList(java.util.Comparator.comparing(person -> person.getName().fullName));
-        }
-        StorageManager failingStorage = new StorageManager(
+    public void execute_readOnlyCommandsWhileRecoveryPending_doNotSave() throws Exception {
+        model.addPerson(AMY);
+        StorageManager recoveringStorage = new StorageManager(
                 new JsonAddressBookStorage(temporaryFolder.resolve("contacts.json")),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))) {
             @Override
@@ -104,14 +89,48 @@ public class LogicManagerTest {
             }
 
             @Override
+            public void saveAddressBook(ReadOnlyAddressBook data) {
+                throw new AssertionError("A read-only command must not save the address book");
+            }
+        };
+        logic = new LogicManager(model, recoveringStorage);
+        for (String command : java.util.List.of("list", "list o/name", "find Amy", "view n/Amy Bee", "help",
+                "exit")) {
+            logic.execute(command);
+        }
+    }
+
+    @Test
+    public void execute_saveFails_restoresContactsAndDisplayedOrder() {
+        assertSaveFailureRestoresContactsAndOrder(false);
+    }
+
+    @Test
+    public void execute_saveFails_restoresContactsAndSortedOrder() {
+        assertSaveFailureRestoresContactsAndOrder(true);
+    }
+
+    private void assertSaveFailureRestoresContactsAndOrder(boolean sorted) {
+        Person zoe = new PersonBuilder().withName("Zoe Tan").withEmail("zoe@example.com").build();
+        Person amy = new PersonBuilder().withName("Amy Tan").withEmail("amy@example.com").build();
+        model.addPerson(zoe);
+        model.addPerson(amy);
+        if (sorted) {
+            model.updateSortedPersonList(java.util.Comparator.comparing(person -> person.getName().fullName));
+        }
+        java.util.List<Person> displayedBefore = java.util.List.copyOf(model.getFilteredPersonList());
+        StorageManager failingStorage = new StorageManager(
+                new JsonAddressBookStorage(temporaryFolder.resolve("contacts.json")),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))) {
+            @Override
             public void saveAddressBook(ReadOnlyAddressBook data) throws IOException {
                 throw DUMMY_IO_EXCEPTION;
             }
         };
         logic = new LogicManager(model, failingStorage);
-        assertThrows(CommandException.class, () -> logic.execute(sorted ? "list" : "list o/name"));
-        assertEquals(sorted ? java.util.List.of(amy, zoe) : java.util.List.of(zoe, amy),
-                model.getFilteredPersonList());
+        assertThrows(CommandException.class, () -> logic.execute("delete 1"));
+        assertEquals(java.util.List.of(zoe, amy), model.getAddressBook().getPersonList());
+        assertEquals(displayedBefore, model.getFilteredPersonList());
     }
 
     @Test

@@ -102,12 +102,9 @@ public class JsonAddressBookStorage {
 
         Path normalisedPath = normalise(filePath);
         if (!isConfiguredPath(normalisedPath)) {
-            recovery.preserveBeforeSave(normalisedPath);
-            FileUtil.createIfMissing(normalisedPath);
-            JsonUtil.saveJsonFile(new JsonSerializableAddressBook(addressBook), normalisedPath);
+            writeAfterPreserving(addressBook, normalisedPath);
             return;
         }
-        recovery.preserveBeforeSave(normalisedPath);
         synchronized (getJvmFileLock(normalisedPath)) {
             try (FileChannel lockChannel = openLockChannel(normalisedPath);
                     FileLock ignored = lockChannel.lock()) {
@@ -115,12 +112,20 @@ public class JsonAddressBookStorage {
                 if (lastKnownFileState != null && !lastKnownFileState.hasSameContents(currentFileState)) {
                     throw new ConcurrentDataModificationException();
                 }
-
-                FileUtil.createIfMissing(normalisedPath);
-                JsonUtil.saveJsonFile(new JsonSerializableAddressBook(addressBook), normalisedPath);
+                writeAfterPreserving(addressBook, normalisedPath);
                 lastKnownFileState = FileState.capture(normalisedPath);
             }
         }
+    }
+
+    /**
+     * Backs up a file that failed to load, then writes the address book atomically. Only missing parent folders are
+     * created beforehand, so a failed write never leaves an empty data file behind.
+     */
+    private void writeAfterPreserving(ReadOnlyAddressBook addressBook, Path path) throws IOException {
+        recovery.preserveBeforeSave(path);
+        FileUtil.createParentDirsOfFile(path);
+        JsonUtil.saveJsonFile(new JsonSerializableAddressBook(addressBook), path);
     }
 
     /** Reads and converts one address book file while tracking whether failed data needs recovery protection. */

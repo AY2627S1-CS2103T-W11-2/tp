@@ -998,15 +998,21 @@ Start with the sample data and run `list` first. Each command below is rejected 
 1. Missing data file
 
    1. Close BoothManagerPro and delete `data/addressbook.json` (if present), then relaunch `java -jar boothmanagerpro.jar`.<br>
-      Expected: The app starts with the ready prompt and loads the 6 sample contacts into memory (`list` displays them). Executing a non-view command such as `list` creates `data/addressbook.json`.
+      Expected: The app starts with the ready prompt and loads the 6 sample contacts into memory (`list` displays them). Read-only commands such as `list` do not create `data/addressbook.json`; the first command that changes contacts, such as `add`, creates it.
 
 1. Corrupted data file
 
    1. Close BoothManagerPro, replace the contents of `data/addressbook.json` with invalid JSON (e.g. `{ corrupted`) or `null`, and relaunch.<br>
       Expected: The app starts with an empty contact list and displays the error message `Contact data could not be loaded. The original file will be backed up before any new data is saved.` The corrupted `data/addressbook.json` is not overwritten on launch.
 
-   1. Run `list` (or add a contact).<br>
+   1. Run `list`, `help`, and `exit`, then relaunch.<br>
+      Expected: Each command works, and `data/addressbook.json` still holds the corrupted contents with no `.recovery-` backup, because read-only commands never save.
+
+   1. Add a contact.<br>
       Expected: Before saving, BoothManagerPro copies the unreadable file byte-for-byte to `data/addressbook.json.recovery-<unique suffix>.json` and writes the new valid JSON to `data/addressbook.json`.
+
+   1. Corrupt the file again and relaunch. Without typing a command, repair the file in a text editor, then run `exit`.<br>
+      Expected: The app closes normally, the repaired file is unchanged, and no `.recovery-` backup is created.
 
 1. Missing-field data file
 
