@@ -11,7 +11,7 @@ import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.testutil.PersonBuilder;
 
-/** Checks exact-name searches against the Unicode case rules used by keyword search. */
+/** Checks prefixed name searches against the Unicode case rules used by keyword search. */
 public class FindUnicodeTest {
     @Test
     public void find_turkishName_caseInsensitiveQueriesShouldAgree() throws Exception {
@@ -57,6 +57,6 @@ public class FindUnicodeTest {
         parser.parse(query).execute(model);
         assertEquals(List.of(person), List.copyOf(model.getFilteredPersonList()), "Legacy query matches");
         parser.parse("n/" + query).execute(model);
-        assertEquals(List.of(person), List.copyOf(model.getFilteredPersonList()), "Exact name query matches");
+        assertEquals(List.of(person), List.copyOf(model.getFilteredPersonList()), "Prefixed name query matches");
     }
 }

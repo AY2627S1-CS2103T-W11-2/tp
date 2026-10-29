@@ -334,15 +334,18 @@ Examples:
 
 ### Finding and filtering contacts: `find`
 
-Use prefixed criteria to match complete field values:
+Use prefixed criteria to match a complete name or a whole name word, and complete values for other fields:
 
 Format: `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG] [f/YYYYMMDD]...`
 
 * Supply at least one non-empty criterion. Each value must follow the same format as when adding a contact;
   phone values accept spaces and hyphens, just as `add` does. Tabs inside phone numbers are not accepted.
 * Names, companies, emails, and tags ignore case and surrounding whitespace. Phone comparisons ignore spaces and hyphens.
-* Exact-name searches use the same Unicode case rules as name-keyword searches. For example, `find n/ipek`
-  matches a contact whose complete name is `İpek`; partial names still do not match.
+* Name criteria (`n/`) match a complete name or a single whole name word, ignoring case and repeated spaces.
+  For example, `find n/Alex` matches `Alex Yeo` and `Alex Yeoh`, but not `Alexandra Tan`.
+  A multi-word value such as `n/Alex Yeo` must match the complete name.
+* Name, company, and tag searches use Unicode-aware case-insensitive matching. For example, `find n/ipek`
+  matches the word `İpek`, and `find c/οσ` matches the complete company value `ΟΣ`.
 * Repeat a prefix for alternatives (OR). Different fields must all match (AND).
 * Tags match complete tag names; any matching tag satisfies that field.
 * Duplicate criteria have no effect. Results always search all stored contacts, not just the current displayed list.
@@ -358,7 +361,7 @@ Format: `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG] [f/YYYYMMDD]...`
 
 Examples:
 
-* `find n/Alice Pauline` matches the complete name, not just `Alice`.
+* `find n/Alice Pauline` matches the complete name; `find n/Alice` matches any contact with the whole name word `Alice`.
 * `find n/Alice Pauline n/Benson Meier t/friends` returns either named contact if they also have the `friends` tag.
 * `find e/alice@example.com p/9435-1253` requires both email and phone to match.
 * `find c/TechNova Pte Ltd t/high-priority` requires both company and tag to match.

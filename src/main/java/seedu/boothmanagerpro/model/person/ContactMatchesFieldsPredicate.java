@@ -20,7 +20,7 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
                 Map.Entry::getKey, entry -> Set.copyOf(entry.getValue())));
     }
 
-    /** Normalises values for exact matching, including spaces and hyphens in phone numbers. */
+    /** Normalises search values, including spaces and hyphens in phone numbers. */
     public static String normalise(String field, String value) {
         if (field.equals("n/")) {
             return foldCase(Name.normaliseWhitespace(value));

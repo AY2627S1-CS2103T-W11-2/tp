@@ -26,7 +26,8 @@ public class HelpCommand extends Command {
                     "list [o/name|o/company|o/status]",
                     "list o/status"),
             formatCommandHelp(3, FindCommand.COMMAND_WORD,
-                    "Finds contacts using name keywords or exact name, company, email, phone, tag, and date fields.",
+                    "Finds contacts using whole name words, full names, or complete company, email, phone, "
+                            + "tag, and date fields.",
                     "find KEYWORD... or find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [t/TAG] "
                             + "[f/YYYYMMDD]...",
                     "find f/20261025 t/high-priority"),
