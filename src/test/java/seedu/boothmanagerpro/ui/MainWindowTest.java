@@ -329,8 +329,8 @@ public class MainWindowTest {
     @Test
     public void handleHelp_logicFailure_displaysAndHandlesError() throws Exception {
         runOnFxThread(() -> {
-            StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath()),
-                    new JsonUserPrefsStorage(testFolder.resolve("preferences.json")));
+            StorageManager storage = IntegrationTestFixture.createStorage(new JsonAddressBookStorage(dataPath()),
+                    testFolder.resolve("preferences.json"));
             LogicManager failingLogic = new LogicManager(new ModelManager(), storage) {
                 @Override
                 public CommandResult execute(String commandText) throws CommandException {
