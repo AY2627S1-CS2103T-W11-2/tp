@@ -29,7 +29,13 @@ public class FindCommandParser implements Parser<FindCommand> {
     public static final String MESSAGE_UNPREFIXED_VALUE =
             "Every exact-match search value must use a supported field prefix.";
     private static final Logger logger = LogsCenter.getLogger(FindCommandParser.class);
-    private static final Pattern FIELD_PREFIX = Pattern.compile("(?<!\\S)([^\\s/]+)/");
+    /**
+     * Matches only single-letter prefixes (e.g. {@code c/}, {@code f/}) preceded by whitespace or at the
+     * start of input. Multi-character tokens such as {@code Design/} are never treated as field delimiters,
+     * so slashes embedded in search criteria (e.g. a company name like {@code Acme Design/ Build}) do not
+     * cause spurious unsupported-field errors.
+     */
+    private static final Pattern FIELD_PREFIX = Pattern.compile("(?<!\\S)([a-zA-Z])/");
 
     @Override
     public FindCommand parse(String args) throws ParseException {

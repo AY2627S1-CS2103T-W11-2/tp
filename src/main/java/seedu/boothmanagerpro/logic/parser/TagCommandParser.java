@@ -15,7 +15,11 @@ import seedu.boothmanagerpro.model.tag.Tag;
 /** Parses a contact target and one or more t/TAG fields to toggle. */
 public class TagCommandParser implements Parser<TagCommand> {
     public static final String MESSAGE_UNKNOWN_FIELD = "Unknown field prefix: %s. Use t/.";
-    private static final Pattern FIELD_PREFIX = Pattern.compile("(?<!\\S)([^\\s/]+/)");
+    /**
+     * Matches only single-letter prefixes (e.g. {@code t/}) preceded by whitespace or at the
+     * start of input. Multi-character tokens are never treated as field delimiters.
+     */
+    private static final Pattern FIELD_PREFIX = Pattern.compile("(?<!\\S)([a-zA-Z]/)");
 
     @Override
     public TagCommand parse(String args) throws ParseException {

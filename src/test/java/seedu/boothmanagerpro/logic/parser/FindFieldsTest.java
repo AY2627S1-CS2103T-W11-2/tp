@@ -33,6 +33,13 @@ public class FindFieldsTest {
     private final FindCommandParser parser = new FindCommandParser();
 
     @Test
+    public void parse_companyNameWithSlash_accepted() {
+        FindCommand expected = new FindCommand(new ContactMatchesFieldsPredicate(Map.of(
+                "c/", Set.of("acme design/ build"))));
+        assertParseSuccess(parser, "c/Acme Design/ Build", expected);
+    }
+
+    @Test
     public void parse_repeatedValues_normalisesAndDeduplicates() {
         FindCommand expected = new FindCommand(new ContactMatchesFieldsPredicate(Map.of(
                 "n/", Set.of("alice pauline"), "t/", Set.of("friends", "vip"))));
