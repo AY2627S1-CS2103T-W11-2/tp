@@ -252,7 +252,7 @@ Format: `view n/NAME`
 * If exactly one contact's full name equals `NAME`, ignoring case and extra spaces, that contact's details are shown
   immediately, even when other names share a word. For example, `view n/Alex Yeo` shows `Alex Yeo` directly
   instead of also listing `Alex Yeoh`; `view n/Alex` still lists both.
-* An invalid number shows the valid range and lets you try again. Another successfully parsed command cancels the pending choice, even if execution fails. A command with invalid syntax leaves the choice pending. Cancelling a choice clears its prompt; a subsequent bare number is no longer a selection reply.
+* An invalid number shows the valid range followed by the numbered choices again, and lets you try again. Another successfully parsed command cancels the pending choice, even if execution fails. A command with invalid syntax leaves the choice pending. Cancelling a choice clears its prompt; a subsequent bare number is no longer a selection reply.
 * Only `n/` is accepted. Repeated names, other prefixes, missing/invalid names, and unprefixed requests are rejected.
 * No match produces an error and keeps the current filter unchanged.
 * Viewing does not change saved data. It filters the current index set to the matches; use `list` to print everyone again. A unique match has index `1`.
