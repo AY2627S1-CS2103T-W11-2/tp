@@ -223,7 +223,7 @@ public class CommandBox extends UiPart<Region> {
     private boolean autocompleteFieldPrefix(String input) {
         int firstSpace = input.indexOf(' ');
         int lastSpace = input.lastIndexOf(' ');
-        if (firstSpace < 0 || lastSpace < firstSpace) {
+        if (firstSpace < 0) {
             return false;
         }
 
@@ -268,8 +268,7 @@ public class CommandBox extends UiPart<Region> {
     /** Adds the first required tag prefix after a tag command target has been entered. */
     private boolean autocompleteTagField(String input) {
         String commandPrefix = TagCommand.COMMAND_WORD + " ";
-        if (!input.startsWith(commandPrefix) || input.substring(commandPrefix.length()).isBlank()
-                || input.contains(" " + PREFIX_TAG)) {
+        if (!input.startsWith(commandPrefix) || input.contains(" " + PREFIX_TAG)) {
             return false;
         }
         return setCommandText(input + " " + PREFIX_TAG);
