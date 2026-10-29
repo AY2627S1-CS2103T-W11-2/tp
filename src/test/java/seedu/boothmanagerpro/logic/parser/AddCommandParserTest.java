@@ -112,6 +112,8 @@ public class AddCommandParserTest {
         }
         assertParseFailure(parser, valid.replace("alicia@technova.com", "a@@example.com"),
                     "Invalid value for e/: " + Email.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, valid.replace("alicia@technova.com", "a@" + "a".repeat(1000) + "!"),
+                "Invalid value for e/: " + Email.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, valid + " m/fax",
                     "Invalid value for m/: " + ContactMethod.MESSAGE_CONSTRAINTS);
         for (String tag : new String[]{"a/b", "a".repeat(31)}) {

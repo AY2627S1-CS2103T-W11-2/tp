@@ -14,14 +14,20 @@ public class Email {
     public static final String MESSAGE_CONSTRAINTS = "Email address is invalid.";
     private static final String SPECIAL_CHARACTERS = "+_.-";
     // alphanumeric and special characters
-    private static final String ALPHANUMERIC_NO_UNDERSCORE = "[^\\W_]+"; // alphanumeric characters except underscore
+    private static final String ALPHANUMERIC_NO_UNDERSCORE_CHAR = "[^\\W_]"; // single alphanumeric character except underscore
+    private static final String ALPHANUMERIC_NO_UNDERSCORE = ALPHANUMERIC_NO_UNDERSCORE_CHAR + "+";
     private static final String LOCAL_PART_REGEX = "^" + ALPHANUMERIC_NO_UNDERSCORE + "([" + SPECIAL_CHARACTERS + "]"
             + ALPHANUMERIC_NO_UNDERSCORE + ")*";
     private static final String DOMAIN_PART_REGEX = ALPHANUMERIC_NO_UNDERSCORE
             + "(-" + ALPHANUMERIC_NO_UNDERSCORE + ")*";
-    private static final String DOMAIN_LAST_PART_REGEX = "(" + DOMAIN_PART_REGEX + "){2,}$"; // At least two chars
+    // The top-level or final domain label must have at least two characters.
+    // Specifying character count explicitly rather than repeating DOMAIN_PART_REGEX avoids nested quantifiers
+    // that would otherwise cause catastrophic backtracking (ReDoS) on malformed inputs.
+    private static final String DOMAIN_LAST_PART_REGEX = "(" + ALPHANUMERIC_NO_UNDERSCORE_CHAR + "{2,}|"
+            + ALPHANUMERIC_NO_UNDERSCORE + "(-" + ALPHANUMERIC_NO_UNDERSCORE + ")+)$";
     private static final String DOMAIN_REGEX = "(" + DOMAIN_PART_REGEX + "\\.)*" + DOMAIN_LAST_PART_REGEX;
     public static final String VALIDATION_REGEX = LOCAL_PART_REGEX + "@" + DOMAIN_REGEX;
+    private static final java.util.regex.Pattern VALIDATION_PATTERN = java.util.regex.Pattern.compile(VALIDATION_REGEX);
 
     public final String value;
 
@@ -40,7 +46,7 @@ public class Email {
      * Returns true if a given string is a valid email.
      */
     public static boolean isValidEmail(String test) {
-        return test.trim().matches(VALIDATION_REGEX);
+        return VALIDATION_PATTERN.matcher(test.trim()).matches();
     }
 
     @Override

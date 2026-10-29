@@ -1,6 +1,8 @@
 package seedu.boothmanagerpro.model.person;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
+import java.time.Duration;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.boothmanagerpro.testutil.Assert.assertThrows;
 
@@ -51,6 +53,9 @@ public class EmailTest {
         assertFalse(Email.isValidEmail("peterjack@-example.com")); // domain name starts with a hyphen
         assertFalse(Email.isValidEmail("peterjack@example.com-")); // domain name ends with a hyphen
         assertFalse(Email.isValidEmail("peterjack@example.c")); // top level domain has less than two chars
+        assertFalse(Email.isValidEmail("a@" + "a".repeat(1000) + "!")); // long malformed email
+        assertTimeoutPreemptively(Duration.ofMillis(1000), () ->
+                assertFalse(Email.isValidEmail("a@" + "a".repeat(5000) + "!"))); // ReDoS prevention
 
         // valid email
         assertTrue(Email.isValidEmail("PeterJack_1190@example.com")); // underscore in local part
