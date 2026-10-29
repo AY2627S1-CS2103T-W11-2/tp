@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import javax.imageio.ImageIO;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -459,6 +460,27 @@ public class MainWindowTest {
 
     @Test
     public void tabFocusReturn_keepsCommandInputUnselected() throws Exception {
+        assertFocusReturnKeepsDraft(output -> pressKey(output, KeyCode.TAB));
+    }
+
+    @Test
+    public void shortcutFocusReturn_keepsCommandInputUnselected() throws Exception {
+        boolean isMac = System.getProperty("os.name").startsWith("Mac");
+        assertFocusReturnKeepsDraft(output -> output.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "",
+                KeyCode.L, false, !isMac, false, isMac)));
+    }
+
+    @Test
+    public void helpKeyFocusReturn_keepsCommandInputUnselected() throws Exception {
+        assertFocusReturnKeepsDraft(output -> pressKey(output, KeyCode.F1));
+    }
+
+    /**
+     * Moves focus from a draft in the command box to the output area, returns it using {@code returnFocus}, and
+     * checks the draft is neither selected nor changed, so the next keystroke appends to it.
+     */
+    private void assertFocusReturnKeepsDraft(Consumer<Node> returnFocus) throws Exception {
+        String draft = "add n/Draft Tester";
         Stage stage = runOnFxThread(() -> {
             StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataPath()),
                     new JsonUserPrefsStorage(testFolder.resolve("preferences.json")));
@@ -468,10 +490,11 @@ public class MainWindowTest {
             window.fillInnerParts();
             window.show();
             Parent root = newStage.getScene().getRoot();
-            input(root).setText("find n/Alicia");
-            pressKey(input(root), KeyCode.TAB);
-            assertEquals(root.lookup("#resultDisplay"), root.getScene().getFocusOwner());
-            pressKey(root.getScene().getFocusOwner(), KeyCode.TAB);
+            Node output = root.lookup("#resultDisplay");
+            input(root).setText(draft);
+            output.requestFocus();
+            assertEquals(output, root.getScene().getFocusOwner());
+            returnFocus.accept(output);
             assertEquals(input(root), root.getScene().getFocusOwner());
             return newStage;
         });
@@ -479,6 +502,7 @@ public class MainWindowTest {
             // Runs after the deferred caret update queued when the command input regained focus.
             runOnFxThread(() -> {
                 TextField commandInput = input(stage.getScene().getRoot());
+                assertEquals(draft, commandInput.getText());
                 assertEquals("", commandInput.getSelectedText());
                 assertEquals(commandInput.getLength(), commandInput.getCaretPosition());
                 return null;
