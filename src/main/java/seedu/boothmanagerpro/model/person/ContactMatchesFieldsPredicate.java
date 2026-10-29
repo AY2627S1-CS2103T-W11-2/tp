@@ -23,16 +23,19 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
     /** Normalises values for exact matching, including spaces and hyphens in phone numbers. */
     public static String normalise(String field, String value) {
         if (field.equals("n/")) {
-            return foldName(value);
+            return foldCase(Name.normaliseWhitespace(value));
+        }
+        if (field.equals("c/") || field.equals("t/")) {
+            return foldCase(value.trim());
         }
         String result = value.trim().toLowerCase(Locale.ROOT);
         return field.equals("p/") ? result.replace(" ", "").replace("-", "") : result;
     }
 
-    /** Normalises spaces and folds each name code point using the same case equivalence as String.equalsIgnoreCase. */
-    private static String foldName(String value) {
+    /** Folds code points using the same case equivalence as String.equalsIgnoreCase. */
+    private static String foldCase(String value) {
         StringBuilder folded = new StringBuilder();
-        Name.normaliseWhitespace(value).codePoints().map(Character::toUpperCase).map(Character::toLowerCase)
+        value.codePoints().map(Character::toUpperCase).map(Character::toLowerCase)
                 .forEach(folded::appendCodePoint);
         return folded.toString();
     }
