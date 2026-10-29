@@ -12,18 +12,28 @@ BoothManagerPro is a desktop contact manager for **convention organisers followi
 
 ## Quick start
 
-1. Ensure that JDK `25` is installed on your computer, as required by the [setup guide](SettingUp.md).
+1. Ensure that Java `25` is installed on your computer. You can check this by running `java -version` in your terminal, as described in the [setup guide](SettingUp.md).
 
 1. Download `boothmanagerpro.jar` from the [latest GitHub release](https://github.com/AY2627S1-CS2103T-W11-2/tp/releases/latest). You do not need to download the source code or build the app.
 
-1. Copy the file to the folder you want to use as the _home folder_ for BoothManagerPro.
+1. Copy the JAR file to an empty folder you want to use as the home directory for BoothManagerPro.
+   <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
+   Do not place BoothManagerPro in a write-protected directory (e.g. `Program Files` or system root), as the application creates and updates its local data file (`data/addressbook.json`) in the directory it is run from.
+   </div>
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar boothmanagerpro.jar`.<br>
+1. Open a terminal, `cd` into the folder containing the JAR file, and launch the application with:
+   ```text
+   java -jar boothmanagerpro.jar
+   ```
+   <div markdown="span" class="alert alert-primary">:bulb: **Note:**
+   Double-clicking the JAR file may not work on certain operating systems or configurations (such as Linux desktop environments or macOS without console associations). Running the command from a terminal is the recommended method.
+   </div>
+
    Sample contacts are loaded on first launch, but only a ready prompt is shown.
    Type `list` to show the sample contacts, or `help` to see the available commands.<br>
    ![Command interface on startup](images/ug-startup.png)
 
-1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to print command usage instructions.<br>
+1. Type a command in the command box and press Enter to execute it. For example, type **`help`** (or press **F1**) and press Enter to print command usage instructions.<br>
    Some example commands you can try:
 
    * `list` : Lists all contacts. Add `o/name`, `o/company`, or `o/status` to sort them, e.g. `list o/status`.
@@ -441,13 +451,19 @@ To recover contacts, close BoothManagerPro first. Keep a separate copy of the re
 Furthermore, certain edits can cause BoothManagerPro to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 
-### Planned features
+### Planned features [Coming soon]
 
-Searching enquiry status, reminders, data archiving, CSV import/export, and undo remain planned. Exact follow-up-date search is available through `find f/YYYYMMDD`.
+Searching enquiry status, reminders, data archiving, CSV import/export, and undo remain planned for future iterations. Exact follow-up-date search is available through `find f/YYYYMMDD`.
 
 --------------------------------------------------------------------------------------------------------------------
 
 ## FAQ
+
+**Q**: Why does double-clicking `boothmanagerpro.jar` not open the application?<br>
+**A**: Certain operating systems (or configurations without Java desktop associations) do not execute JAR files on double-click. Open a terminal, navigate to the folder containing the JAR, and run `java -jar boothmanagerpro.jar`.
+
+**Q**: Where does BoothManagerPro store contact data?<br>
+**A**: BoothManagerPro stores contacts in `data/addressbook.json` in the folder from which you run the application. Ensure that folder is not write-protected.
 
 **Q**: How do I transfer my data to another computer?<br>
 **A**: Close BoothManagerPro on both computers. Copy `data/addressbook.json` from the old launch folder into the new launch folder's `data` directory, backing up any existing file first. Start the app from the new folder and run `list` to check your contacts.

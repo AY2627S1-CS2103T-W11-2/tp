@@ -3,14 +3,14 @@ layout: page
 title: BoothManagerPro
 ---
 
-[![CI Status](https://github.com/AY2627S1-CS2103T-W11-2/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-W11-2/tp/actions/workflows/gradle.yml)
+[![CI Status](https://github.com/AY2627S1-CS2103T-W11-2/tp/actions/workflows/gradle.yml/badge.svg?branch=master)](https://github.com/AY2627S1-CS2103T-W11-2/tp/actions/workflows/gradle.yml)
 [![codecov](https://codecov.io/github/AY2627S1-CS2103T-W11-2/tp/graph/badge.svg?token=EXE9YQFB7G)](https://codecov.io/github/AY2627S1-CS2103T-W11-2/tp)
 
-![Current startup screen](images/Ui%20-%20start%20state.png)
+![BoothManagerPro contact list view](images/Ui.png)
 
-**BoothManagerPro helps convention organisers manage exhibitor contacts through typed commands.** Add contacts with company, email, phone, optional contact method, and tags, with validation and duplicate detection. See the [add command reference](UserGuide.html#adding-an-exhibitor-contact-add).
+**BoothManagerPro helps convention organisers manage exhibitor contacts efficiently through typed commands.** Add contacts with company, email, phone, optional contact method, enquiry status, follow-up dates, and tags, with built-in validation and duplicate detection. See the [add command reference](UserGuide.html#adding-an-exhibitor-contact-add).
 
-The image above shows the current startup screen. `list`, `find`, and `view` print their results in a single text output area. Contacts are not printed automatically on startup, and there are no graphical contact panels. Add supports enquiry status and optional follow-up dates; `update` changes these fields and `tag` toggles tags by name or displayed index. Exact follow-up-date filtering is available through `find f/YYYYMMDD`. Enquiry-status filtering and automatic due or overdue filtering remain planned.
+The screenshot above shows BoothManagerPro displaying exhibitor contacts as static contact cards with coloured enquiry status badges. Startup displays a ready prompt, keeping your workflow clean and focused until you enter a command. Use `list` to view and sort contacts (`list o/name`, `list o/company`, `list o/status`), `find` to filter by fields and exact follow-up dates (`find f/YYYYMMDD`), `view` for full details, and `update` or `tag` to keep records accurate. Future enhancements such as enquiry-status filtering and automatic overdue reminders are planned for subsequent iterations.
 
 * If you are interested in using BoothManagerPro, head over to the [_Quick Start_ section of the **User Guide**](UserGuide.html#quick-start).
 * If you are interested in developing BoothManagerPro, the [**Developer Guide**](DeveloperGuide.html) is a good place to start.

@@ -1,6 +1,6 @@
 # BoothManagerPro
 
-[![CI Status](https://github.com/AY2627S1-CS2103T-W11-2/tp/actions/workflows/gradle.yml/badge.svg)](https://github.com/AY2627S1-CS2103T-W11-2/tp/actions/workflows/gradle.yml)
+[![CI Status](https://github.com/AY2627S1-CS2103T-W11-2/tp/actions/workflows/gradle.yml/badge.svg?branch=master)](https://github.com/AY2627S1-CS2103T-W11-2/tp/actions/workflows/gradle.yml)
 [![codecov](https://codecov.io/github/AY2627S1-CS2103T-W11-2/tp/graph/badge.svg?token=EXE9YQFB7G)](https://codecov.io/github/AY2627S1-CS2103T-W11-2/tp)
 
 **Manage exhibitor contacts efficiently through typed commands.**
@@ -20,18 +20,18 @@ right person and maintain organised contact records.
 ## About the project
 
 BoothManagerPro focuses on managing exhibitors and their representatives
-throughout the enquiry process. Its initial development includes adding,
-listing, viewing, and deleting contact records.
+throughout the enquiry process, supporting adding, listing, sorting, viewing,
+updating, tagging, filtering, and deleting contact records.
 
-Contacts support an enquiry status and an optional follow-up date at creation.
-Use `update NAME_OR_INDEX s/STATUS f/YYYYMMDD` to change these fields.
-Use `find f/YYYYMMDD` to find contacts on an exact follow-up date; date ranges and overdue reminders remain planned.
+Contacts record an enquiry status, preferred contact method, and an optional follow-up date.
+Use `update NAME_OR_INDEX s/STATUS f/YYYYMMDD` to modify these fields, and `tag` to toggle tags.
+Use `find f/YYYYMMDD` to find contacts on an exact follow-up date; date ranges and overdue reminders remain planned for future iterations.
 
 ## UI preview
 
-![Application on startup](docs/images/Ui%20-%20start%20state.png)
+![BoothManagerPro contact list view](docs/images/Ui.png)
 
-*Current startup screen. The window contains command input and text output only. `list` prints all contacts, `find` prints numbered matches, and `view` prints details or numbered choices. Contacts are not printed automatically on launch.*
+*BoothManagerPro displaying contacts as static contact cards with coloured enquiry status badges. Startup displays a ready prompt, and `list`, `find`, and `view` render contacts directly in the single scrollable output area.*
 
 ## Who it is for
 
