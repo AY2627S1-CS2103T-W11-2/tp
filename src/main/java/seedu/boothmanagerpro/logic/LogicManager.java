@@ -36,6 +36,8 @@ public class LogicManager implements Logic {
             "The selected contact has changed. Run view n/NAME again.";
 
     private List<Person> pendingViewChoices = List.of();
+    /** The numbered prompt for {@code pendingViewChoices}, repeated when a reply is invalid. */
+    private String pendingViewPrompt = "";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
@@ -89,6 +91,7 @@ public class LogicManager implements Logic {
 
         if (command instanceof ViewCommand) {
             pendingViewChoices = commandResult.getViewChoices();
+            pendingViewPrompt = commandResult.getFeedbackToUser();
             logger.fine("View request completed; pending choices: " + pendingViewChoices.size());
             return commandResult;
         }
@@ -132,10 +135,10 @@ public class LogicManager implements Logic {
         try {
             index = ParserUtil.parseIndex(input).getZeroBased();
         } catch (ParseException e) {
-            throw new CommandException(String.format(MESSAGE_VIEW_SELECTION, pendingViewChoices.size()));
+            throw createInvalidSelectionException();
         }
         if (index >= pendingViewChoices.size()) {
-            throw new CommandException(String.format(MESSAGE_VIEW_SELECTION, pendingViewChoices.size()));
+            throw createInvalidSelectionException();
         }
         Person selected = pendingViewChoices.get(index);
         if (!model.getAddressBook().getPersonList().contains(selected)) {
@@ -147,6 +150,12 @@ public class LogicManager implements Logic {
         pendingViewChoices = List.of();
         logger.fine("Pending view selection resolved and filtered to the selected contact");
         return ViewCommand.createDetailsResult(selected);
+    }
+
+    /** Returns the valid-range error followed by the pending prompt, so the user can see the choices to retry. */
+    private CommandException createInvalidSelectionException() {
+        return new CommandException(String.format(MESSAGE_VIEW_SELECTION, pendingViewChoices.size())
+                + "\n" + pendingViewPrompt);
     }
 
     @Override

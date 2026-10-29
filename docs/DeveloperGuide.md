@@ -216,8 +216,8 @@ If exactly one match has a full name equal to the query, ignoring case, `ViewCom
 and filters to it, so overlapping names such as `Alex Yeo` and `Alex Yeoh` can each be viewed without a numbered reply.
 Multiple matches return a numbered name-and-company list plus an immutable `CommandResult.viewChoices` snapshot.
 
-`LogicManager` retains those choices for the next numbered reply. Invalid replies report the valid range and keep
-the choices available. A successful selection or another successfully parsed command clears the pending choices,
+`LogicManager` retains those choices and their prompt for the next numbered reply. Invalid replies report the valid
+range followed by the prompt again, and keep the choices available. A successful selection or another successfully parsed command clears the pending choices,
 even if command execution fails. Invalid command syntax preserves the pending choices.
 If the selected record has changed or disappeared, the user must run `view` again. Each LogicManager has its own
 selection state. Viewing and numbered replies bypass storage writes, because neither changes contact data.

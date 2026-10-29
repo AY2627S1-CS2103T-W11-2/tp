@@ -100,9 +100,10 @@ public class ViewCommandIntegrationTest {
 
     @Test
     public void execute_invalidReplies_keepChoicesForRetry() throws Exception {
-        logic.execute("view n/Alicia Tan");
+        String prompt = logic.execute("view n/Alicia Tan").getFeedbackToUser();
         for (String input : new String[]{"0", "-1", "3", "2147483648", "1.5", "abc", "1 2"}) {
-            String expected = String.format(LogicManager.MESSAGE_VIEW_SELECTION, 2);
+            // The numbered choices are repeated so the user can see which number to retry with.
+            String expected = String.format(LogicManager.MESSAGE_VIEW_SELECTION, 2) + "\n" + prompt;
             assertThrows(CommandException.class, expected, () -> logic.execute(input));
         }
         assertEquals(ViewCommand.createDetailsResult(first), logic.execute("1"));

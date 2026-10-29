@@ -245,7 +245,9 @@ public class MainWindowTest {
             assertTrue(output(root).contains("1. Alicia Tan at TechNova"));
             assertTrue(output(root).contains("2. Alicia Tan at Other Ltd"));
             enterCommand(root, "3");
-            assertEquals("Please enter a number between 1 and 2.", output(root));
+            assertTrue(output(root).startsWith("Please enter a number between 1 and 2.\n2 contacts matching"));
+            assertTrue(output(root).contains("1. Alicia Tan at TechNova"));
+            assertTrue(output(root).contains("2. Alicia Tan at Other Ltd"));
             enterCommand(root, "2");
             assertTrue(output(root).startsWith("Exhibitor contact found:\nAlicia Tan at Other Ltd"));
             assertTrue(output(root).contains("Email: second@example.com"));
