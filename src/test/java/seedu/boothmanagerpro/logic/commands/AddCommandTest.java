@@ -3,6 +3,7 @@ package seedu.boothmanagerpro.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.boothmanagerpro.testutil.Assert.assertThrows;
 import static seedu.boothmanagerpro.testutil.TypicalPersons.ALICE;
@@ -25,6 +26,11 @@ import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.testutil.PersonBuilder;
 
 public class AddCommandTest {
+
+    @Test
+    public void modelWithoutSorting_defaultsToStoredOrder() {
+        assertNull(new ModelStub().getPersonListComparator());
+    }
 
     @Test
     public void constructor_nullPerson_throwsNullPointerException() {

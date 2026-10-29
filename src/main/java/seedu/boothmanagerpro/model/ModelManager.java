@@ -132,6 +132,12 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public Comparator<Person> getPersonListComparator() {
+        Comparator<? super Person> comparator = sortedPersons.getComparator();
+        return comparator == null ? null : comparator::compare;
+    }
+
+    @Override
     public boolean equals(Object other) {
         if (other == this) {
             return true;

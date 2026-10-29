@@ -77,6 +77,43 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_recoverySaveFails_restoresDisplayedOrder() {
+        assertRecoveryFailureRestoresOrder(false);
+    }
+
+    @Test
+    public void execute_recoverySaveFails_restoresPreviousComparator() {
+        assertRecoveryFailureRestoresOrder(true);
+    }
+
+    private void assertRecoveryFailureRestoresOrder(boolean sorted) {
+        Person zoe = new PersonBuilder().withName("Zoe Tan").withEmail("zoe@example.com").build();
+        Person amy = new PersonBuilder().withName("Amy Tan").withEmail("amy@example.com").build();
+        model.addPerson(zoe);
+        model.addPerson(amy);
+        if (sorted) {
+            model.updateSortedPersonList(java.util.Comparator.comparing(person -> person.getName().fullName));
+        }
+        StorageManager failingStorage = new StorageManager(
+                new JsonAddressBookStorage(temporaryFolder.resolve("contacts.json")),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))) {
+            @Override
+            public boolean isAddressBookRecoveryPending() {
+                return true;
+            }
+
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook data) throws IOException {
+                throw DUMMY_IO_EXCEPTION;
+            }
+        };
+        logic = new LogicManager(model, failingStorage);
+        assertThrows(CommandException.class, () -> logic.execute(sorted ? "list" : "list o/name"));
+        assertEquals(sorted ? java.util.List.of(amy, zoe) : java.util.List.of(zoe, amy),
+                model.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_storageThrowsAdException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage()));
