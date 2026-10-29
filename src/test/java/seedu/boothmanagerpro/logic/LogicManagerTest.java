@@ -31,6 +31,7 @@ import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.storage.JsonAddressBookStorage;
 import seedu.boothmanagerpro.storage.JsonUserPrefsStorage;
 import seedu.boothmanagerpro.storage.StorageManager;
+import seedu.boothmanagerpro.testutil.IntegrationTestFixture;
 import seedu.boothmanagerpro.testutil.PersonBuilder;
 
 public class LogicManagerTest {
@@ -47,9 +48,8 @@ public class LogicManagerTest {
     public void setUp() {
         JsonAddressBookStorage addressBookStorage =
                 new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
-        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"));
-        StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
-        logic = new LogicManager(model, storage);
+        logic = IntegrationTestFixture.createLogic(model, addressBookStorage,
+                temporaryFolder.resolve("userPrefs.json"));
     }
 
     @Test

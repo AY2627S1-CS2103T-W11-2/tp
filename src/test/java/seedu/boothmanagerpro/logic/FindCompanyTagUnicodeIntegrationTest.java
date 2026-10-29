@@ -14,8 +14,8 @@ import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.UserPrefs;
 import seedu.boothmanagerpro.model.person.Person;
 import seedu.boothmanagerpro.storage.JsonAddressBookStorage;
-import seedu.boothmanagerpro.storage.JsonUserPrefsStorage;
 import seedu.boothmanagerpro.storage.StorageManager;
+import seedu.boothmanagerpro.testutil.IntegrationTestFixture;
 import seedu.boothmanagerpro.testutil.PersonBuilder;
 
 /** Regressions for Unicode company/tag retrieval without modifying stored spelling or matching scope. */
@@ -53,7 +53,7 @@ public class FindCompanyTagUnicodeIntegrationTest {
     @Test
     public void find_afterReload_matchesUnicodeAndPreservesOriginalStoredValues() throws Exception {
         JsonAddressBookStorage storage = new JsonAddressBookStorage(folder.resolve("contacts.json"));
-        StorageManager manager = new StorageManager(storage, new JsonUserPrefsStorage(folder.resolve("prefs.json")));
+        StorageManager manager = IntegrationTestFixture.createStorage(storage, folder.resolve("prefs.json"));
         ModelManager model = new ModelManager();
         LogicManager logic = new LogicManager(model, manager);
         logic.execute("add n/Greek Contact c/\u039f\u03a3 e/greek@example.com p/81234567 "
@@ -72,8 +72,7 @@ public class FindCompanyTagUnicodeIntegrationTest {
     @Test
     public void find_canonicalEquivalenceAndUnicodeSpaces_matchesStoredContacts() throws Exception {
         JsonAddressBookStorage storage = new JsonAddressBookStorage(folder.resolve("nfc-contacts.json"));
-        StorageManager manager = new StorageManager(storage,
-                new JsonUserPrefsStorage(folder.resolve("nfc-prefs.json")));
+        StorageManager manager = IntegrationTestFixture.createStorage(storage, folder.resolve("nfc-prefs.json"));
         ModelManager model = new ModelManager();
         LogicManager logic = new LogicManager(model, manager);
 

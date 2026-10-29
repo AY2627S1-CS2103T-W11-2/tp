@@ -13,8 +13,7 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.boothmanagerpro.model.ModelManager;
 import seedu.boothmanagerpro.model.UserPrefs;
 import seedu.boothmanagerpro.storage.JsonAddressBookStorage;
-import seedu.boothmanagerpro.storage.JsonUserPrefsStorage;
-import seedu.boothmanagerpro.storage.StorageManager;
+import seedu.boothmanagerpro.testutil.IntegrationTestFixture;
 
 /** Checks whole-word name searches through routing, sorting, combined criteria and persisted data. */
 public class FindNameMatchingIntegrationTest {
@@ -76,8 +75,7 @@ public class FindNameMatchingIntegrationTest {
     }
 
     private LogicManager createLogic() {
-        return new LogicManager(model, new StorageManager(storage,
-                new JsonUserPrefsStorage(folder.resolve("prefs.json"))));
+        return IntegrationTestFixture.createLogic(model, storage, folder.resolve("prefs.json"));
     }
 
     private void assertNames(String... expected) {
