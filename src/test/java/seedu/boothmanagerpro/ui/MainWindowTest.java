@@ -540,10 +540,57 @@ public class MainWindowTest {
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("add c/TechNova n/Alicia Tan e/", commandInput.getText());
 
-            // A last required prefix with earlier fields absent has no later prefix to append.
+            // Out-of-order required fields still supply any missing earlier required prefix.
             commandInput.setText("add n/Alicia Tan p/91234567");
             pressKey(commandInput, KeyCode.TAB);
-            assertEquals("add n/Alicia Tan p/91234567", commandInput.getText());
+            assertEquals("add n/Alicia Tan p/91234567 c/", commandInput.getText());
+
+            commandInput.setText("add c/TechNova e/a@b.co p/91234567");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add c/TechNova e/a@b.co p/91234567 n/", commandInput.getText());
+
+            // Optional fields during add complete their value first before advancing to missing required prefixes.
+            commandInput.setText("add n/Alicia c/TechNova e/a@b.com m/em");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add n/Alicia c/TechNova e/a@b.com m/email", commandInput.getText());
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add n/Alicia c/TechNova e/a@b.com m/email p/", commandInput.getText());
+
+            // Empty or ambiguous optional fields during add are not corrupted by appending a required prefix.
+            commandInput.setText("add n/Alicia m/");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add n/Alicia m/", commandInput.getText());
+
+            commandInput.setText("add n/Alicia s/C");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add n/Alicia s/C", commandInput.getText());
+
+            // Multi-word fixed-choice values with spaces still complete, while unsupported prefixes are ignored.
+            commandInput.setText("update 1 s/Needs ");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("update 1 s/Needs follow-up", commandInput.getText());
+
+            commandInput.setText("find s/In");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("find s/In", commandInput.getText());
+
+            // Repeatable prefixes can still complete again in find and tag.
+            commandInput.setText("find f/20261025 f");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("find f/20261025 f/", commandInput.getText());
+
+            commandInput.setText("tag 1 t/vip t");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("tag 1 t/vip t/", commandInput.getText());
+
+            // Patronymic names in add and tag still advance cleanly without treating s/o as status.
+            commandInput.setText("add n/Raj s/o Kumar");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("add n/Raj s/o Kumar c/", commandInput.getText());
+
+            commandInput.setText("tag Raj s/o Kumar");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("tag Raj s/o Kumar t/", commandInput.getText());
 
             // Empty fixed-choice text is ambiguous, so completion must fall through without changing it.
             commandInput.setText("list o/");
@@ -562,6 +609,28 @@ public class MainWindowTest {
             focusableInput.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.TAB,
                     true, false, false, false));
             assertEquals(1, outputFocusRequests.get());
+
+            // Trailing spaces after completed values or commands are preserved and let Tab move focus.
+            focusableInput.setText("update 1 m/email ");
+            pressKey(focusableInput, KeyCode.TAB);
+            assertEquals("update 1 m/email ", focusableInput.getText());
+            assertEquals(2, outputFocusRequests.get());
+
+            focusableInput.setText("delete ");
+            pressKey(focusableInput, KeyCode.TAB);
+            assertEquals("delete ", focusableInput.getText());
+            assertEquals(3, outputFocusRequests.get());
+
+            // Single-letter words matching an already-present non-repeatable prefix are not mutated into duplicates.
+            focusableInput.setText("add n/Alicia c/Tech e/a@b.co p/91234567 t/tier c");
+            pressKey(focusableInput, KeyCode.TAB);
+            assertEquals("add n/Alicia c/Tech e/a@b.co p/91234567 t/tier c", focusableInput.getText());
+            assertEquals(4, outputFocusRequests.get());
+
+            focusableInput.setText("view n/Alicia n");
+            pressKey(focusableInput, KeyCode.TAB);
+            assertEquals("view n/Alicia n", focusableInput.getText());
+            assertEquals(5, outputFocusRequests.get());
             return null;
         });
     }

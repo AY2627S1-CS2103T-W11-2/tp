@@ -41,7 +41,7 @@ public class ArgumentTokenizer {
      * Finds all whitespace-delimited single-letter prefix tokens (e.g. {@code n/}, {@code c/}),
      * excluding legal-name patronymic markers ({@code s/o} and {@code d/o}) appearing between words.
      */
-    static List<MatchResult> findSingleLetterPrefixes(String argsString) {
+    public static List<MatchResult> findSingleLetterPrefixes(String argsString) {
         return SINGLE_LETTER_PREFIX.matcher(argsString).results()
                 .filter(match -> !isPatronymicToken(argsString, match.start()))
                 .toList();
