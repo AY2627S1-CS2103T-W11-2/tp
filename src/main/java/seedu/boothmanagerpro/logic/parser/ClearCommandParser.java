@@ -28,4 +28,3 @@ public class ClearCommandParser implements Parser<ClearCommand> {
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClearCommand.MESSAGE_USAGE));
     }
 }
-

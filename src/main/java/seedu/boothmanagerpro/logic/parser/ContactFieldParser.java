@@ -8,7 +8,7 @@ import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 final class ContactFieldParser {
     private ContactFieldParser() {}
 
-    /** Rejects a blank field using the common add, edit and update error. */
+    /** Rejects a blank field using the common add and update error. */
     static void requireValue(Prefix prefix, String value) throws ParseException {
         if (value.isBlank()) {
             throw new ParseException("Empty field: " + prefix + ". Supply a value after this prefix.");

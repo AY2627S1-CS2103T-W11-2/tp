@@ -174,6 +174,8 @@ Invalid JSON objects and null contact/tag entries produce controlled loading err
 
 `JsonAddressBookStorage` records failed loads using `DataFileRecovery`. Before the first subsequent save to that path, it copies the original bytes to a unique `.recovery-` JSON file in the same directory. Backup failure blocks the save and retains recovery protection for a retry. A successful backup or a successful reload clears that protection. Recovery files are never automatically loaded or overwritten; users must close the app and repair/restore data manually. This protection does not coordinate concurrent app instances.
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
+* records the address book file state loaded by the current session and uses an inter-process lock while saving. If
+  another window or process changes the file, a stale save is rejected instead of overwriting the newer data.
 
 ### Common classes
 
@@ -564,7 +566,9 @@ A contact represents an exhibitor or an exhibitor representative.
 
 UC01–UC04 describe implemented workflows. UC05 distinguishes current search behavior from planned status filtering. Refer to the [User Guide](UserGuide.md) for supported commands.
 **Interaction rule:** All contact actions use typed commands. List, find, and view show their contacts as static, non-interactive cards in the one output area; other results are text. There are no separate contact panels and no automatic startup listing.
-**Guarantee:** Input-validation and duplicate rejections leave contacts unchanged. A storage-write failure is reported, but an already executed change may remain in memory; it is not guaranteed to have been saved.
+**Guarantee:** Input-validation and duplicate rejections leave contacts unchanged. A storage-write failure is reported
+and the executed in-memory change is rolled back. A stale session cannot overwrite an address book file changed by
+another window or process.
 
 #### UC01: Add an exhibitor contact
 

@@ -90,6 +90,11 @@ update the intended contact, and searches continue to work after storage reload.
 and tag searches. It verifies complete-value matching, OR/AND combinations, matching after reload, and preservation
 of stored company/tag spelling and JSON during search.
 
+`ConcurrentSessionIntegrationTest` loads two independent sessions from one file, saves a contact in the first, and
+verifies that a read-only `list` in the stale session does not write. A later stale mutation must be rejected and
+rolled back while the newer contact remains on disk. `JsonAddressBookStorageTest` also checks this conflict directly
+at the storage boundary.
+
 Manual check in a separate test folder:
 
 1. Add two contacts with the same name, different companies and emails, and an optional method/tag on one.

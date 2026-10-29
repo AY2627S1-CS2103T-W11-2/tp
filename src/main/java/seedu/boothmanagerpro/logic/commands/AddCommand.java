@@ -62,6 +62,11 @@ public class AddCommand extends Command {
         toAdd = person;
     }
 
+    @Override
+    public boolean modifiesAddressBook() {
+        return true;
+    }
+
     /**
      * Checks all stored contacts, including those hidden by a filter, before adding the contact.
      * A duplicate error identifies the existing record and leaves the model unchanged.
