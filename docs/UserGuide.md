@@ -296,7 +296,7 @@ Format: `update NAME_OR_INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD
 - Empty `f/` clears the date. Other blank fields are rejected. Status may be changed to any of the four supported values; there is no enforced transition order.
 - Unknown prefixes, invalid values, missing/ambiguous targets, and duplicate email or name/company combinations are rejected without changing contacts or saved data. Duplicate checks include hidden contacts.
 - Don't put `n/` before the contact: `update n/Alicia Tan s/Completed` shows `Don't include n/ for update. Use: update NAME_OR_INDEX FIELD... (n/ only sets a new name, e.g. update Alicia Tan n/Alicia Lim)`.
-- An index of `0` or below shows `Index must be a positive integer.`; an index too large to be a list position, such as `99999999999999`, shows `Index is too large. Use a number shown in the current list, find or view results.`
+- An index of `0` or below shows `Index must be a positive integer.`; a leading `+` such as `+1` shows `Index must be an unsigned positive integer (e.g. 1, not +1).`; an index too large to be a list position, such as `99999999999999` or `+99999999999999`, shows `Index is too large. Use a number shown in the current list, find or view results.`
 - Success prints `Updated NAME at COMPANY.`, clears the filter and command input, and retains keyboard focus. Run `list` or `find` before reusing an index, or `view n/NAME` to check details.
 - Updating contact details does not change any postal address saved in the data file.
 
@@ -396,7 +396,7 @@ Format: `delete NAME` or `delete INDEX`
   then delete the intended contact by its displayed index.
 * Alternatively, deletes the contact at the specified `INDEX`.
 * The index refers to the index number shown in the current numbered command results.
-* The index **must be a positive integer** 1, 2, 3, …​ `delete 0` or `delete -1` shows `Index must be a positive integer.`, and an index too large to be a list position, such as `delete 99999999999999`, shows `Index is too large. Use a number shown in the current list, find or view results.`
+* The index **must be an unsigned positive integer** 1, 2, 3, …​ `delete 0` or `delete -1` shows `Index must be a positive integer.`, `delete +1` shows `Index must be an unsigned positive integer (e.g. 1, not +1).`, and an index too large to be a list position, such as `delete 99999999999999`, shows `Index is too large. Use a number shown in the current list, find or view results.`
 * Don't include `n/`: `delete n/Alex Yeoh` shows `Don't include n/ for delete. Use: delete NAME or delete INDEX`.
 
 Examples:

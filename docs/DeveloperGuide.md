@@ -943,7 +943,8 @@ Start with the sample data and run `list` first. Each command below is rejected 
 | Check | Command | Expected message |
 | --- | --- | --- |
 | Index of zero or below | `delete 0`, `delete -1`, `update -1 s/Completed`, `tag 0 t/vip` | `Index must be a positive integer.` |
-| Index too large | `delete 99999999999999`, `update 99999999999999 s/Completed`, `tag 99999999999999 t/vip` | `Index is too large. Use a number shown in the current list, find or view results.` |
+| Leading `+` on positive index | `delete +1`, `update +1 s/Completed`, `tag +1 t/vip` | `Index must be an unsigned positive integer (e.g. 1, not +1).` |
+| Index too large | `delete 99999999999999`, `delete +99999999999999`, `update 99999999999999 s/Completed`, `tag 99999999999999 t/vip` | `Index is too large. Use a number shown in the current list, find or view results.` |
 | `n/` before a delete target | `delete n/Alex Yeoh` | `Don't include n/ for delete. Use: delete NAME or delete INDEX` |
 | `n/` before an update target | `update n/Alex Yeoh s/Completed` | `Don't include n/ for update. Use: update NAME_OR_INDEX FIELD... (n/ only sets a new name, e.g. update Alicia Tan n/Alicia Lim)` |
 | `n/` before a tag target | `tag n/Alex Yeoh t/vip` | `Don't include n/ for tag. Use: tag NAME_OR_INDEX t/TAG [t/TAG]...` |

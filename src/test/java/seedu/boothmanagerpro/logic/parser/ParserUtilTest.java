@@ -56,17 +56,25 @@ public class ParserUtilTest {
 
     @Test
     public void parseIndex_nonPositiveInput_throwsParseException() {
-        for (String index : new String[]{"0", "-1", "+1", Long.toString(Integer.MIN_VALUE)}) {
-            assertThrows(ParseException.class, "Index must be a positive integer.", () -> ParserUtil.parseIndex(index));
+        for (String index : new String[]{"0", "-1", "+0", "-0", "+", Long.toString(Integer.MIN_VALUE)}) {
+            assertThrows(ParseException.class, ParserUtil.MESSAGE_INVALID_INDEX, () -> ParserUtil.parseIndex(index));
+        }
+    }
+
+    @Test
+    public void parseIndex_leadingPlusPositiveInput_throwsUnsignedIndexParseException() {
+        for (String index : new String[]{"+1", "+001", "+" + Integer.MAX_VALUE}) {
+            assertThrows(ParseException.class, ParserUtil.MESSAGE_UNSIGNED_INDEX, () -> ParserUtil.parseIndex(index));
         }
     }
 
     @Test
     public void parseIndex_tooLargeInput_throwsParseException() {
-        for (String index : new String[]{Long.toString(Integer.MAX_VALUE + 1L), "99999999999999"}) {
-            assertThrows(ParseException.class,
-                    "Index is too large. Use a number shown in the current list, find or view results.", ()
-                    -> ParserUtil.parseIndex(index));
+        for (String index : new String[]{
+            Long.toString(Integer.MAX_VALUE + 1L), "99999999999999",
+            "+" + (Integer.MAX_VALUE + 1L), "+99999999999999"
+        }) {
+            assertThrows(ParseException.class, ParserUtil.MESSAGE_INDEX_TOO_LARGE, () -> ParserUtil.parseIndex(index));
         }
     }
 
