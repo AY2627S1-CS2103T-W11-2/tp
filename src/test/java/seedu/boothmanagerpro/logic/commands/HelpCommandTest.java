@@ -42,6 +42,7 @@ public class HelpCommandTest {
                 + "   Example:     exit"));
         assertTrue(SHOWING_HELP_MESSAGE.contains("list [o/name|o/company|o/status]"));
         assertTrue(SHOWING_HELP_MESSAGE.contains("find f/20261025 t/high-priority"));
+        assertTrue(SHOWING_HELP_MESSAGE.contains("Date: YYYYMMDD, today, due, or overdue."));
         assertTrue(SHOWING_HELP_MESSAGE.contains("update Alicia Tan s/Completed f/20261028"));
         assertTrue(SHOWING_HELP_MESSAGE.contains("Empty m/ clears the contact method; "
                 + "empty f/ clears the follow-up date; empty t/ clears all tags."));

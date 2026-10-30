@@ -340,7 +340,7 @@ tag 1 t/technology t/keynote
 
 Use prefixed criteria to match a complete name or a whole name word, full or partial company/email/phone values, and complete method, status, tag, or follow-up date values:
 
-Format: `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] [s/STATUS] [t/TAG] [f/YYYYMMDD]...`
+Format: `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] [s/STATUS] [t/TAG] [f/DATE_OR_KEYWORD]...`
 
 * Supply at least one non-empty criterion. Phone search values accept 1 to 15 digits with optional leading `+`, spaces, hyphens, full stops, and parentheses (up to 100 characters; tabs inside phone numbers are not accepted); email search values accept full or partial email addresses and domains (such as `@technova.com`).
 * Names, companies, emails, methods, statuses, and tags ignore case and surrounding whitespace. Phone comparisons ignore spaces, hyphens, full stops, and parentheses.
@@ -358,9 +358,9 @@ Format: `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] [s/STATUS] [t/
 * Company (`c/`), email (`e/`), and phone (`p/`) match full or partial values (for example, `find c/TechNova` matches `TechNova Solutions`, `find e/@technova.com` matches any `@technova.com` address, and `find p/8743` matches `87438807` or `+6587438807`). Contacts saved without a company do not match `c/`.
 * Contact method (`m/`) matches `email`, `phone`, or `other` (ignoring case); contacts without a specified contact method do not match `m/`.
 * Enquiry status (`s/`) matches `Needs follow-up`, `In progress`, `Completed`, or `Cancelled` (ignoring case).
-* Follow-up date (`f/`) matches the exact stored calendar date in `YYYYMMDD` format, using the same date validation as `add` and `update`. Contacts without a follow-up date do not match. Past dates are accepted; date ranges and overdue searches are not supported.
+* Follow-up date (`f/`) accepts an exact calendar date in `YYYYMMDD` format, using the same validation as `add` and `update`, or a case-insensitive keyword: `today` (today only), `due` (today or earlier), or `overdue` (earlier than today). Contacts without a follow-up date do not match. Date ranges are not supported.
 * Repeat `f/` to match any of the supplied dates (OR), or combine it with another field to require both (AND). An empty `f/` is invalid in `find`; it does not search for contacts without dates. Invalid dates are rejected without changing the existing results or saved data.
-* To find contacts scheduled for today, supply today's date explicitly, for example `find f/20261029` on 29 October 2026. This matches that date only; it does not include earlier dates or check enquiry status.
+* Relative filters use the computer's local calendar date when the search runs. Run the search again after midnight to refresh it. They do not filter by enquiry status: a completed contact can still have a past date. Use `find f/due s/Needs follow-up` to require both a due date and that status. `add` and `update` still require a literal `YYYYMMDD` date.
 * `list` restores all contacts. A result count of zero means no contacts matched.
 
 Examples:
@@ -371,6 +371,7 @@ Examples:
 * `find c/TechNova s/In progress m/email` finds contacts at companies containing `TechNova` whose enquiry is in progress and whose contact method is `email`.
 * `find t/technology t/food` returns contacts tagged with either label.
 * `find f/20261025` returns contacts whose follow-up date is 25 October 2026.
+* `find f/today` finds contacts scheduled for today; `find f/overdue t/high-priority` finds high-priority contacts with a past follow-up date.
 * `find f/20261025 f/20261026 t/high-priority` returns high-priority contacts due on either date.
 * `update Alicia Tan f/20261028`, then `find f/20261028`, changes Alicia's date using the existing update command and finds contacts due on the new date. Use `update Alicia Tan f/` to clear her date; she will no longer match any date criterion.
 
@@ -454,7 +455,7 @@ Furthermore, certain edits can cause BoothManagerPro to behave in unexpected way
 
 ### Planned features [Coming soon]
 
-Reminders, data archiving, CSV import/export, and undo remain planned for future iterations. Exact follow-up-date search is available through `find f/YYYYMMDD`.
+Reminders, data archiving, CSV import/export, and undo remain planned for future iterations. Follow-up-date search supports exact dates and `today`, `due`, or `overdue`; these filters do not send reminders.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -480,7 +481,7 @@ Action | Format, Examples
 **Delete** | `delete NAME` or `delete INDEX`<br> e.g., `delete Alex Yeoh`
 **Update** | `update NAME_OR_INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...`<br> e.g., `update Alicia Tan s/Completed f/`
 **Tag** | `tag NAME_OR_INDEX t/TAG [t/TAG]...`<br> e.g., `tag Alicia Tan t/high-priority t/sponsor`
-**Find** | `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] [s/STATUS] [t/TAG] [f/YYYYMMDD]...` or `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find f/20261025 t/high-priority`
+**Find** | `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] [s/STATUS] [t/TAG] [f/DATE_OR_KEYWORD]...` or `find KEYWORD [MORE_KEYWORDS]`<br> Date: `YYYYMMDD`, `today`, `due`, or `overdue`. E.g., `find f/due t/high-priority`
 **List** | `list`, `list o/name`, `list o/company`, or `list o/status`<br> e.g., `list o/status`
 **View** | `view n/NAME`<br> e.g., `view n/Alicia Tan`; reply `2` if prompted to choose between matches
 **Help** | `help`

@@ -22,10 +22,12 @@ public class FindCommand extends Command {
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds contacts by name words or field criteria "
             + "and displays matching contacts with index numbers.\n"
             + "Parameters: KEYWORD [MORE_KEYWORDS]... or [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] "
-            + "[m/METHOD] [s/STATUS] [t/TAG] [f/YYYYMMDD]...\n"
+            + "[m/METHOD] [s/STATUS] [t/TAG] [f/DATE_OR_KEYWORD]...\n"
             + "Names match a complete name or a whole name word; companies, emails, and phones match full or partial "
             + "values; methods, statuses, tags, and dates match complete values. "
             + "Repeat a prefix for alternatives (OR); different fields use AND.\n"
+            + "Date: YYYYMMDD, today, due (today or earlier), or overdue (earlier than today). "
+            + "Uses the local calendar date when the search is run; status is a separate criterion.\n"
             + "Example: " + COMMAND_WORD + " n/Alice Pauline t/friends";
 
     private static final Logger logger = LogsCenter.getLogger(FindCommand.class);

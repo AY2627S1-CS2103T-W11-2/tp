@@ -399,7 +399,7 @@ If a command or save fails, `LogicManager`'s rollback mechanism restores the act
 
 `find` supports legacy unprefixed name keywords (`find KEYWORD...`) as well as prefixed criteria for full names or
 whole name words (`n/`), partial or complete company (`c/`), email (`e/`), and phone (`p/`) values, and complete
-contact method (`m/`), enquiry status (`s/`), tag (`t/`), and follow-up date (`f/YYYYMMDD`) values, with OR within a
+contact method (`m/`), enquiry status (`s/`), tag (`t/`), and follow-up date (`f/DATE_OR_KEYWORD`) values, with OR within a
 field and AND across fields.
 
 `FindCommandParser` routes unprefixed queries to `NameContainsKeywordsPredicate` for compatibility, and builds a
@@ -407,7 +407,7 @@ field and AND across fields.
 field prefixes, blank field values, and unsupported prefixes. Name, company, and tag criteria apply NFC Unicode normalisation and per-code-point case folding consistent
 with `String#equalsIgnoreCase`. Name criteria collapse repeated whitespace and match either the complete name or any
 whole name word; company, email, and phone criteria match normalised substrings; method, status, tag, and date criteria
-match complete values. `FindCommand`
+match complete values, with relative date keywords also supported. `FindCommand`
 applies the predicate to the full address book through `Model#updateFilteredPersonList` and returns
 `CommandResult.showingContacts(...)`, rendering numbered `ContactCard`s directly without requiring a preliminary `list`.
 
@@ -418,7 +418,15 @@ date never match. Repeated `f/` values are deduplicated and combined with OR, wh
 `t/`, or another field uses AND. Existing `SortedList` order and displayed indices are preserved, and date updates or
 clearing remain owned by `update`.
 
-The class diagram below shows the main classes involved in follow-up-date search. `FindCommandParser` validates date
+For `f/today`, `f/due`, and `f/overdue`, `FindCommandParser` recognises `RelativeFollowUpFilter` keywords before
+applying strict literal-date validation. `ContactMatchesFieldsPredicate` captures one reference date from a `Clock`
+when constructed. The default clock uses the system's time zone; tests inject a fixed clock. `today` requires equality,
+`due` includes earlier dates and today, and `overdue` includes only earlier dates. Re-running a search refreshes its
+reference date; an existing filtered list does not silently change at midnight. These are date-only criteria: no
+enquiry status is implied. Combine `f/due` with `s/Needs follow-up` when both conditions are required.
+
+The class diagram below shows the classes involved in literal follow-up-date search. Relative filters additionally
+use `RelativeFollowUpFilter` as described above. `FindCommandParser` validates literal date
 criteria using `FollowUpDate` and creates a `FindCommand` with `ContactMatchesFieldsPredicate`, which implements
 `Predicate<Person>`.
 
@@ -433,6 +441,9 @@ unchanged `LogicManager` persistence calls are omitted for clarity.
 `FindFollowUpDateParserTest` covers date boundaries, leap years, repeated dates, invalid formats, and empty values.
 `FindFollowUpDateIntegrationTest` covers exact and combined matches, zero results, undated legacy contacts, sorted
 `update`/`delete` indices, preservation on rejected input, and `update` date changes/clearing across JSON reloads.
+`RelativeFollowUpFilterTest` checks past/today/future boundaries, leap days, year boundaries, local time zones, and
+combination with other fields. Integration tests verify that relative searches leave JSON unchanged and that subsequent
+index-based deletion targets the displayed contact.
 
 
 --------------------------------------------------------------------------------------------------------------------
@@ -488,7 +499,7 @@ Planned requirements for BoothManagerPro; implementation status is tracked separ
 | US-12 | `**` | organiser | combine search fields and alternatives | I can narrow my results. |
 | US-13 | `**` | organiser | set enquiry status to Needs follow-up, In progress, Completed, or Cancelled | I can track progress. |
 | US-14 | `**` | organiser | set a next follow-up date | I know when to contact someone again. |
-| US-15 | `**` | organiser | view due or overdue follow-ups `[Coming soon]` | I can prioritise outreach. |
+| US-15 | `**` | organiser | view due or overdue follow-ups | I can prioritise outreach. |
 | US-16 | `**` | organiser | tag contacts by industry, priority, or need | I can group exhibitors. |
 | US-17 | `**` | organiser | filter contacts by tags | I can retrieve relevant groups. |
 | US-18 | `**` | organiser | record a preferred contact method | I can use the appropriate channel. |
@@ -497,7 +508,7 @@ Planned requirements for BoothManagerPro; implementation status is tracked separ
 - **US-05:** Duplicates share a normalised email or a name-and-company combination.
 - **US-11:** `find s/STATUS` filters contacts by enquiry status, for example `find s/In progress`. Separately, `list o/status` sorts all contacts by status without filtering them.
 - **US-12:** Repeated values within a field use OR; different fields use AND.
-- **US-15:** `find f/YYYYMMDD` matches one exact follow-up date, including a date supplied by the user for today. It does not automatically select today or include earlier dates. Automatic due or overdue filtering remains planned (`[Coming soon]`; see [Appendix: Planned Enhancements](#appendix-planned-enhancements)).
+- **US-15:** `find f/today` matches today's date; `find f/due` matches today or earlier; `find f/overdue` matches earlier dates. These use the local calendar date captured when the search runs. Undated contacts are excluded, and enquiry status remains a separate criterion.
 
 #### Considered user stories
 
@@ -678,7 +689,7 @@ Use case ends.
 
 * Values for the same field are combined using OR; criteria for different fields are combined using AND.
 * Unprefixed keywords match whole name words using OR. Prefixed name criteria match a complete name or a single whole name word. Company, email, and phone criteria (`c/`, `e/`, `p/`) match full or partial values; contact method, enquiry status, tag, and follow-up date criteria (`m/`, `s/`, `t/`, `f/`) match complete values.
-* Name, company, email, contact method, enquiry status, and tag comparisons ignore case and surrounding spaces; phone comparisons ignore spaces, hyphens, full stops, and parentheses; follow-up date criteria match the exact calendar date (`YYYYMMDD`) and exclude contacts without a date.
+* Name, company, email, contact method, enquiry status, and tag comparisons ignore case and surrounding spaces; phone comparisons ignore spaces, hyphens, full stops, and parentheses; follow-up date criteria accept an exact date (`YYYYMMDD`) or `today`, `due`, and `overdue`, and exclude contacts without a date.
 * Repeated identical search values are ignored.
 
 **Extensions**
@@ -1041,10 +1052,10 @@ Start with the sample data and run `list` first. Each command below is rejected 
 
 The features and improvements below represent acknowledged limitations, unfulfilled edge cases, or future enhancements identified during development and internal alpha testing. They are planned for future milestone releases beyond `v1.5` and are formally documented here for tester and developer reference.
 
-### 1. Relative follow-up date and range search (`find f/today`, `find f/due`, `find f/overdue`, and date ranges)
+### 1. Follow-up date range search
 
-* **Current behavior:** `find f/YYYYMMDD` strictly matches an exact calendar date. To find contacts due today, organizers must manually look up and enter today's calendar date. The app does not automatically identify overdue follow-ups or allow date range queries.
-* **Proposed enhancement:** Add semantic date keywords (`find f/today`, `find f/due`, `find f/overdue`) that compare stored follow-up dates against `LocalDate.now()`, as well as date ranges (e.g. `find f/before:YYYYMMDD` or `find f/after:YYYYMMDD`), allowing organizers to prioritize time-sensitive follow-ups without manual date entry.
+* **Current behavior:** `find` accepts exact dates and the relative keywords `today`, `due`, and `overdue`. Arbitrary date ranges are not supported.
+* **Proposed enhancement:** Add date ranges (e.g. `find f/before:YYYYMMDD` or `find f/after:YYYYMMDD`) so organizers can select follow-ups within a chosen period.
 
 ### 2. Reversible command execution (`undo` and `redo`)
 

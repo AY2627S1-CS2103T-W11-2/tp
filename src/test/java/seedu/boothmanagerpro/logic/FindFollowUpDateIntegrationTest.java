@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +52,31 @@ public class FindFollowUpDateIntegrationTest {
         assertNames();
         logic.execute("list");
         assertEquals(4, model.getFilteredPersonList().size());
+    }
+
+    @Test
+    public void find_relativeDates_preservesDataAndUsesCurrentResultIndices() throws Exception {
+        LocalDate today = LocalDate.now();
+        logic.execute("clear confirm");
+        logic.execute("add n/Past Contact c/Acme e/past@example.com p/91234567 f/"
+                + today.minusDays(1).format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE) + " t/vip");
+        logic.execute("add n/Today Contact c/Acme e/today@example.com p/81234567 f/"
+                + today.format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE) + " t/vip");
+        logic.execute("add n/Future Contact c/Acme e/future@example.com p/82345678 f/"
+                + today.plusDays(1).format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE));
+        logic.execute("add n/Undated Contact c/Acme e/undated@example.com p/83456789");
+        String before = Files.readString(storage.getAddressBookFilePath());
+        logic.execute("find f/overdue");
+        assertNames("Past Contact");
+        logic.execute("find f/today");
+        assertNames("Today Contact");
+        logic.execute("find f/due t/vip");
+        assertNames("Past Contact", "Today Contact");
+        assertEquals(before, Files.readString(storage.getAddressBookFilePath()));
+        logic.execute("delete 2");
+        assertEquals(List.of("Past Contact", "Future Contact", "Undated Contact"),
+                storage.readAddressBook().orElseThrow().getPersonList().stream()
+                        .map(person -> person.getName().fullName).toList());
     }
 
     @Test
