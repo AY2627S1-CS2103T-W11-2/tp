@@ -381,7 +381,8 @@ For example, after `find n/Alicia`, `delete 1` deletes the first contact in thos
 even if that contact had a different number in an earlier `list` output.
 
 * Read the latest output before using a number with `update`, `tag`, or `delete`.
-* Run `list` again if you want to choose from all contacts. This restores the full list in the current sort order.
+* Run `list` again if you want to choose from all contacts in the order they were added. To sort the full list,
+  use `list o/name`, `list o/company`, or `list o/status`, then read the newly displayed numbers.
 * After another search or sort, use the newly displayed numbers rather than numbers copied from older output.
 * An empty result set has no valid contact index; use another `find` or `list` before an index-based action.
 
