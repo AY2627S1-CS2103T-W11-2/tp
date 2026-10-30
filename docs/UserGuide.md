@@ -374,6 +374,17 @@ Examples:
 * `find f/20261025 f/20261026 t/high-priority` returns high-priority contacts due on either date.
 * `update Alicia Tan f/20261028`, then `find f/20261028`, changes Alicia's date using the existing update command and finds contacts due on the new date. Use `update Alicia Tan f/` to clear her date; she will no longer match any date criterion.
 
+#### Using the numbers in search results
+
+The numbers shown by `find` refer to the current results, not to permanent contact IDs.
+For example, after `find n/Alicia`, `delete 1` deletes the first contact in those results,
+even if that contact had a different number in an earlier `list` output.
+
+* Read the latest output before using a number with `update`, `tag`, or `delete`.
+* Run `list` again if you want to choose from all contacts. This restores the full list in the current sort order.
+* After another search or sort, use the newly displayed numbers rather than numbers copied from older output.
+* An empty result set has no valid contact index; use another `find` or `list` before an index-based action.
+
 #### Searching by name keywords
 
 Finds contacts whose names contain any of the given keywords.
@@ -451,6 +462,23 @@ If your changes make the data file invalid, BoothManagerPro starts with an empty
 To recover contacts, close BoothManagerPro first. Keep a separate copy of the recovery backup, repair the invalid values, and restore the repaired contents to `data/addressbook.json` before restarting. Backups are not loaded automatically. We still recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause BoothManagerPro to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
+
+#### Recovering from a loading-failure warning
+
+An empty contact list after a loading error does not mean the original file was empty.
+If you expected existing contacts, preserve the file before making further changes:
+
+1. Close all BoothManagerPro windows using the same data folder.
+2. Copy `data/addressbook.json` and any `.recovery-` backups to a separate folder. Keep these copies unchanged.
+3. If a recovery backup exists, work on a copy of it. Otherwise, work on a copy of the original file.
+   A backup is created before the next save, not immediately when the loading warning appears.
+4. Repair the invalid data in that working copy, or use a known-good backup. A recovery backup preserves the
+   unreadable bytes; it does not automatically repair them.
+5. Put the repaired or known-good contents in `data/addressbook.json`, then restart BoothManagerPro.
+6. Run `list` and check the expected contacts and their details. Keep the untouched copies until you are satisfied.
+
+If the loading warning remains, close the app and recheck the working copy. Repeatedly adding contacts does not
+restore the old collection, and `clear confirm` clears the collection rather than recovering it.
 
 ### Planned features [Coming soon]
 
