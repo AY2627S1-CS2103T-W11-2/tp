@@ -15,6 +15,26 @@ public class ArgumentTokenizerTest {
     private final Prefix hatQ = new Prefix("^Q");
 
     @Test
+    public void tokenize_unicodeFieldSeparators_keepsFieldsSeparate() {
+        Prefix company = new Prefix("c/");
+        Prefix email = new Prefix("e/");
+        for (String space : new String[]{"\u2003", "\u3000"}) {
+            String input = "c/Acme" + space + "e/alice@example.com";
+            ArgumentMultimap result = ArgumentTokenizer.tokenize(input, company, email);
+            assertEquals("Acme", result.getValue(company).orElseThrow());
+            assertEquals("alice@example.com", result.getValue(email).orElseThrow());
+            assertEquals(2, ArgumentTokenizer.findSingleLetterPrefixes(input).size());
+        }
+    }
+
+    @Test
+    public void tokenize_unicodePatronymicSpacing_doesNotCreateStatusField() {
+        String input = "n/Raj\u2003s/o\u2003Kumar e/raj@example.com";
+        assertEquals(java.util.List.of("n/", "e/"), ArgumentTokenizer.findSingleLetterPrefixes(input).stream()
+                .map(java.util.regex.MatchResult::group).toList());
+    }
+
+    @Test
     public void tokenize_emptyArgsString_noValues() {
         String argsString = "  ";
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(argsString, pSlash);

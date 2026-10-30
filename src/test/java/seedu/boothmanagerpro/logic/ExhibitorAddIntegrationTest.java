@@ -58,6 +58,16 @@ public class ExhibitorAddIntegrationTest {
     }
 
     @Test
+    public void addAndFind_unicodeFieldSeparators_preservesSeparateValues() throws Exception {
+        logic.execute("add n/Alicia Tan\u2003c/TechNova\u3000e/alicia@example.com\u2003p/91234567");
+        Person saved = storage.readAddressBook().orElseThrow().getPersonList().getFirst();
+        assertEquals("TechNova", saved.getCompany().orElseThrow().value);
+        assertEquals("alicia@example.com", saved.getEmail().value);
+        logic.execute("find c/TechNova\u3000e/alicia@example.com");
+        assertEquals(List.of(saved), model.getFilteredPersonList());
+    }
+
+    @Test
     public void add_enquiryDefaultsAndIndependentOptions() throws Exception {
         for (String options : new String[]{"", " s/Completed", " f/20261025"}) {
             logic.execute(ADD + options);

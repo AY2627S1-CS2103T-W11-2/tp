@@ -17,24 +17,25 @@ import java.util.stream.Collectors;
  */
 public final class ArgumentTokenizer {
     private static final String COMPANY_PREFIX = CliSyntax.PREFIX_COMPANY.getPrefix();
-    private static final Pattern SINGLE_LETTER_PREFIX = Pattern.compile("(?<!\\S)([a-zA-Z]/)");
+    private static final int TOKEN_FLAGS = Pattern.DOTALL | Pattern.UNICODE_CHARACTER_CLASS;
+    private static final Pattern SINGLE_LETTER_PREFIX = Pattern.compile("(?<!\\S)([a-zA-Z]/)", TOKEN_FLAGS);
     private static final Pattern BEFORE_PATRONYMIC = Pattern.compile(
             "(?:^|.*\\s)(?!(?i:[sd]/o|a/[lp])\\s)(?:[a-zA-Z]/)?(?=[^\\s/]*\\p{L})[^\\s/]+\\s+",
-            Pattern.DOTALL);
+            TOKEN_FLAGS);
     private static final Pattern FROM_PATRONYMIC = Pattern.compile(
             "(?i:[sd]/o|a/[lp])\\s+(?=[^\\s/]*\\p{L})[^\\s/]+(?:\\s.*|$)",
-            Pattern.DOTALL);
+            TOKEN_FLAGS);
     private static final Pattern COMPANY_INITIALISM_OR_MESSRS = Pattern.compile(
             "(?:[A-Z]/[A-Z]|M/s)(?:\\s.*|[.,;:)].*|$)",
-            Pattern.DOTALL);
+            TOKEN_FLAGS);
     private static final String COMPANY_FOLLOWING_WORD =
             "(?:(?=[^\\s/]*\\p{L})[^\\s/]+|(?:[A-Z]/[A-Z]|M/s)(?=\\s|$|[.,;:)]))";
     private static final Pattern COMPANY_CARE_OF = Pattern.compile(
             "(?i:c/o)\\s+" + COMPANY_FOLLOWING_WORD + "(?:\\s.*|$)",
-            Pattern.DOTALL);
+            TOKEN_FLAGS);
     private static final Pattern COMPANY_INFIX_ABBREVIATION = Pattern.compile(
             "(?i:t/a|d/b/a)\\s+" + COMPANY_FOLLOWING_WORD + "(?:\\s.*|$)",
-            Pattern.DOTALL);
+            TOKEN_FLAGS);
 
     private ArgumentTokenizer() {}
 
@@ -130,7 +131,8 @@ public final class ArgumentTokenizer {
      * @see #findAllPrefixPositions(String, Prefix...)
      */
     private static List<PrefixPosition> findPrefixPositions(String argsString, Prefix prefix) {
-        return Pattern.compile("(?<!\\S)" + Pattern.quote(prefix.getPrefix())).matcher(argsString).results()
+        return Pattern.compile("(?<!\\S)" + Pattern.quote(prefix.getPrefix()), TOKEN_FLAGS)
+                .matcher(argsString).results()
                 .map(match -> new PrefixPosition(prefix, match.start()))
                 .collect(Collectors.toList());
     }
