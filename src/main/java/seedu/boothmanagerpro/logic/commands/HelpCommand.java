@@ -28,9 +28,9 @@ public class HelpCommand extends Command {
                     "list o/status"),
             formatCommandHelp(3, FindCommand.COMMAND_WORD,
                     "Finds contacts by name words or field criteria. Repeated fields are alternatives (OR); "
-                            + "different fields must all match (AND).",
+                            + "different fields must all match (AND). Date: YYYYMMDD, today, due, or overdue.",
                     "find KEYWORD... or find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] "
-                            + "[s/STATUS] [t/TAG] [f/YYYYMMDD]...",
+                            + "[s/STATUS] [t/TAG] [f/DATE_OR_KEYWORD]...",
                     "find f/20261025 t/high-priority"),
             formatCommandHelp(4, ViewCommand.COMMAND_WORD,
                     "Displays full contact details. If several contacts match, reply with a displayed number.",

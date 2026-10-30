@@ -1,6 +1,10 @@
 package seedu.boothmanagerpro.model.person;
 
+import static java.util.Objects.requireNonNull;
+
 import java.text.Normalizer;
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
@@ -18,9 +22,16 @@ import seedu.boothmanagerpro.model.tag.Tag;
  */
 public class ContactMatchesFieldsPredicate implements Predicate<Person> {
     private final Map<String, Set<String>> criteria;
+    private final LocalDate referenceDate;
 
     /** Creates a predicate from normalised field values, defensively copying the supplied criteria. */
     public ContactMatchesFieldsPredicate(Map<String, Set<String>> criteria) {
+        this(criteria, Clock.systemDefaultZone());
+    }
+
+    /** Captures one local calendar date so an active search cannot change halfway through midnight. */
+    public ContactMatchesFieldsPredicate(Map<String, Set<String>> criteria, Clock clock) {
+        referenceDate = LocalDate.now(requireNonNull(clock));
         this.criteria = criteria.entrySet().stream().collect(Collectors.toUnmodifiableMap(
                 Map.Entry::getKey, entry -> Set.copyOf(entry.getValue())));
     }
@@ -84,10 +95,16 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
             case "t/" -> person.getTags().stream()
                     .anyMatch(tag -> values.contains(normalise(field, tag.tagName)));
             case "f/" -> person.getFollowUpDate()
-                    .map(date -> values.contains(date.toIsoDate())
-                            || values.contains(date.toString().toLowerCase(Locale.ROOT))).orElse(false);
+                    .map(date -> matchesFollowUpDate(date, values)).orElse(false);
             default -> false;
         };
+    }
+
+    private boolean matchesFollowUpDate(FollowUpDate date, Set<String> values) {
+        return values.stream().anyMatch(value -> RelativeFollowUpFilter.fromKeyword(value)
+                .map(filter -> filter.matches(date, referenceDate))
+                .orElseGet(() -> value.equals(date.toIsoDate())
+                        || value.equals(date.toString().toLowerCase(Locale.ROOT))));
     }
 
     private static boolean containsAnySubstring(String fieldValue, Set<String> queries) {
@@ -104,12 +121,12 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
     @Override
     public boolean equals(Object other) {
         return other == this || other instanceof ContactMatchesFieldsPredicate predicate
-                && criteria.equals(predicate.criteria);
+                && criteria.equals(predicate.criteria) && referenceDate.equals(predicate.referenceDate);
     }
 
     @Override
     public int hashCode() {
-        return criteria.hashCode();
+        return 31 * criteria.hashCode() + referenceDate.hashCode();
     }
 
     @Override

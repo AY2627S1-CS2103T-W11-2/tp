@@ -32,6 +32,7 @@ import seedu.boothmanagerpro.model.person.FollowUpDate;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.NameContainsKeywordsPredicate;
 import seedu.boothmanagerpro.model.person.Phone;
+import seedu.boothmanagerpro.model.person.RelativeFollowUpFilter;
 import seedu.boothmanagerpro.model.tag.Tag;
 
 /** Parses legacy name keywords or prefixed contact search criteria. */
@@ -91,7 +92,7 @@ public class FindCommandParser implements Parser<FindCommand> {
             case "m/" -> validateCriterion(PREFIX_METHOD, value, ContactMethod::fromString);
             case "s/" -> validateCriterion(PREFIX_STATUS, value, EnquiryStatus::fromString);
             case "t/" -> validateCriterion(PREFIX_TAG, value, Tag::new);
-            case "f/" -> validateCriterion(PREFIX_FOLLOW_UP, value, FollowUpDate::new);
+            case "f/" -> validateFollowUpCriterion(value);
             default -> throw new ParseException(MESSAGE_UNSUPPORTED_FIELD);
         }
         String normalised = ContactMatchesFieldsPredicate.normalise(field, value);
@@ -102,6 +103,13 @@ public class FindCommandParser implements Parser<FindCommand> {
             throws ParseException {
         requireSearchValue(value);
         parseValue(prefix, value, constructor);
+    }
+
+    private void validateFollowUpCriterion(String value) throws ParseException {
+        requireSearchValue(value);
+        if (RelativeFollowUpFilter.fromKeyword(value).isEmpty()) {
+            validateCriterion(PREFIX_FOLLOW_UP, value, FollowUpDate::new);
+        }
     }
 
     private void validateEmailCriterion(String value) throws ParseException {

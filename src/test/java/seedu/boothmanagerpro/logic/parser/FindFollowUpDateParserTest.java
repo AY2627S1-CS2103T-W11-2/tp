@@ -18,6 +18,15 @@ public class FindFollowUpDateParserTest {
     private final FindCommandParser parser = new FindCommandParser();
 
     @Test
+    public void parse_relativeDates_acceptsAlternativesAndStatusCombination() {
+        assertParseSuccess(parser, "f/TODAY f/due f/overdue s/Needs follow-up", new FindCommand(
+                new ContactMatchesFieldsPredicate(Map.of("f/", Set.of("today", "due", "overdue"),
+                        "s/", Set.of("needs follow-up")))));
+        assertParseSuccess(parser, "f/today f/20261025", new FindCommand(
+                new ContactMatchesFieldsPredicate(Map.of("f/", Set.of("today", "20261025")))));
+    }
+
+    @Test
     public void parse_dateAlternatives_normalisesDeduplicatesAndCombinesFields() {
         FindCommand expected = new FindCommand(new ContactMatchesFieldsPredicate(Map.of(
                 "f/", Set.of("20261025", "20261026"), "c/", Set.of("technova"))));
