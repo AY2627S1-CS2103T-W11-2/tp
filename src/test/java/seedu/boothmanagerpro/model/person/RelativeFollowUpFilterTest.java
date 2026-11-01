@@ -13,6 +13,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.Test;
 
@@ -85,6 +86,43 @@ public class RelativeFollowUpFilterTest {
         assertEquals(predicate, same);
         assertEquals(predicate.hashCode(), same.hashCode());
         assertNotEquals(predicate, predicate(Set.of("today"), Clock.offset(TODAY, java.time.Duration.ofDays(1))));
+    }
+
+    @Test
+    public void activeSearch_keepsItsReferenceDateUntilSearchIsRunAgain() {
+        AtomicReference<Instant> instant = new AtomicReference<>(TODAY.instant());
+        Clock movingClock = new Clock() {
+            @Override
+            public ZoneId getZone() {
+                return TODAY.getZone();
+            }
+
+            @Override
+            public Clock withZone(ZoneId zone) {
+                return Clock.fixed(instant.get(), zone);
+            }
+
+            @Override
+            public Instant instant() {
+                return instant.get();
+            }
+        };
+        Person october30 = new PersonBuilder().withFollowUpDate("20261030").build();
+        Person october31 = new PersonBuilder().withFollowUpDate("20261031").build();
+        ContactMatchesFieldsPredicate active = predicate(Set.of("today"), movingClock);
+        instant.set(instant.get().plusSeconds(86400));
+        assertTrue(active.test(october30));
+        assertFalse(active.test(october31));
+        ContactMatchesFieldsPredicate refreshed = predicate(Set.of("today"), movingClock);
+        assertFalse(refreshed.test(october30));
+        assertTrue(refreshed.test(october31));
+    }
+
+    @Test
+    public void existingDisplayDateCriteria_stillMatch() {
+        Person contact = new PersonBuilder().withFollowUpDate("20261030").build();
+        assertTrue(predicate(Set.of("30 oct 2026"), TODAY).test(contact));
+        assertFalse(predicate(Set.of("31 oct 2026"), TODAY).test(contact));
     }
 
     private ContactMatchesFieldsPredicate predicate(Set<String> values, Clock clock) {

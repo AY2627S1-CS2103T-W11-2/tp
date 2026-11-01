@@ -133,10 +133,94 @@ Manual check in a separate test folder:
 
 `StorageRecoveryTest` checks null JSON roots, null contact/tag entries, invalid JSON, unchanged source bytes after failed reads, unique recovery backups, failed-copy retry, successful manual repair, and saves through the command layer. `StartupRecoveryTest` checks the real startup fallbacks for contacts and preferences. `MainWindowTest` checks the visible loading warning and continued command entry.
 
-Manual check in a disposable folder: write `null` to `data/addressbook.json`, launch the JAR, and check the loading warning. Run `list`; verify that a same-directory `.recovery-` backup contains exactly `null`, while the active data file contains a valid empty collection. Restart and check ordinary startup. Keep all real contact files outside the test folder.
+Manual check in a disposable folder:
+
+1. Write `null` to `data/addressbook.json`, launch the JAR, and check the loading warning.
+2. Run `list`; verify that the original file still contains `null`.
+3. Run `add n/Recovery Check c/Acme e/recovery@example.com p/91234567`.
+4. Verify that a same-directory `.recovery-` backup contains exactly `null` and the active JSON contains the new contact.
+5. Restart the app and run `view n/Recovery Check`; check that the saved contact loads normally.
+
+Keep all real contact files outside the test folder.
 
 ## Update regression checks
 
 `UpdateIntegrationTest` exercises all eight supported fields through actual command routing and JSON storage. It checks preservation of omitted values, date/tag clearing, duplicate names, hidden duplicate contacts, filtered indices, normalisation, invalid values/prefixes, and unchanged memory/filter/disk on rejection. `TagIntegrationTest` covers `tag` toggling (adding new tags and removing existing ones), change summaries, target resolution, and rejection preservation. `MainWindowTest` checks update and tag feedback and rendered enquiry fields.
 
 Manual check: add a contact, update its status/date by name, verify with `view`, then clear the date with `update NAME f/`. Add another contact with the same name but different company/email; an update by name must fail. Use `find` and its displayed index to update only the intended contact. Restart and verify the saved result.
+
+## Relative follow-up search regression checks
+
+Use these checks when changing date criteria, filtered indices, or command saving.
+
+| Test class | Scenarios |
+| --- | --- |
+| `RelativeFollowUpFilterTest` | Today/due/overdue boundaries, keyword case, absent dates, combined criteria, time zones, and a search held across midnight. |
+| `RelativeFollowUpWorkflowTest` | Real command parsing, displayed-index updates, tag changes, save rollback, cancelled view selection, and JSON reload. |
+| `FindFollowUpDateParserTest` | Literal date validation and repeated date criteria. |
+| `HelpCommandTest` | Command headings remain readable when the system language is Turkish. |
+
+Run the relative-date tests on Windows:
+
+```powershell
+.\gradlew.bat test --tests "*RelativeFollowUpFilterTest" --tests "*RelativeFollowUpWorkflowTest"
+```
+
+On macOS or Linux, replace `.\gradlew.bat` with `./gradlew`.
+The workflow tests create a temporary contact file for each test.
+They exercise `LogicManager` and read the saved JSON back through `JsonAddressBookStorage`.
+The failed-save test injects an `IOException`, so it can check rollback without changing filesystem permissions.
+
+### Date boundary expectations
+
+Let D be the computer's current local calendar date.
+Use actual dates in `YYYYMMDD` format when creating contacts.
+
+| Contact's follow-up date | `find f/today` | `find f/due` | `find f/overdue` |
+| --- | --- | --- | --- |
+| D minus one day | Excluded | Included | Included |
+| D | Included | Included | Excluded |
+| D plus one day | Excluded | Excluded | Excluded |
+| No date | Excluded | Excluded | Excluded |
+
+Combine `f/due` with `s/Needs follow-up` to check both the date and enquiry status.
+Repeat `f/` to check alternatives, such as `find f/overdue f/YYYYMMDD`.
+Replace `YYYYMMDD` with a real date before running that command.
+
+The unit tests use fixed clocks for repeatable calendar boundaries.
+The midnight test advances its clock by one day after constructing a search predicate.
+It checks that the active predicate keeps its original date and a newly constructed predicate uses the next date.
+For a manual check across midnight, rerun the search to refresh its reference date.
+
+### Manual workflow
+
+Use a disposable app folder and four contacts with distinct emails:
+
+| Contact | Follow-up date | Status | Tag |
+| --- | --- | --- | --- |
+| Alicia Tan | Yesterday | Needs follow-up | urgent |
+| Ben Lim | Today | In progress | vip |
+| Cora Lim | Tomorrow | Completed | None |
+| Dora Lim | None | Needs follow-up | None |
+
+1. Add Cora, Ben, Dora, and Alicia in that order, using `add` and the dates above.
+2. Run `list o/name`, then `find f/due`; expect Alicia followed by Ben.
+3. Run `update 2 p/89999999`; verify Ben's phone changed and Alicia's phone stayed the same.
+4. Run `find f/overdue`, then `tag 1 t/review`; verify Alicia received the new tag.
+5. Run `find f/due s/In progress`; expect Ben only.
+6. Run `update 1 f/YYYYMMDD` with tomorrow's date, then rerun `find f/today`; expect zero matches.
+7. Run `find f/overdue`, then `update 1 f/`; rerun `find f/due` and expect zero matches.
+8. Restart, then search for tomorrow's literal date; expect Cora and Ben with their saved details.
+
+### Rejected commands and selection state
+
+Start with valid date results and record the displayed contacts and saved JSON.
+Try `find f/tomorrow`, `find f/due soon`, and `find f/over-due`.
+Each command should report an error and preserve the filtered index set and saved data.
+Try `update 1 f/today`; the update should reject the relative keyword and preserve the contact.
+
+Run `view n/Lim` to request a numbered choice between the Lim contacts.
+Before replying, run `find f/today`.
+A subsequent bare `2` should report an invalid command instead of selecting from the previous view choices.
+
+After changing these workflows, run `check coverage` and inspect both test failures and changed-line coverage.
