@@ -19,7 +19,7 @@ public class ViewCommandParserTest {
         String unicodeName = "\uD801\uDC00".repeat(80);
         assertParseSuccess(parser, "n/" + unicodeName, new ViewCommand(new Name(unicodeName)));
         assertParseFailure(parser, "n/" + unicodeName + "A", Name.MESSAGE_CONSTRAINTS);
-        assertParseSuccess(parser, "n/Alicia2", new ViewCommand(new Name("Alicia2")));
+        assertParseSuccess(parser, "N/Alicia2", new ViewCommand(new Name("Alicia2")));
     }
 
     @Test
@@ -32,14 +32,14 @@ public class ViewCommandParserTest {
 
     @Test
     public void parse_missingOrWrongField_failure() {
-        for (String args : new String[]{"", " ", "c/TechNova", "p/91234567", "s/Completed"}) {
+        for (String args : new String[]{"", " ", "c/TechNova", "C/TechNova", "p/91234567", "s/Completed"}) {
             assertParseFailure(parser, args, ViewCommandParser.MESSAGE_REQUIRED_NAME);
         }
     }
 
     @Test
     public void parse_repeatedName_failure() {
-        assertParseFailure(parser, "n/Alicia n/Tan", ViewCommandParser.MESSAGE_DUPLICATE_FIELD);
+        assertParseFailure(parser, "N/Alicia n/Tan", ViewCommandParser.MESSAGE_DUPLICATE_FIELD);
         assertParseFailure(parser, "n/Alicia\tn/Alicia", ViewCommandParser.MESSAGE_DUPLICATE_FIELD);
     }
 

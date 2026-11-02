@@ -146,6 +146,7 @@ Here are the other classes in `Logic` (omitted from the class diagram above) tha
 How the parsing works:
 * When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+* Command words (`AddressBookParser`), confirmation keywords (`clear confirm`), and single-letter field prefixes (`n/`, `c/`, `e/`, `p/`, `m/`, `s/`, `f/`, `t/`, `o/`) are matched case-insensitively by normalising tokens with `Locale.ROOT`, while `ArgumentTokenizer` continues to preserve legal-name patronymics (`s/o`, `d/o`, `a/l`, `a/p`) between words and common business slash abbreviations inside `c/` (`C/`).
 
 ### Model component
 **API** : [`Model.java`](../src/main/java/seedu/boothmanagerpro/model/Model.java)
@@ -819,7 +820,7 @@ These are requirements for the intended product, not claims that every target ha
 * **Index**: The number shown beside a contact in a displayed list, used to select a specific contact when several share the same name
 * **Mainstream OS**: Windows, Linux, Unix, and macOS
 * **Normalisation**: Converting input to a standard form before storing or comparing it, such as lowercasing emails, collapsing repeated spaces in names, and removing formatting from phone numbers for search comparisons
-* **Prefix**: A marker ending in `/` that identifies which field a value belongs to, e.g. `n/` for name or `t/` for tag
+* **Prefix**: A case-insensitive marker ending in `/` that identifies which field a value belongs to, e.g. `n/` (or `N/`) for name or `t/` (or `T/`) for tag
 * **Primary contact**: The representative to contact first when an exhibitor has several representatives
 * **Representative**: A person who acts on behalf of an exhibitor. One exhibitor may have several
 * **Tag**: A short label attached to a contact to group it beyond enquiry status, for example by industry or priority

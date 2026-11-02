@@ -28,7 +28,7 @@ public class TagCommandParserTest {
     @Test
     public void parse_indexOrNameTarget_success() {
         assertParseSuccess(parser, "1 t/vip", new TagCommand(INDEX_FIRST_PERSON, tags("vip")));
-        assertParseSuccess(parser, "  12   t/ vip  ", new TagCommand(Index.fromOneBased(12), tags("vip")));
+        assertParseSuccess(parser, "  12   T/ vip  ", new TagCommand(Index.fromOneBased(12), tags("vip")));
         assertParseSuccess(parser, "Alicia Tan t/vip t/sponsor",
                 new TagCommand(new Name("Alicia Tan"), tags("vip", "sponsor")));
         assertParseSuccess(parser, "Raj s/o Kumar t/vip", new TagCommand(new Name("Raj s/o Kumar"), tags("vip")));
@@ -68,7 +68,7 @@ public class TagCommandParserTest {
 
     @Test
     public void parse_namePrefixBeforeTarget_failure() {
-        for (String args : new String[]{"n/Alicia Tan t/vip", " n/1 t/vip", "n/"}) {
+        for (String args : new String[]{"n/Alicia Tan t/vip", "N/Alicia Tan t/vip", " n/1 t/vip", "n/"}) {
             assertNamePrefixFailure(parser, args, "tag", "tag NAME_OR_INDEX t/TAG [t/TAG]...");
         }
     }
