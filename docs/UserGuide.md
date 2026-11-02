@@ -65,7 +65,7 @@ BoothManagerPro is a desktop contact manager for **convention organisers followi
 * Each command replaces the previous output. The output fills the available space and scrolls for longer results.
   When no autofill is available, use **Tab** to focus it and the arrow keys to read it; **Ctrl+L** or **Command+L**
   returns to command entry.
-* For `update INDEX`, `tag INDEX`, and `delete INDEX`, use the numbers from the current `list`, `find`, or `view` matches. A successful `add`, `update`, or `tag` resets the filter; run `list` or `find` again before choosing another index. After deleting a contact, later indices shift down.
+* For `update INDEX`, `tag INDEX`, and `delete INDEX`, first display the target using `list`, `find`, or `view`. If a command, help, or error replaces those results, display them again before using an index. A successful `add`, `update`, or `tag` resets the filter; deleting a contact shifts later indices. You can also target a contact by its full name.
 * Company and contact method show `Not specified` when absent. Tags appear in saved order, with `None` for an empty tag set. Postal addresses are not used when adding exhibitor contacts.
 
 ## Features
