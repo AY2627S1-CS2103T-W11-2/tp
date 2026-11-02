@@ -81,6 +81,36 @@ public class TagIntegrationTest {
     }
 
     @Test
+    public void tag_lowercaseVariantOfAddedTag_removesExistingTagByName() throws Exception {
+        logic.execute("add n/Case Tester c/Acme e/case@example.com p/81234567 t/VIP");
+        logic.execute("find t/vip");
+        assertTrue(model.getFilteredPersonList().stream()
+                .anyMatch(person -> person.getName().fullName.equals("Case Tester")));
+
+        assertEquals(
+                "Updated tags for Case Tester at Acme. Added: None. Removed: VIP. Current tags: None.",
+                logic.execute("tag Case Tester t/vip").getFeedbackToUser());
+        assertTrue(model.getAddressBook().getPersonList().get(2).getTags().isEmpty());
+        assertTrue(saved().get(2).getTags().isEmpty());
+        logic.execute("find t/VIP");
+        assertTrue(model.getFilteredPersonList().stream()
+                .noneMatch(person -> person.getName().fullName.equals("Case Tester")));
+    }
+
+    @Test
+    public void tag_repeatedCaseVariants_toggleOnceAndPreserveFirstCasingOnDisk() throws Exception {
+        logic.execute("tag Ben Lim t/VIP t/vip t/ViP");
+        assertEquals("VIP", Messages.formatTags(model.getAddressBook().getPersonList().get(1)));
+        assertEquals("VIP", Messages.formatTags(saved().get(1)));
+
+        assertEquals(
+                "Updated tags for Ben Lim at GreenWorks. Added: None. Removed: VIP. Current tags: None.",
+                logic.execute("tag Ben Lim t/vip t/VIP").getFeedbackToUser());
+        assertTrue(model.getAddressBook().getPersonList().get(1).getTags().isEmpty());
+        assertTrue(saved().get(1).getTags().isEmpty());
+    }
+
+    @Test
     public void tag_unicodeWhitespaceAndCanonicalEquivalence_normalisesAndToggles() throws Exception {
         assertEquals(
                 "Updated tags for Alicia Tan at TechNova. Added: r\u00E9sum\u00E9. Removed: vip. "
