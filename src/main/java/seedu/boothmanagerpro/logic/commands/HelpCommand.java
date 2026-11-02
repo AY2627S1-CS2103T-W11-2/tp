@@ -1,5 +1,7 @@
 package seedu.boothmanagerpro.logic.commands;
 
+import java.util.Locale;
+
 import seedu.boothmanagerpro.model.Model;
 
 /**
@@ -75,7 +77,7 @@ public class HelpCommand extends Command {
     /** Formats one command using the consistent help-entry layout. */
     private static String formatCommandHelp(int number, String function, String description, String format,
             String example) {
-        return number + ". " + function.toUpperCase() + "\n"
+        return number + ". " + function.toUpperCase(Locale.ROOT) + "\n"
                 + "   Description: " + description + "\n"
                 + "   Format:      " + format + "\n"
                 + "   Example:     " + example;
