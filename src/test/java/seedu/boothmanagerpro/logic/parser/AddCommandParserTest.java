@@ -49,6 +49,14 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_emailWithSupportedSpecialCharacter_success() throws Exception {
+        ModelManager model = new ModelManager();
+        parser.parse(valid.replace("alicia@technova.com", "alicia%expo@technova.com")).execute(model);
+
+        assertEquals("alicia%expo@technova.com", model.getFilteredPersonList().getFirst().getEmail().value);
+    }
+
+    @Test
     public void parse_requiredFieldsMissing_listsOnlyMissingPrefixes() {
         assertParseFailure(parser, "", String.format(AddCommandParser.MESSAGE_MISSING_FIELD, "n/, c/, e/, p/"));
         assertParseFailure(parser, " n/Alicia Tan p/91234567",

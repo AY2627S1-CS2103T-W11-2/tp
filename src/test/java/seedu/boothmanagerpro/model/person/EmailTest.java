@@ -23,6 +23,40 @@ public class EmailTest {
     }
 
     @Test
+    public void constructor_uncommonFormat_explainsWhereToFindSupportedFormats() {
+        String expectedMessage = "Email address is invalid. Use a conventional unquoted address; run help and "
+                + "follow the User Guide for supported email formats.";
+        assertThrows(IllegalArgumentException.class, expectedMessage, () -> new Email("\"quoted\"@example.com"));
+    }
+
+    @Test
+    public void isValidEmail_supportedLocalPartSpecialCharacters_returnsTrue() {
+        for (char specialCharacter : "!#$%&'*+/=?^_`{|}~.-".toCharArray()) {
+            String email = "user" + specialCharacter + "tag@example.com";
+            assertTrue(Email.isValidEmail(email), () -> "Expected supported email: " + email);
+        }
+    }
+
+    @Test
+    public void isValidEmail_specialCharactersInUnsupportedPositions_returnsFalse() {
+        for (char specialCharacter : "!#$%&'*+/=?^_`{|}~.-".toCharArray()) {
+            assertFalse(Email.isValidEmail(specialCharacter + "user@example.com"));
+            assertFalse(Email.isValidEmail("user" + specialCharacter + "@example.com"));
+        }
+        assertFalse(Email.isValidEmail("user%+tag@example.com"));
+    }
+
+    @Test
+    public void isValidEmail_uncommonMailboxFormats_returnsFalse() {
+        for (String email : new String[]{
+            "\"quoted\"@example.com", "user(comment)@example.com", "user@[192.0.2.1]",
+            "user\\tag@example.com", "用户@example.com"
+        }) {
+            assertFalse(Email.isValidEmail(email), () -> "Expected unsupported email: " + email);
+        }
+    }
+
+    @Test
     public void isValidEmail() {
         // null email
         assertThrows(NullPointerException.class, () -> Email.isValidEmail(null));

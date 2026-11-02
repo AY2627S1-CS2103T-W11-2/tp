@@ -48,6 +48,9 @@ public class HelpCommandTest {
         assertTrue(SHOWING_HELP_MESSAGE.contains("Repeated fields are alternatives (OR); different fields must all "
                 + "match (AND)."));
         assertTrue(SHOWING_HELP_MESSAGE.contains("Use an exact full name or a displayed number for NAME_OR_INDEX."));
+        assertTrue(SHOWING_HELP_MESSAGE.contains(
+                "Email local parts accept !#$%&'*+/=?^_`{|}~.- between letters or digits; "
+                        + "quoted addresses are not supported."));
         assertTrue(SHOWING_HELP_MESSAGE.contains("clear confirm"));
         assertTrue(SHOWING_HELP_MESSAGE.contains("Enter: run command  |  Tab: autofill or focus output"));
         assertTrue(SHOWING_HELP_MESSAGE.contains("F1: show help       |  Ctrl/Cmd+L: focus command box"));
