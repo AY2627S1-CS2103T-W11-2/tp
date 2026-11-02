@@ -82,4 +82,40 @@ public class ContactLoggingPrivacyTest {
             levels.forEach(Logger::setLevel);
         }
     }
+
+    @Test
+    public void malformedSavedData_reportsFailureWithoutCopyingFileContentsIntoLogs() throws Exception {
+        String privateValue = "privateContactMarker";
+        String contents = "{\"persons\": " + privateValue + "}";
+        Path dataFile = folder.resolve("malformed.json");
+        java.nio.file.Files.writeString(dataFile, contents);
+        List<String> messages = new ArrayList<>();
+        seedu.boothmanagerpro.commons.core.LogsCenter.getLogger(ContactLoggingPrivacyTest.class);
+        Logger parent = Logger.getLogger("ab3");
+        Handler capture = new Handler() {
+            @Override
+            public void publish(LogRecord record) {
+                messages.add(record.getMessage());
+            }
+
+            @Override
+            public void flush() {}
+
+            @Override
+            public void close() {}
+        };
+        parent.addHandler(capture);
+        try {
+            JsonAddressBookStorage storage = new JsonAddressBookStorage(dataFile);
+            assertThrows(seedu.boothmanagerpro.commons.exceptions.DataLoadingException.class,
+                    storage::readAddressBook);
+            assertTrue(storage.isRecoveryPending());
+            assertTrue(java.nio.file.Files.readString(dataFile).equals(contents));
+            String logged = String.join("\n", messages);
+            assertFalse(logged.contains(privateValue));
+            assertTrue(logged.contains(dataFile.toString()));
+        } finally {
+            parent.removeHandler(capture);
+        }
+    }
 }
