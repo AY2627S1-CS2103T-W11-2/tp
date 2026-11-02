@@ -1026,6 +1026,17 @@ Start with the sample data and run `list` first. Each command below is rejected 
    1. Close BoothManagerPro, remove a required field such as `"email"` or `"name"` from a contact in `data/addressbook.json`, and relaunch.<br>
       Expected: Loading fails safely with the same warning banner and empty contact list as a corrupted file, preserving the original file in a `.recovery-` backup before the next save.
 
+1. Manual recovery verification
+
+   1. Use an isolated data folder and keep a known-good copy of its JSON file before corrupting it.
+   1. Repeat the corrupted-file scenario above, including one successful `add` to trigger the recovery backup.
+   1. Close every application window using that folder. Copy the original and recovery files elsewhere before editing.
+   1. Restore the known-good JSON to `data/addressbook.json`, restart, and run `list`.<br>
+      Expected: The loading warning is absent and the known-good contacts are displayed. The application does not
+      import the `.recovery-` file automatically or merge contacts from the temporary empty collection.
+   1. Close and restart once more, then run `list` again.<br>
+      Expected: The restored contacts still load, and the separately preserved backup copies remain unchanged.
+
 1. Concurrent sessions and stale file detection
 
    1. Open two separate terminal windows pointing to the same folder containing `boothmanagerpro.jar` and `data/addressbook.json`.
