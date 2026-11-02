@@ -8,25 +8,25 @@ skinparam classBackgroundColor LOGIC_COLOR
 skinparam arrowColor #333333
 hide empty members
 
-package Logic {
+package Logic as LogicPackage {
   class FindCommandParser
   class FindCommand
 }
 
 package "Model" as ModelPackage {
-  interface "Model" as ModelApi MODEL_COLOR
-  interface "Predicate<Person>" as PersonPredicate MODEL_COLOR
+  class "<<interface>>\nModel" as ModelApi MODEL_COLOR
+  class "<<interface>>\nPredicate<U+003C>Person>" as PersonPredicate MODEL_COLOR
   class ContactMatchesFieldsPredicate MODEL_COLOR
   class Person MODEL_COLOR
   class FollowUpDate MODEL_COLOR
 }
 
-FindCommandParser ..> FindCommand : creates
-FindCommandParser ..> ContactMatchesFieldsPredicate : creates
-FindCommandParser ..> FollowUpDate : validates using
-FindCommand --> "1" PersonPredicate : predicate
-FindCommand ..> ModelApi : filters / reads results
+FindCommandParser ..> FindCommand : <<create>>
+FindCommandParser ..> ContactMatchesFieldsPredicate : <<create>>
+FindCommandParser ..> FollowUpDate : <<create>>
+FindCommand -right-> "1" PersonPredicate : predicate
+FindCommand ..> ModelApi : <<use>>
 ContactMatchesFieldsPredicate ..|> PersonPredicate
-ContactMatchesFieldsPredicate ..> Person : tests
+ContactMatchesFieldsPredicate ..> Person : <<use>>
 Person --> "0..1" FollowUpDate : followUpDate
 @enduml

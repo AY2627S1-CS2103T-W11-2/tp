@@ -28,7 +28,7 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
 <div markdown="span" class="alert alert-primary">
 
-:bulb: **Tip:** The `.puml` files used to create diagrams are in `docs/diagrams`. Refer to the [_PlantUML Tutorial_ at se-edu/guides](https://se-education.org/guides/tutorials/plantUml.html) to learn how to create and edit diagrams.
+:bulb: **Tip:** The `.puml` files used to create diagrams are in `docs/diagrams`. Refer to the [_PlantUML Tutorial_ at se-edu/guides](https://se-education.org/guides/tutorials/plantUml.html) to learn how to create and edit diagrams. Diagrams follow the course [_Modeling (Using UML)_ conventions](https://nus-cs2103-ay2627-s1.github.io/website/se-book-adapted/chapters/modeling.html).
 </div>
 
 ### Architecture
@@ -134,7 +134,8 @@ How the `Logic` component works:
 1. `LogicManager` executes the `DeleteCommand` with `Model`.
 1. `DeleteCommand` obtains the filtered and sorted contact list from `Model`, resolves the one-based displayed index
    to `personToDelete`, and asks `Model` to delete that `Person`.
-1. `DeleteCommand` creates and returns a `CommandResult` containing the deleted contact's details.
+1. `DeleteCommand` sends the `CommandResult(...)` creation message. The resulting object, `r`, contains the deleted
+   contact's details and is returned to `LogicManager`.
 1. `LogicManager` obtains the updated address book from `Model` and asks `Storage` to save it.
 1. If command execution fails (throwing `CommandException` or a `RuntimeException`) or disk persistence fails (throwing `IOException` or `AccessDeniedException`), `LogicManager` executes `rollbackModel(...)` to revert in-memory contacts, the filter predicate, and the display comparator to their prior snapshot.
 1. After persistence succeeds, `LogicManager` returns the `CommandResult` to its caller.
@@ -420,8 +421,9 @@ date never match. Repeated `f/` values are deduplicated and combined with OR, wh
 clearing remain owned by `update`.
 
 The class diagram below shows the main classes involved in follow-up-date search. `FindCommandParser` validates date
-criteria using `FollowUpDate` and creates a `FindCommand` with `ContactMatchesFieldsPredicate`, which implements
-`Predicate<Person>`.
+criteria using `FollowUpDate` and creates a `FindCommand` with `ContactMatchesFieldsPredicate`, which implements the
+`Predicate<Person>` interface and tests each `Person`. Dependencies use UML stereotypes such as `<<create>>` and
+`<<use>>`; associations retain their labels and multiplicities.
 
 ![Classes involved in follow-up-date search](images/FindFollowUpDateClass.png)
 
