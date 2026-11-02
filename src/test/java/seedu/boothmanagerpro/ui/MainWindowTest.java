@@ -116,6 +116,9 @@ public class MainWindowTest {
             assertTrue(output(root).contains("Invalid value for f/"));
             assertEquals("find f/20230229", input(root).getText());
             enterCommand(root, "update 1 f/20261028");
+            assertTrue(output(root).contains("Run list, find, or view"));
+            enterCommand(root, "find f/20261025");
+            enterCommand(root, "update 1 f/20261028");
             enterCommand(root, "find f/20261025");
             assertEquals("0 contact(s) found.", output(root));
             assertTrue(cards.getChildren().isEmpty());
@@ -1048,6 +1051,102 @@ public class MainWindowTest {
                 }
             }
             return null;
+        });
+    }
+
+    @Test
+    public void hiddenIndexAtStartup_rejectsDeleteUpdateAndTagWithoutSaving() throws Exception {
+        for (String command : List.of("delete 1", "update 1 s/Completed", "tag 1 t/vip")) {
+            ModelManager model = sampleModel();
+            withWindow(model, (window, root, storage) -> {
+                List<Person> before = List.copyOf(model.getAddressBook().getPersonList());
+                String json = Files.readString(dataPath());
+                enterCommand(root, command);
+                assertTrue(output(root).contains("Run list, find, or view"));
+                assertEquals(before, model.getAddressBook().getPersonList());
+                assertEquals(json, Files.readString(dataPath()));
+            });
+        }
+    }
+
+    @Test
+    public void indexAfterHiddenFeedback_requiresFreshResultsButNameTargetStillWorks() throws Exception {
+        withWindow(sampleModel(), (window, root, storage) -> {
+            enterCommand(root, "list");
+            enterCommand(root, "help");
+            enterCommand(root, "delete 1");
+            assertTrue(output(root).contains("Run list, find, or view"));
+            enterCommand(root, "delete Alex Yeoh");
+            assertTrue(output(root).contains("Deleted"));
+            assertEquals(5, storage.readAddressBook().orElseThrow().getPersonList().size());
+        });
+    }
+
+    @Test
+    public void displayedIndexWorks_thenSuccessfulMutationRequiresRefreshingResults() throws Exception {
+        withWindow(sampleModel(), (window, root, storage) -> {
+            enterCommand(root, "find n/Alex");
+            enterCommand(root, "update 1 s/Completed");
+            assertTrue(output(root).contains("Updated Alex Yeoh"));
+            enterCommand(root, "tag 1 t/vip");
+            assertTrue(output(root).contains("Run list, find, or view"));
+            enterCommand(root, "view n/Alex Yeoh");
+            enterCommand(root, "tag 1 t/vip");
+            assertTrue(output(root).contains("Updated tags for Alex Yeoh"));
+        });
+    }
+
+    @Test
+    public void displayedIndexAfterAddAndRestart_requiresNewList() throws Exception {
+        ModelManager model = sampleModel();
+        withWindow(model, (window, root, storage) -> {
+            enterCommand(root, "list");
+            enterCommand(root, "add n/New Contact c/Acme e/new@example.com p/91234567");
+            enterCommand(root, "delete 1");
+            assertTrue(output(root).contains("Run list, find, or view"));
+            assertEquals(7, storage.readAddressBook().orElseThrow().getPersonList().size());
+        });
+        withWindow(model, (window, root, storage) -> {
+            enterCommand(root, "tag 1 t/vip");
+            assertTrue(output(root).contains("Run list, find, or view"));
+            assertEquals(7, model.getAddressBook().getPersonList().size());
+        });
+    }
+
+    @Test
+    public void displayedSnapshotChangedExternally_rejectsStaleIndex() throws Exception {
+        ModelManager model = sampleModel();
+        withWindow(model, (window, root, storage) -> {
+            enterCommand(root, "list");
+            String json = Files.readString(dataPath());
+            model.updateSortedPersonList(java.util.Comparator.comparing((Person person) -> person.getName().fullName)
+                    .reversed());
+            enterCommand(root, "delete 1");
+            assertTrue(output(root).contains("Run list, find, or view"));
+            assertEquals(6, model.getAddressBook().getPersonList().size());
+            assertEquals(json, Files.readString(dataPath()));
+            enterCommand(root, "list");
+            String firstName = model.getFilteredPersonList().getFirst().getName().fullName;
+            enterCommand(root, "delete 1");
+            assertTrue(output(root).contains(firstName));
+            assertEquals(5, model.getAddressBook().getPersonList().size());
+        });
+    }
+
+    @Test
+    public void pendingViewChoiceAndSelectedDetails_provideCorrectIndexTargets() throws Exception {
+        ModelManager model = sampleModel();
+        withWindow(model, (window, root, storage) -> {
+            enterCommand(root, "add n/Alex Tan c/Acme e/alextan@example.com p/91234567");
+            enterCommand(root, "view n/Alex");
+            assertTrue(output(root).contains("2 contacts"));
+            enterCommand(root, "2");
+            assertTrue(output(root).contains("Alex Tan"));
+            enterCommand(root, "update 1 s/Completed");
+            assertTrue(output(root).contains("Updated Alex Tan"));
+            enterCommand(root, "view n/Alex");
+            enterCommand(root, "delete 2");
+            assertTrue(output(root).contains("Deleted contact: Alex Tan"));
         });
     }
 

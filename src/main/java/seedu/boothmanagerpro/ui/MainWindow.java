@@ -20,6 +20,7 @@ import seedu.boothmanagerpro.logic.commands.CommandResult;
 import seedu.boothmanagerpro.logic.commands.HelpCommand;
 import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
+import seedu.boothmanagerpro.model.person.Person;
 
 /**
  * The Main Window. Provides the basic application layout containing
@@ -39,6 +40,7 @@ public class MainWindow extends UiPart<Stage> {
     // Independent Ui parts residing in this Ui container
     private ResultDisplay resultDisplay;
     private CommandBox commandBox;
+    private List<Person> displayedContacts = List.of();
 
     @FXML
     private Label commandHints;
@@ -161,11 +163,17 @@ public class MainWindow extends UiPart<Stage> {
      */
     private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
         try {
+            if (commandText.strip().matches("(?is)(delete|update|tag)\\s+[0-9]+(?:\\s.*)?")
+                    && (displayedContacts.isEmpty() || !displayedContacts.equals(logic.getFilteredPersonList()))) {
+                throw new CommandException("Run list, find, or view before using a contact index.");
+            }
             CommandResult commandResult = logic.execute(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
             resultDisplay.showContacts(commandResult.getContactsToShow(), commandResult.isNumberedContacts(),
                     commandResult.isShowingContactTotal());
+            displayedContacts = commandResult.getViewChoices().isEmpty()
+                    ? commandResult.getContactsToShow() : commandResult.getViewChoices();
 
             commandBox.focus();
 
@@ -175,6 +183,7 @@ public class MainWindow extends UiPart<Stage> {
 
             return commandResult;
         } catch (CommandException | ParseException e) {
+            displayedContacts = List.of();
             logger.info("An error occurred while executing command: " + commandText);
             resultDisplay.setFeedbackToUser(e.getMessage(), true);
             throw e;

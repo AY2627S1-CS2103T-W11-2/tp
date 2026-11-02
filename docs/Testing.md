@@ -135,6 +135,19 @@ Manual check in a separate test folder:
 
 Manual check in a disposable folder: write `null` to `data/addressbook.json`, launch the JAR, and check the loading warning. Run `list`; verify that a same-directory `.recovery-` backup contains exactly `null`, while the active data file contains a valid empty collection. Restart and check ordinary startup. Keep all real contact files outside the test folder.
 
+## Hidden index protection
+
+`MainWindowTest` checks index commands through the real command box and rendered output.
+Startup, help, error feedback and successful mutations require fresh contact results before an index can be used.
+The checks compare saved JSON and contacts after rejected commands, and cover sorted results and view choices.
+
+1. Launch with saved contacts and immediately run `delete 1`, `update 1 s/Completed`, or `tag 1 t/vip`.
+2. Expect a request to run `list`, `find`, or `view`, with no contact or saved-file changes.
+3. Run `find` or `list`; an index command should now target the displayed contact.
+4. Run `help` or an invalid command; a later index command should require fresh results.
+5. Run `view n/NAME`; verify index 1 can target that displayed contact.
+6. Restart and confirm an index cannot be used until contacts are displayed again.
+
 ## Update regression checks
 
 `UpdateIntegrationTest` exercises all eight supported fields through actual command routing and JSON storage. It checks preservation of omitted values, date/tag clearing, duplicate names, hidden duplicate contacts, filtered indices, normalisation, invalid values/prefixes, and unchanged memory/filter/disk on rejection. `TagIntegrationTest` covers `tag` toggling (adding new tags and removing existing ones), change summaries, target resolution, and rejection preservation. `MainWindowTest` checks update and tag feedback and rendered enquiry fields.
