@@ -153,3 +153,23 @@ The checks compare saved JSON and contacts after rejected commands, and cover so
 `UpdateIntegrationTest` exercises all eight supported fields through actual command routing and JSON storage. It checks preservation of omitted values, date/tag clearing, duplicate names, hidden duplicate contacts, filtered indices, normalisation, invalid values/prefixes, and unchanged memory/filter/disk on rejection. `TagIntegrationTest` covers `tag` toggling (adding new tags and removing existing ones), change summaries, target resolution, and rejection preservation. `MainWindowTest` checks update and tag feedback and rendered enquiry fields.
 
 Manual check: add a contact, update its status/date by name, verify with `view`, then clear the date with `update NAME f/`. Add another contact with the same name but different company/email; an update by name must fail. Use `find` and its displayed index to update only the intended contact. Restart and verify the saved result.
+
+## Shared contact targeting
+
+`DeleteCommandTest`, `UpdateCommandTest`, and `TagCommandTest` exercise the common target resolver through
+the public commands. They check displayed-index bounds, exact case-insensitive names, missing contacts
+and ambiguous names. Their integration tests check that rejected requests preserve the stored contacts.
+
+After changing `ContactTargetResolver`, run all three command suites together with `MainWindowTest`.
+The window tests check the additional requirement that a contact index must correspond to visible results.
+
+## Log privacy regression checks
+
+`ContactLoggingPrivacyTest` checks successful commands, duplicate additions, no-change updates, unknown
+contacts, invalid commands and malformed saved JSON. It verifies that logs retain diagnostic outcomes
+while excluding the contact fields used by the tests. It also checks that saved contact values remain
+unchanged and that malformed source data remains protected for recovery.
+
+For a manual check, use disposable contacts in a separate folder. Add and update a contact, trigger a
+duplicate error, and inspect `addressbook.log.0` in that folder. Expect operation messages rather than
+full commands or contact details. Confirm that `view` still displays the contact correctly.

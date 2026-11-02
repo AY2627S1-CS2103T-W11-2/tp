@@ -116,6 +116,8 @@ The `UI` component,
 Here's a (partial) class diagram of the `Logic` component. `LogicManager` owns one `AddressBookParser`, which creates
 the command-specific parser and command required for the user's input. The concrete command operates on `Model` and
 creates a `CommandResult`, while `LogicManager` coordinates persistence through `Storage`.
+`delete`, `update`, and `tag` share `ContactTargetResolver` for displayed-index and exact-name lookup.
+The resolver checks index bounds and rejects missing or ambiguous names before a command changes the model.
 
 <img src="images/LogicClassDiagram.png" alt="Partial class diagram of the Logic component" width="700" style="max-width: 100%; height: auto;" />
 
@@ -278,8 +280,8 @@ covers same-name contacts at different companies, numbered replies, and cancella
 1. `AddressBookParser` routes `update` to `UpdateCommandParser`, which validates the target, field cardinality, and supplied values.
 2. `ContactFieldParser` shares prefix-specific validation feedback with `add`; domain value types remain the source of constraints and normalisation.
 3. Immutable `ContactUpdate` represents partial changes. An absent optional preserves the value; a present empty contact method, date, or tag set explicitly clears it. Tags are defensively copied.
-4. `UpdateCommand` resolves an exact case-insensitive full name across all contacts or a one-based index in the current displayed list. Missing or ambiguous targets fail before mutation.
-5. The command constructs a replacement `Person` via `ContactUpdate#applyTo`. If all stored values are unchanged, it throws `CommandException` with a no-change message before mutation or persistence. The comparison includes displayed tag casing and order, which `Person#equals` alone ignores. Otherwise, it checks every other contact for duplicate email or name/company, including hidden records. Target resolution, duplicate warnings, and successful updates are logged via `LogsCenter`. Only then does it call `Model#setPerson` and reset the filter.
+4. `UpdateCommand` delegates to `ContactTargetResolver`, which resolves an exact case-insensitive full name across all contacts or a one-based index in the current displayed list. Missing or ambiguous targets fail before mutation.
+5. The command constructs a replacement `Person` via `ContactUpdate#applyTo`. If all stored values are unchanged, it throws `CommandException` with a no-change message before mutation or persistence. The comparison includes displayed tag casing and order, which `Person#equals` alone ignores. Otherwise, it checks every other contact for duplicate email or name/company, including hidden records. Execution, duplicate rejections, and successful updates are logged via `LogsCenter` using diagnostic messages that omit contact details. Only then does it call `Model#setPerson` and reset the filter.
 6. `LogicManager` persists the updated address book through `Storage#saveAddressBook` (rolling back the in-memory model, filter, and display ordering if saving fails), and the UI displays a concise confirmation. Subsequent `view`, `list`, and `find` commands display the updated attributes on `ContactCard`s.
 
 The sequence diagram below illustrates a successful `update` request, showing both index-based and name-based target resolution.
@@ -298,7 +300,7 @@ Legacy address is preserved. Supplied tags replace the tag set; a sole blank `t/
 `tag NAME_OR_INDEX t/TAG [t/TAG]...`
 
 1. `AddressBookParser` routes `tag` to `TagCommandParser`, which rejects unsupported prefixes, requires a target and at least one `t/TAG` field, and validates each tag through `ContactFieldParser` and `Tag`. Duplicate `t/TAG` inputs in the same command collapse in input order.
-2. `TagCommand` follows the same execution flow illustrated in the update sequence diagram above: `resolveTarget` resolves a one-based index against `Model#getFilteredPersonList()` or an exact case-insensitive full name against `Model#getAddressBook()`, failing before mutation when the target is missing or ambiguous.
+2. `TagCommand` follows the same execution flow illustrated in the update sequence diagram above: `ContactTargetResolver` resolves a one-based index against `Model#getFilteredPersonList()` or an exact case-insensitive full name against `Model#getAddressBook()`, failing before mutation when the target is missing or ambiguous.
 3. Unlike `UpdateCommand`, `TagCommand` does not construct a `ContactUpdate` or run `rejectDuplicates`, because toggling tags never alters email, name, or company identity. Instead, each supplied tag is toggled against a copy of the contact's existing tag set using `Tag#equals` (case-insensitive): absent tags are appended and recorded as added, while present tags are removed and recorded as removed.
 4. `TagCommand` constructs a replacement `Person` with all other attributes preserved, calls `Model#setPerson`, resets the filtered list, and returns `Updated tags for NAME at COMPANY. Added: .... Removed: .... Current tags: ....` (`None` when a tag list is empty), after which `LogicManager` saves the updated address book.
 5. `TagIntegrationTest` and `MainWindowTest` verify toggling, exact change summaries, target resolution, persistence, and unchanged state on rejection.
