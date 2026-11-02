@@ -168,7 +168,7 @@ public class MainWindow extends UiPart<Stage> {
                 throw new CommandException("Run list, find, or view before using a contact index.");
             }
             CommandResult commandResult = logic.execute(commandText);
-            logger.info("Result: " + commandResult.getFeedbackToUser());
+            logger.info("Command completed; displayed contacts: " + commandResult.getContactsToShow().size());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
             resultDisplay.showContacts(commandResult.getContactsToShow(), commandResult.isNumberedContacts(),
                     commandResult.isShowingContactTotal());
@@ -184,7 +184,7 @@ public class MainWindow extends UiPart<Stage> {
             return commandResult;
         } catch (CommandException | ParseException e) {
             displayedContacts = List.of();
-            logger.info("An error occurred while executing command: " + commandText);
+            logger.info("Command rejected: " + e.getClass().getSimpleName());
             resultDisplay.setFeedbackToUser(e.getMessage(), true);
             throw e;
         }

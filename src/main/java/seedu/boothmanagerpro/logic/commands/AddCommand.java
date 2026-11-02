@@ -78,17 +78,15 @@ public class AddCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        logger.fine("Executing AddCommand for: " + formatIdentity(toAdd));
+        logger.fine("Executing AddCommand.");
 
         List<Person> duplicates = findDuplicates(model);
         if (duplicates.size() == 1) {
-            logger.warning("AddCommand rejected: duplicate contact exists for "
-                    + formatIdentity(duplicates.getFirst()));
+            logger.warning("AddCommand rejected: duplicate contact.");
             throw new CommandException(String.format(MESSAGE_DUPLICATE_PERSON, formatIdentity(duplicates.getFirst())));
         }
         if (!duplicates.isEmpty()) {
-            logger.warning("AddCommand rejected: multiple duplicate contacts detected for: "
-                    + formatIdentity(toAdd));
+            logger.warning("AddCommand rejected; duplicate matches: " + duplicates.size());
             String matches = duplicates.stream()
                     .map(person -> formatIdentity(person) + " (" + person.getEmail() + ")")
                     .collect(Collectors.joining("\n"));
@@ -97,7 +95,7 @@ public class AddCommand extends Command {
         }
 
         model.addPerson(toAdd);
-        logger.info("Successfully added exhibitor contact: " + formatIdentity(toAdd));
+        logger.info("Successfully added exhibitor contact.");
         return new CommandResult(formatSuccessMessage(toAdd));
     }
 

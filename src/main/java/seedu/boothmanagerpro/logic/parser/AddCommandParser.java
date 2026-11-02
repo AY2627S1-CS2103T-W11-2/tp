@@ -66,11 +66,11 @@ public class AddCommandParser implements Parser<AddCommand> {
      */
     @Override
     public AddCommand parse(String args) throws ParseException {
-        logger.finer("Parsing AddCommand arguments: " + args);
+        logger.finer("Parsing AddCommand fields.");
         ArgumentMultimap fields = tokenize(args);
         validateStructure(fields);
         Person person = parseContact(fields);
-        logger.fine("Successfully parsed AddCommand for: " + AddCommand.formatIdentity(person));
+        logger.fine("Successfully parsed AddCommand.");
         return new AddCommand(person);
     }
 
