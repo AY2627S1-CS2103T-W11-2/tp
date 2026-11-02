@@ -112,6 +112,18 @@ public class FindFieldsTest {
     }
 
     @Test
+    public void execute_labelledPhone_matchesDigitsButNotLabel() throws Exception {
+        Model model = new ModelManager();
+        Person labelled = new PersonBuilder().withPhone("9123 4567 (HP) / 6123 4567 (Office)").build();
+        model.addPerson(labelled);
+        parser.parse("p/91234567").execute(model);
+        assertEquals(List.of(labelled), model.getFilteredPersonList());
+        parser.parse("p/61234567").execute(model);
+        assertEquals(List.of(labelled), model.getFilteredPersonList());
+        assertThrows(ParseException.class, () -> parser.parse("p/HP"));
+    }
+
+    @Test
     public void execute_phoneWhitespaceAndTagAlternatives_match() throws Exception {
         Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         parser.parse("p/9435 1253 t/vip t/friends").execute(model);

@@ -189,13 +189,13 @@ public class CommandBox extends UiPart<Region> {
         }
 
         MatchResult lastMatch = prefixes.getLast();
-        String lastPrefix = lastMatch.group(1);
+        String lastPrefix = lastMatch.group(1).toLowerCase(Locale.ROOT);
         String currentValue = arguments.substring(lastMatch.end()).strip();
         if (!isCompletedAddValue(lastPrefix, currentValue)) {
             return false;
         }
 
-        List<String> existingPrefixes = prefixes.stream().map(MatchResult::group).toList();
+        List<String> existingPrefixes = prefixes.stream().map(m -> m.group().toLowerCase(Locale.ROOT)).toList();
         for (String requiredPrefix : ADD_REQUIRED_PREFIXES) {
             if (!existingPrefixes.contains(requiredPrefix)) {
                 return setCommandText(input + " " + requiredPrefix);
@@ -241,9 +241,9 @@ public class CommandBox extends UiPart<Region> {
         List<String> supportedPrefixes = COMMAND_PREFIXES.getOrDefault(commandWord, List.of());
         String arguments = input.substring(firstSpace + 1);
         List<String> existingPrefixes = ArgumentTokenizer.findSingleLetterPrefixes(arguments).stream()
-                .map(MatchResult::group)
+                .map(m -> m.group().toLowerCase(Locale.ROOT))
                 .toList();
-        String partialPrefix = input.substring(lastSpace + 1);
+        String partialPrefix = input.substring(lastSpace + 1).toLowerCase(Locale.ROOT);
         if (partialPrefix.endsWith("/")) {
             return false;
         }
@@ -276,7 +276,7 @@ public class CommandBox extends UiPart<Region> {
             return false;
         }
         MatchResult lastMatch = prefixes.getLast();
-        String prefix = lastMatch.group(1);
+        String prefix = lastMatch.group(1).toLowerCase(Locale.ROOT);
         List<String> allowedValues = PREFIX_VALUES.get(prefix);
         if (commandWord.equals(FindCommand.COMMAND_WORD) && prefix.equals(PREFIX_FOLLOW_UP.toString())) {
             allowedValues = Arrays.stream(RelativeFollowUpFilter.values())

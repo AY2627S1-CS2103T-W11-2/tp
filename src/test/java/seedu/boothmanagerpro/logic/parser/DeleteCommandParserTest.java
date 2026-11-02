@@ -59,7 +59,7 @@ public class DeleteCommandParserTest {
 
     @Test
     public void parse_namePrefix_failure() {
-        for (String args : new String[]{"n/Alex Yeoh", " n/1", "n/"}) {
+        for (String args : new String[]{"n/Alex Yeoh", "N/Alex Yeoh", " n/1", "n/"}) {
             assertNamePrefixFailure(parser, args, "delete", "delete NAME or delete INDEX");
         }
     }

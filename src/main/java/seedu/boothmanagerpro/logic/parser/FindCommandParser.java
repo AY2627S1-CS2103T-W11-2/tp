@@ -14,6 +14,7 @@ import static seedu.boothmanagerpro.logic.parser.ContactFieldParser.parseValue;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -76,7 +77,8 @@ public class FindCommandParser implements Parser<FindCommand> {
         for (int i = 0; i < matches.size(); i++) {
             MatchResult current = matches.get(i);
             int end = i + 1 < matches.size() ? matches.get(i + 1).start() : trimmedArgs.length();
-            addCriterion(criteria, current.group(1), trimmedArgs.substring(current.end(), end));
+            addCriterion(criteria, current.group(1).toLowerCase(Locale.ROOT),
+                    trimmedArgs.substring(current.end(), end));
         }
         assert !criteria.isEmpty() : "Parsed field search must contain at least one criterion";
         FindCommand command = new FindCommand(new ContactMatchesFieldsPredicate(criteria));

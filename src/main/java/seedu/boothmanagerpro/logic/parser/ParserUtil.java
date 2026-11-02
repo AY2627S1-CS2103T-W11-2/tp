@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Set;
 
 import seedu.boothmanagerpro.commons.core.index.Index;
@@ -29,7 +30,8 @@ public class ParserUtil {
     public static final String MESSAGE_NAME_PREFIX_NOT_ALLOWED = "Don't include n/ for %1$s. Use: %2$s";
     public static final String MESSAGE_PHONE_CHARACTERS =
             "Phone number can only contain digits, spaces, hyphens, full stops, parentheses, a leading +, "
-            + "an extension (ext or x), and , ; or / between multiple numbers.";
+            + "an extension (ext or x), a label in brackets after a number (e.g. (HP), up to 20 letters or spaces), "
+            + "and , ; or / between multiple numbers.";
     public static final String MESSAGE_PHONE_DIGITS = Phone.MESSAGE_CONSTRAINTS;
 
     private static final String INDEX_LIKE_REGEX = "[+-]?[0-9]+";
@@ -84,7 +86,7 @@ public class ParserUtil {
      * @throws ParseException If {@code args} starts with {@code n/}.
      */
     public static void rejectNamePrefix(String args, String commandWord, String usage) throws ParseException {
-        if (args.strip().startsWith(CliSyntax.PREFIX_NAME.getPrefix())) {
+        if (args.strip().toLowerCase(Locale.ROOT).startsWith(CliSyntax.PREFIX_NAME.getPrefix())) {
             throw new ParseException(String.format(MESSAGE_NAME_PREFIX_NOT_ALLOWED, commandWord, usage));
         }
     }

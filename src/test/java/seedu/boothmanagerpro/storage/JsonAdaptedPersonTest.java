@@ -124,6 +124,15 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_labelledPhone_roundTrip() throws Exception {
+        Person person = new PersonBuilder(BENSON).withPhone("9123 4567 (HP) / 6123 4567 (Office)").build();
+        String json = JsonUtil.toJsonString(new JsonAdaptedPerson(person));
+        Person reloaded = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
+        assertEquals(person, reloaded);
+        assertEquals("9123 4567 (HP) / 6123 4567 (Office)", reloaded.getPhone().value);
+    }
+
+    @Test
     public void toModelType_missingExhibitorFields_keepsLegacyRecord() throws Exception {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_ADDRESS,
                 VALID_TAGS, null, null);

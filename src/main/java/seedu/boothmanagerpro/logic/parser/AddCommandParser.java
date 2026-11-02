@@ -12,6 +12,7 @@ import static seedu.boothmanagerpro.logic.parser.ContactFieldParser.parseValue;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -144,9 +145,9 @@ public class AddCommandParser implements Parser<AddCommand> {
         ArgumentMultimap fields = new ArgumentMultimap();
         for (int i = 0; i < matches.size(); i++) {
             MatchResult match = matches.get(i);
-            Prefix prefix = new Prefix(match.group(1));
+            Prefix prefix = new Prefix(match.group(1).toLowerCase(Locale.ROOT));
             if (!ALLOWED_PREFIXES.contains(prefix)) {
-                throw new ParseException(String.format(MESSAGE_UNKNOWN_FIELD, prefix));
+                throw new ParseException(String.format(MESSAGE_UNKNOWN_FIELD, match.group(1)));
             }
             int end = i + 1 < matches.size() ? matches.get(i + 1).start() : args.length();
             fields.put(prefix, args.substring(match.end(), end).strip());

@@ -11,12 +11,15 @@ import java.util.Locale;
  */
 public class Email {
 
-    public static final String MESSAGE_CONSTRAINTS = "Email address is invalid.";
+    public static final String MESSAGE_CONSTRAINTS = "Email address is invalid. Use a conventional unquoted "
+            + "address; run help and follow the User Guide for supported email formats.";
     public static final int MAX_LENGTH = 254; // RFC 5321 standard maximum email length
     public static final int MAX_LOCAL_PART_LENGTH = 64; // RFC 5321 standard maximum local-part length
     public static final int MAX_DOMAIN_PART_LENGTH = 255; // RFC 5321 standard maximum domain length
 
-    private static final String SPECIAL_CHARACTERS = "+_.-";
+    // RFC 5322 atext punctuation, plus dots between alphanumeric sections. Quoted local parts and other
+    // uncommon mailbox forms are deliberately excluded so command input and persisted addresses stay predictable.
+    private static final String SPECIAL_CHARACTERS = "!#$%&'*+/=?^_`{|}~.-";
     // single alphanumeric character except underscore
     private static final String ALPHANUMERIC_NO_UNDERSCORE_CHAR = "[^\\W_]";
     private static final String ALPHANUMERIC_NO_UNDERSCORE = ALPHANUMERIC_NO_UNDERSCORE_CHAR + "+";

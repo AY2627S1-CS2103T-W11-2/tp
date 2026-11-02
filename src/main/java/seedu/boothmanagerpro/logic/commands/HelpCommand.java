@@ -1,5 +1,7 @@
 package seedu.boothmanagerpro.logic.commands;
 
+import java.util.Locale;
+
 import seedu.boothmanagerpro.model.Model;
 
 /**
@@ -16,7 +18,9 @@ public class HelpCommand extends Command {
             "BoothManagerPro commands\n"
                     + "═════════════════════════════\n"
                     + "[ ] optional  |  ... repeatable\n"
-                    + "Use an exact full name or a displayed number for NAME_OR_INDEX.",
+                    + "Use an exact full name or a displayed number for NAME_OR_INDEX.\n"
+                    + "Email local parts accept !#$%&'*+/=?^_`{|}~.- between letters or digits; "
+                    + "quoted addresses are not supported.",
             formatCommandHelp(1, AddCommand.COMMAND_WORD,
                     "Adds a new exhibitor contact.",
                     "add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...",
@@ -74,7 +78,7 @@ public class HelpCommand extends Command {
     /** Formats one command using the consistent help-entry layout. */
     private static String formatCommandHelp(int number, String function, String description, String format,
             String example) {
-        return number + ". " + function.toUpperCase() + "\n"
+        return number + ". " + function.toUpperCase(Locale.ROOT) + "\n"
                 + "   Description: " + description + "\n"
                 + "   Format:      " + format + "\n"
                 + "   Example:     " + example;

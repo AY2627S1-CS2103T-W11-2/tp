@@ -28,7 +28,7 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
 <div markdown="span" class="alert alert-primary">
 
-:bulb: **Tip:** The `.puml` files used to create diagrams are in `docs/diagrams`. Refer to the [_PlantUML Tutorial_ at se-edu/guides](https://se-education.org/guides/tutorials/plantUml.html) to learn how to create and edit diagrams.
+:bulb: **Tip:** The `.puml` files used to create diagrams are in `docs/diagrams`. Refer to the [_PlantUML Tutorial_ at se-edu/guides](https://se-education.org/guides/tutorials/plantUml.html) to learn how to create and edit diagrams. Diagrams follow the course [_Modeling (Using UML)_ conventions](https://nus-cs2103-ay2627-s1.github.io/website/se-book-adapted/chapters/modeling.html).
 </div>
 
 ### Architecture
@@ -134,7 +134,8 @@ How the `Logic` component works:
 1. `LogicManager` executes the `DeleteCommand` with `Model`.
 1. `DeleteCommand` obtains the filtered and sorted contact list from `Model`, resolves the one-based displayed index
    to `personToDelete`, and asks `Model` to delete that `Person`.
-1. `DeleteCommand` creates and returns a `CommandResult` containing the deleted contact's details.
+1. `DeleteCommand` sends the `CommandResult(...)` creation message. The resulting object, `r`, contains the deleted
+   contact's details and is returned to `LogicManager`.
 1. `LogicManager` obtains the updated address book from `Model` and asks `Storage` to save it.
 1. If command execution fails (throwing `CommandException` or a `RuntimeException`) or disk persistence fails (throwing `IOException` or `AccessDeniedException`), `LogicManager` executes `rollbackModel(...)` to revert in-memory contacts, the filter predicate, and the display comparator to their prior snapshot.
 1. After persistence succeeds, `LogicManager` returns the `CommandResult` to its caller.
@@ -146,6 +147,7 @@ Here are the other classes in `Logic` (omitted from the class diagram above) tha
 How the parsing works:
 * When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+* Command words (`AddressBookParser`), confirmation keywords (`clear confirm`), and single-letter field prefixes (`n/`, `c/`, `e/`, `p/`, `m/`, `s/`, `f/`, `t/`, `o/`) are matched case-insensitively by normalising tokens with `Locale.ROOT`, while `ArgumentTokenizer` continues to preserve legal-name patronymics (`s/o`, `d/o`, `a/l`, `a/p`) between words and common business slash abbreviations inside `c/` (`C/`).
 
 ### Model component
 **API** : [`Model.java`](../src/main/java/seedu/boothmanagerpro/model/Model.java)
@@ -246,7 +248,7 @@ All contact workflows share `Person` and its validated value objects.
 | --- | --- |
 | Name | `Name` owns validation: 1-80 Unicode code points, at least one letter, digits and supported punctuation, and `s/o`, `d/o`, `a/l`, or `a/p` between words. `view` uses the same validator as `add` and prefixed `find`. |
 | Company | `Optional<Company>`; required by `add`, absent in legacy records. `find c/` matches full or partial values, ignoring case. |
-| Email / phone | Emails are stored lowercase. Phones preserve formatting and support extensions and multiple numbers; phone searches validate partial numbers separately and ignore spaces, hyphens, dots, and parentheses when matching. |
+| Email / phone | Emails are stored lowercase. Phones are a single validated string that preserves formatting and supports extensions, multiple numbers, and a bracketed label after each number, e.g. `(HP)`. Labels do not count towards the digit limit. Phone searches validate partial numbers separately, accept digits only rather than labels, and ignore spaces, hyphens, dots, and parentheses when matching. |
 | Contact method | `Optional<ContactMethod>`; `email`, `phone`, or `other`. An absent method is shown as `Not specified` and does not match `find m/`. |
 | Follow-up date | `Optional<FollowUpDate>`; validated and stored in JSON as `YYYYMMDD`, formatted as `d MMM uuuu` (e.g. `25 Oct 2026`) for display, and shown as `None` when absent. |
 | Tags | Case-insensitive duplicates collapse on `add` and `update` while preserving display casing; consecutive spaces collapse. Search ignores case and matches whole tags. `add`, `update`, `tag`, storage, and command feedback preserve stored order. Empty tags show `None` in text and on cards. |
@@ -425,10 +427,14 @@ when constructed. The default clock uses the system's time zone; tests inject a 
 reference date; an existing filtered list does not silently change at midnight. These are date-only criteria: no
 enquiry status is implied. Combine `f/due` with `s/Needs follow-up` when both conditions are required.
 
-The class diagram below shows the classes involved in literal follow-up-date search. Relative filters additionally
-use `RelativeFollowUpFilter` as described above. `FindCommandParser` validates literal date
-criteria using `FollowUpDate` and creates a `FindCommand` with `ContactMatchesFieldsPredicate`, which implements
-`Predicate<Person>`.
+Inclusive `YYYYMMDD..YYYYMMDD` intervals are validated by `FollowUpDateRange`, including endpoint order.
+`ContactMatchesFieldsPredicate` parses each range once when constructed and reuses it across contacts.
+
+The class diagram below shows the main classes involved in literal follow-up-date search. `FindCommandParser` validates date
+criteria using `FollowUpDate` and creates a `FindCommand` with `ContactMatchesFieldsPredicate`, which implements the
+`Predicate<Person>` interface and tests each `Person`. Dependencies use UML stereotypes such as `<<create>>` and
+`<<use>>`; associations retain their labels and multiplicities.
+Relative filters also use `RelativeFollowUpFilter`, and interval searches use `FollowUpDateRange`, as described above.
 
 ![Classes involved in follow-up-date search](images/FindFollowUpDateClass.png)
 
@@ -830,7 +836,7 @@ These are requirements for the intended product, not claims that every target ha
 * **Index**: The number shown beside a contact in a displayed list, used to select a specific contact when several share the same name
 * **Mainstream OS**: Windows, Linux, Unix, and macOS
 * **Normalisation**: Converting input to a standard form before storing or comparing it, such as lowercasing emails, collapsing repeated spaces in names, and removing formatting from phone numbers for search comparisons
-* **Prefix**: A marker ending in `/` that identifies which field a value belongs to, e.g. `n/` for name or `t/` for tag
+* **Prefix**: A case-insensitive marker ending in `/` that identifies which field a value belongs to, e.g. `n/` (or `N/`) for name or `t/` (or `T/`) for tag
 * **Primary contact**: The representative to contact first when an exhibitor has several representatives
 * **Representative**: A person who acts on behalf of an exhibitor. One exhibitor may have several
 * **Tag**: A short label attached to a contact to group it beyond enquiry status, for example by industry or priority
@@ -897,6 +903,7 @@ Use a separate test data folder with no Alicia Tan or Ben Lim records. Run each 
 | Repeated field | `add n/Chris Tan n/Chris Lim c/Example Ltd e/chris@example.com p/98765432` | Each-field-once error; no contact added. |
 | Unknown prefix | `add n/Chris Tan c/Example Ltd e/chris@example.com p/98765432 a/Somewhere` | Unknown-field-prefix error; no contact added. |
 | Invalid phone | `add n/Chris Tan c/Example Ltd e/chris@example.com p/123` | Phone-length error; no contact added. |
+| Labelled phone numbers | `add n/Alice Tan c/Acme e/alice@example.com p/9123 4567 (HP) / 6123 4567 (Office)` | Contact added; a subsequent `view n/Alice Tan` card shows the phone as typed. `find p/91234567` finds the contact, and `find p/HP` is rejected. |
 | Persistence | Exit and relaunch from the same folder; run `list`, then repeat the first add command. | Both added contacts remain; repeated add is rejected. The saved `data/addressbook.json` retains company and contact method. |
 
 Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibitor-contact-add). Verify the brief identity confirmation, saved JSON, and the card shown by a subsequent `view`. Repeat an add after `find Nobody`; the filter should reset, the input should clear and retain focus, and no persistent side panels should appear.
@@ -974,7 +981,7 @@ Start with the sample data and run `list` first. Each command below is rejected 
 | View without a prefix | `view alex` | `view needs the n/ prefix before the name. Use: view n/NAME, e.g. view n/Alicia Tan` |
 | View with an empty name | `view n/` | `Name cannot be empty. Use: view n/NAME, e.g. view n/Alicia Tan` |
 | View with invalid slash in name | `view n/John/Doe` | `Names must be 1 to 80 characters and contain a letter. Use only letters, digits, spaces, hyphens, apostrophes, full stops, commas, parentheses, @, or s/o, d/o, a/l and a/p between words.` |
-| Phone with a disallowed character | `add n/Chris Tan c/Example Ltd e/chris@example.com p/1234 5678 (HP)` | `Invalid value for p/: Phone number can only contain digits, spaces, hyphens, full stops, parentheses, a leading +, an extension (ext or x), and , ; or / between multiple numbers.` |
+| Phone with a disallowed character | `add n/Chris Tan c/Example Ltd e/chris@example.com p/1234 5678 HP` | `Invalid value for p/: Phone number can only contain digits, spaces, hyphens, full stops, parentheses, a leading +, an extension (ext or x), a label in brackets after a number (e.g. (HP), up to 20 letters or spaces), and , ; or / between multiple numbers.` |
 | Phone with too few digits | `add n/Chris Tan c/Example Ltd e/chris@example.com p/123` | `Invalid value for p/: Each phone number must contain 7 to 15 digits (excluding any extension), optionally starting with +.` |
 | Invalid field value in find | `find e/bad email`, `find p/+` | `Invalid value for e/: Email search value is invalid. Supply a full or partial email or domain (e.g. alicia@technova.com or @technova.com).` / `Invalid value for p/: Phone search value must contain 1 to 15 digits, optionally starting with +, and may only include spaces, hyphens, full stops, or parentheses as formatting.` |
 | Unexpected parameters on parameterless commands | `help extra`, `exit 1` | `Invalid command format!` followed by the `help` or `exit` usage |
@@ -1036,6 +1043,17 @@ Start with the sample data and run `list` first. Each command below is rejected 
 
    1. Close BoothManagerPro, remove a required field such as `"email"` or `"name"` from a contact in `data/addressbook.json`, and relaunch.<br>
       Expected: Loading fails safely with the same warning banner and empty contact list as a corrupted file, preserving the original file in a `.recovery-` backup before the next save.
+
+1. Manual recovery verification
+
+   1. Use an isolated data folder and keep a known-good copy of its JSON file before corrupting it.
+   1. Repeat the corrupted-file scenario above, including one successful `add` to trigger the recovery backup.
+   1. Close every application window using that folder. Copy the original and recovery files elsewhere before editing.
+   1. Restore the known-good JSON to `data/addressbook.json`, restart, and run `list`.<br>
+      Expected: The loading warning is absent and the known-good contacts are displayed. The application does not
+      import the `.recovery-` file automatically or merge contacts from the temporary empty collection.
+   1. Close and restart once more, then run `list` again.<br>
+      Expected: The restored contacts still load, and the separately preserved backup copies remain unchanged.
 
 1. Concurrent sessions and stale file detection
 
