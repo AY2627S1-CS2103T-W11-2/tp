@@ -16,6 +16,8 @@ title: Developer Guide
   * [JUnit 5](https://junit.org/junit5/) for automated unit and integration testing.
   * [Gradle](https://gradle.org/), [Shadow](https://gradleup.com/shadow/), [Checkstyle](https://checkstyle.org/), and [JaCoCo](https://www.jacoco.org/jacoco/) for build automation, JAR packaging, style verification, and test coverage reporting.
 
+* Li Wenze (legned-wenze) used Codex throughout his contributions to discuss implementation approaches, generate and revise code, tests and documentation, and run automated checks. He reviewed proposed changes and results, requested revisions, and performed selected manual checks.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Setting up, getting started**
@@ -190,7 +192,7 @@ The `Storage` component,
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`).
 * safeguards contact data through automated corruption recovery and inter-process concurrency control:
-  * **Corrupted data recovery:** Invalid JSON objects or corrupt entries produce controlled loading errors with a visible UI warning. `JsonAddressBookStorage` records failed loads using `DataFileRecovery`. Before any subsequent save to that path, it creates a unique `.recovery-<unique suffix>.json` backup of the original unreadable file bytes. Backup failure blocks saving to prevent accidental data loss. Recovery files are never automatically overwritten or loaded.
+  * **Corrupted data recovery:** Invalid JSON, corrupt entries, or contact-file access failures produce controlled loading errors with a visible UI warning. `JsonAddressBookStorage` records failed loads using `DataFileRecovery`. Before any subsequent save to that path, it creates a unique `.recovery-<unique suffix>.json` backup of the original unreadable file bytes. Backup failure blocks saving to prevent accidental data loss. Recovery files are never automatically overwritten or loaded.
   * **Concurrency protection:** `JsonAddressBookStorage` records file-existence and byte-content snapshots loaded by the current session. When saving, an OS-level file lock (`FileLock`) in the data directory's `.boothmanagerpro-locks` subfolder coordinates across processes, and if another application instance has modified the file, stale saves are rejected with an error rather than silently overwriting the newer data.
 
 ### Common classes

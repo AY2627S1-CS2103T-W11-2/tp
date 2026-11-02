@@ -77,6 +77,7 @@ public class JsonAddressBookStorage {
                 lastKnownFileState = FileState.capture(normalisedPath);
                 return readAddressBookFile(normalisedPath);
             } catch (IOException ioe) {
+                recovery.markFailed(normalisedPath);
                 throw new DataLoadingException(ioe);
             }
         }

@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.boothmanagerpro.commons.exceptions.DataLoadingException;
+import seedu.boothmanagerpro.commons.util.JsonUtil;
 import seedu.boothmanagerpro.model.AddressBook;
 import seedu.boothmanagerpro.model.ReadOnlyAddressBook;
 
@@ -109,6 +110,28 @@ public class JsonAddressBookStorageTest {
         Files.writeString(blockedDirectory, "file blocks lock directory creation");
         JsonAddressBookStorage storage = new JsonAddressBookStorage(testFolder.resolve("addressbook.json"));
         assertThrows(DataLoadingException.class, storage::readAddressBook);
+    }
+
+    @Test
+    public void read_lockFailureThenRecovery_preservesUnreadContactData() throws Exception {
+        Path dataFile = testFolder.resolve("unread-contacts.json");
+        String original = JsonUtil.toJsonString(
+                new JsonSerializableAddressBook(getTypicalAddressBook()));
+        Files.writeString(dataFile, original);
+        Path blockedDirectory = testFolder.resolve(".boothmanagerpro-locks");
+        Files.writeString(blockedDirectory, "lock directory unavailable");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(dataFile);
+        assertThrows(DataLoadingException.class, storage::readAddressBook);
+        assertTrue(storage.isRecoveryPending());
+        assertEquals(original, Files.readString(dataFile));
+        Files.delete(blockedDirectory);
+        storage.saveAddressBook(new AddressBook());
+        try (var files = Files.list(testFolder)) {
+            var backups = files.filter(path -> path.getFileName().toString().contains(".recovery-")).toList();
+            assertEquals(1, backups.size());
+            assertEquals(original, Files.readString(backups.getFirst()));
+        }
+        assertTrue(storage.readAddressBook().orElseThrow().getPersonList().isEmpty());
     }
 
     @Test

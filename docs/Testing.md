@@ -200,3 +200,6 @@ Keep this measurement separate from correctness tests so machine load does not c
 `.boothmanagerpro-locks` subfolder, that reads reuse the same lock, and that a blocked lock directory
 produces a controlled loading failure. `ConcurrentSessionIntegrationTest` checks that the new location
 continues to prevent a stale application session from overwriting another session's saved contacts.
+
+`JsonAddressBookStorageTest` also blocks the lock directory during a read, restores access, and then
+saves. It checks that the unread original contact data is preserved in a recovery backup before replacement.
