@@ -173,3 +173,25 @@ unchanged and that malformed source data remains protected for recovery.
 For a manual check, use disposable contacts in a separate folder. Add and update a contact, trigger a
 duplicate error, and inspect `addressbook.log.0` in that folder. Expect operation messages rather than
 full commands or contact details. Confirm that `view` still displays the contact correctly.
+
+## Bulk identity and snapshot regressions
+
+`BulkContactValidationTest` compares bulk acceptance with the public `Person#isSamePerson` rule.
+Its cases cover:
+
+| Scenario | Expected result |
+| --- | --- |
+| Same email with different names or companies | Reject the replacement |
+| Same name and company with different emails | Reject the replacement |
+| Unicode case and canonically equivalent spellings | Agree with the existing identity rule |
+| Same legacy name with different emails | Accept both contacts |
+| Duplicate or null entry in a replacement | Preserve the original list and send no change notification |
+| A copied 1,000-contact collection | Preserve order and remain independent of later mutations |
+
+The suite also checks shuffled batches and non-transitive conflicts: A can conflict with B, and B with C,
+while A and C are valid together. Checking either identity dimension independently must still reject B.
+The caller's input list and the observable model view are checked for unintended sharing.
+
+For performance comparisons, use the same 1,000-contact dataset, Java version and machine before and after
+changes. Warm up the command path, measure several runs, and record the dataset size and median duration.
+Keep this measurement separate from correctness tests so machine load does not cause intermittent failures.

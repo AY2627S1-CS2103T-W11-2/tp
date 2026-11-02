@@ -166,6 +166,19 @@ The `Model` component,
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components).
 
 
+
+#### Bulk contact validation
+
+`UniquePersonList#setPersons` validates a replacement before notifying observers or changing the stored list.
+It checks each email and each case-folded name/company pair against separate sets. A conflict in either set
+rejects the whole replacement, matching `Person#isSamePerson`. Contacts without a company participate in
+email checking only. The name/company key keeps the two fields separate and uses `StringUtil.foldCase`
+for the same Unicode case equivalence as the existing identity rule.
+
+This one-pass check replaces pairwise comparisons when copying the collection for command rollback.
+Validation uses O(n) additional space and expected O(n) set operations for n contacts, while preserving
+input order. The key sets exist only during validation; they add no persistent state or storage fields.
+
 ### Storage component
 
 **API** : [`Storage.java`](../src/main/java/seedu/boothmanagerpro/storage/Storage.java)

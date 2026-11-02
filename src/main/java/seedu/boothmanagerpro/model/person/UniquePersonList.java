@@ -3,11 +3,14 @@ package seedu.boothmanagerpro.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.boothmanagerpro.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import seedu.boothmanagerpro.commons.util.StringUtil;
 import seedu.boothmanagerpro.model.person.exceptions.DuplicatePersonException;
 import seedu.boothmanagerpro.model.person.exceptions.PersonNotFoundException;
 
@@ -135,16 +138,33 @@ public class UniquePersonList implements Iterable<Person> {
     }
 
     /**
-     * Returns true if {@code persons} contains only unique persons.
+     * Checks both identity rules in one pass. Separate sets retain the OR-based duplicate rule:
+     * an email conflict or a name/company conflict is enough to reject the replacement.
      */
     private boolean personsAreUnique(List<Person> persons) {
-        for (int i = 0; i < persons.size() - 1; i++) {
-            for (int j = i + 1; j < persons.size(); j++) {
-                if (persons.get(i).isSamePerson(persons.get(j))) {
-                    return false;
-                }
+        Set<Email> emails = new HashSet<>();
+        Set<NameCompanyIdentity> exhibitors = new HashSet<>();
+        for (Person person : persons) {
+            if (!emails.add(person.getEmail())) {
+                return false;
+            }
+            if (person.getCompany().isPresent()
+                    && !exhibitors.add(NameCompanyIdentity.from(person))) {
+                return false;
             }
         }
         return true;
+    }
+
+    /**
+     * Matches the case-insensitive name/company comparison in Person.isSamePerson.
+     * Legacy contacts without a company are checked by email only. Keeping the fields separate
+     * avoids treating different name/company pairs as the same concatenated string.
+     */
+    private record NameCompanyIdentity(String name, String company) {
+        private static NameCompanyIdentity from(Person person) {
+            return new NameCompanyIdentity(StringUtil.foldCase(person.getName().fullName),
+                    StringUtil.foldCase(person.getCompany().orElseThrow().value));
+        }
     }
 }
