@@ -112,7 +112,7 @@ Format: `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD]
 | --- | --- |
 | `n/NAME` | 1-80 characters; at least one letter. Allows letters, digits, spaces, hyphens, apostrophes (`'` and `’`, stored as `'`), full stops, commas, parentheses, `@`, and `s/o`, `d/o`, `a/l`, or `a/p` between words. |
 | `c/COMPANY` | 1-100 characters; cannot be blank. Supports common business slash abbreviations such as `t/a`, `d/b/a`, `c/o`, `S/B`, `P/L`, `I/O`, `A/B`, and `M/s`. |
-| `e/EMAIL` | Valid email format, such as `alicia@example.com`; stored in lowercase. |
+| `e/EMAIL` | A conventional unquoted email address, up to 254 characters with a local part up to 64 characters. The local part starts and ends with a letter or digit and may use <code>! # $ % &amp; ' * + / = ? ^ _ &#96; { &#124; } ~ . -</code> individually between letters or digits. Quoted addresses and other uncommon mailbox formats are not supported. Stored in lowercase. |
 | `p/PHONE` | Each number has 7-15 digits, optionally starting with `+`; spaces, hyphens, full stops, and parentheses are allowed. Extensions use `ext`, `ext.`, or `x` followed by 1-6 digits. Separate multiple numbers with `,`, `;`, or `/`, e.g. `(65) 6123-4567 ext 88 / 9123 4567`. Formatting is preserved, with repeated spaces collapsed. Maximum 100 characters overall; labels such as `(HP)` are not accepted. |
 | `m/METHOD` | Optional: `email`, `phone`, or `other`, ignoring case. Omitted method is `Not specified`. |
 | `s/STATUS` | Optional: `Needs follow-up` (default), `In progress`, `Completed`, or `Cancelled`, ignoring case. |
@@ -126,6 +126,7 @@ Examples (enter each command on one line):
 ```text
 add n/Alicia Tan c/TechNova Pte Ltd e/alicia@technova.com p/91234567 m/email t/technology t/high-priority
 add n/Ben Lim c/GreenWorks e/BEN@example.com p/+65 8765-4321 s/In progress f/20261025
+add n/Chloe Ng c/ExpoWorks e/chloe%expo@example.com p/87654321
 ```
 
 The first command displays:
@@ -144,7 +145,7 @@ After a successful add:
 * Use `view n/NAME` to print the saved details, or `list` to print all contacts.
 * The command box clears and keeps keyboard focus, ready for the next command.
 
-The second example stores the email in lowercase as `ben@example.com` and keeps the phone as typed, `+65 8765-4321`. A subsequent `view n/Ben Lim` shows `Not specified` for the omitted method and `None` for an empty tag set.
+The second example stores the email in lowercase as `ben@example.com` and keeps the phone as typed, `+65 8765-4321`. A subsequent `view n/Ben Lim` shows `Not specified` for the omitted method and `None` for an empty tag set. The third example demonstrates `%`, one of the supported email local-part characters.
 
 If validation or duplicate detection fails, the typed command remains available for correction. No contact is added.
 
@@ -175,7 +176,7 @@ Use the field rules above to correct invalid values. Rejected input does not add
 | Empty field (example: `c/`) | `Empty field: c/. Supply a value after this prefix.` |
 | Invalid name | `Invalid value for n/: Names must be 1 to 80 characters and contain a letter. Use only letters, digits, spaces, hyphens, apostrophes, full stops, commas, parentheses, @, or s/o, d/o, a/l and a/p between words.` |
 | Invalid company | `Invalid value for c/: Company name must contain 1 to 100 characters.` |
-| Invalid email | `Invalid value for e/: Email address is invalid.` |
+| Invalid email | `Invalid value for e/: Email address is invalid. Use a conventional unquoted address; run help and follow the User Guide for supported email formats.` |
 | Phone with a disallowed label, e.g. `(HP)` | `Invalid value for p/: Phone number can only contain digits, spaces, hyphens, full stops, parentheses, a leading +, an extension (ext or x), and , ; or / between multiple numbers.` |
 | Phone with too few or too many digits | `Invalid value for p/: Each phone number must contain 7 to 15 digits (excluding any extension), optionally starting with +.` |
 | Invalid method | `Invalid value for m/: Contact method must be email, phone, or other.` |
