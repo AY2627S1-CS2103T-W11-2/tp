@@ -160,14 +160,14 @@ public class BulkContactValidationTest {
     }
 
     private static void assertReplacementMatchesIdentityRule(List<Person> input) {
-        boolean duplicate = false;
+        boolean hasDuplicate = false;
         for (int first = 0; first < input.size(); first++) {
             for (int second = first + 1; second < input.size(); second++) {
-                duplicate |= input.get(first).isSamePerson(input.get(second));
+                hasDuplicate |= input.get(first).isSamePerson(input.get(second));
             }
         }
         UniquePersonList list = new UniquePersonList();
-        if (duplicate) {
+        if (hasDuplicate) {
             assertThrows(DuplicatePersonException.class, () -> list.setPersons(input));
             assertTrue(list.asUnmodifiableObservableList().isEmpty());
         } else {

@@ -117,10 +117,17 @@ public class StorageRecoveryTest {
         JsonAddressBookStorage storage = new JsonAddressBookStorage(path);
         assertThrows(DataLoadingException.class, storage::readAddressBook);
         Files.delete(path);
+        Path locks = directory.resolve(".boothmanagerpro-locks");
+        try (var files = Files.list(locks)) {
+            for (Path lock : files.toList()) {
+                Files.delete(lock);
+            }
+        }
+        Files.delete(locks);
         Files.delete(directory);
         assertThrows(ConcurrentDataModificationException.class, () -> storage.saveAddressBook(new AddressBook()));
-        assertFalse(Files.exists(directory), "A rejected save must not create replacement data");
-        Files.createDirectory(directory);
+        assertFalse(Files.exists(path), "A rejected save must not create replacement contact data");
+        Files.createDirectories(directory);
         Files.writeString(path, "broken file");
         storage.saveAddressBook(new AddressBook());
         assertEquals("broken file", Files.readString(backupsIn(directory).getFirst()));

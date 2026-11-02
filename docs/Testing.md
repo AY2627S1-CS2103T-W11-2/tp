@@ -133,7 +133,7 @@ Manual check in a separate test folder:
 
 `StorageRecoveryTest` checks null JSON roots, null contact/tag entries, invalid JSON, unchanged source bytes after failed reads, unique recovery backups, failed-copy retry, successful manual repair, and saves through the command layer. `StartupRecoveryTest` checks the real startup fallbacks for contacts and preferences. `MainWindowTest` checks the visible loading warning and continued command entry.
 
-Manual check in a disposable folder: write `null` to `data/addressbook.json`, launch the JAR, and check the loading warning. Run `list`; verify that a same-directory `.recovery-` backup contains exactly `null`, while the active data file contains a valid empty collection. Restart and check ordinary startup. Keep all real contact files outside the test folder.
+Manual check in a disposable folder: write `null` to `data/addressbook.json`, launch the JAR, and check the loading warning. Run `list`; the unreadable source file should remain unchanged. Then run `add n/Recovery Check c/Test e/recovery@example.com p/91234567`. Verify that a same-directory `.recovery-` backup contains exactly `null`, while the active data file contains the newly added contact in valid JSON. Restart and check that the contact loads normally. Keep all real contact files outside the test folder.
 
 ## Hidden index protection
 
@@ -195,3 +195,8 @@ The caller's input list and the observable model view are checked for unintended
 For performance comparisons, use the same 1,000-contact dataset, Java version and machine before and after
 changes. Warm up the command path, measure several runs, and record the dataset size and median duration.
 Keep this measurement separate from correctness tests so machine load does not cause intermittent failures.
+
+`JsonAddressBookStorageTest` checks that process-lock files remain inside the data directory's
+`.boothmanagerpro-locks` subfolder, that reads reuse the same lock, and that a blocked lock directory
+produces a controlled loading failure. `ConcurrentSessionIntegrationTest` checks that the new location
+continues to prevent a stale application session from overwriting another session's saved contacts.

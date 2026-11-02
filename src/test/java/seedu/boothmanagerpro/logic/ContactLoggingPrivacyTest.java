@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,6 +18,8 @@ import java.util.logging.Logger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.boothmanagerpro.commons.core.LogsCenter;
+import seedu.boothmanagerpro.commons.exceptions.DataLoadingException;
 import seedu.boothmanagerpro.logic.commands.exceptions.CommandException;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 import seedu.boothmanagerpro.model.ModelManager;
@@ -31,25 +34,15 @@ public class ContactLoggingPrivacyTest {
     @Test
     public void commandLogs_keepDiagnosticsWithoutContactFields() throws Exception {
         List<String> messages = new ArrayList<>();
-        Handler capture = new Handler() {
-            @Override
-            public void publish(LogRecord record) {
-                messages.add(record.getMessage());
-            }
-
-            @Override
-            public void flush() {}
-
-            @Override
-            public void close() {}
-        };
+        Handler capture = recordMessages(messages);
         Map<Logger, Level> levels = new HashMap<>();
-        seedu.boothmanagerpro.commons.core.LogsCenter.getLogger(ContactLoggingPrivacyTest.class);
+        LogsCenter.getLogger(ContactLoggingPrivacyTest.class);
         Logger parent = Logger.getLogger("ab3");
         parent.addHandler(capture);
         for (String name : List.of("logic.LogicManager", "logic.parser.AddressBookParser",
                 "logic.parser.AddCommandParser", "logic.parser.UpdateCommandParser",
-                "logic.commands.AddCommand", "logic.commands.UpdateCommand", "logic.commands.FindCommand")) {
+                "logic.commands.AddCommand", "logic.commands.UpdateCommand", "logic.commands.FindCommand",
+                "model.ModelManager")) {
             Logger logger = Logger.getLogger("ab3." + name.substring(name.lastIndexOf('.') + 1));
             levels.put(logger, logger.getLevel());
             logger.setLevel(Level.ALL);
@@ -69,6 +62,7 @@ public class ContactLoggingPrivacyTest {
             assertTrue(logic.execute("view n/Private Person").getFeedbackToUser().contains("98765432"));
             assertTrue(storage.readAddressBook().orElseThrow().getPersonList().getFirst()
                     .getEmail().value.equals("private@example.com"));
+            new ModelManager(model.getAddressBook(), model.getUserPrefs());
             String text = String.join("\n", messages);
             for (String sensitive : List.of("Private Person", "Secret Expo", "private@example.com", "91234567",
                     "98765432", "private-tag", "Unknown Person")) {
@@ -88,11 +82,28 @@ public class ContactLoggingPrivacyTest {
         String privateValue = "privateContactMarker";
         String contents = "{\"persons\": " + privateValue + "}";
         Path dataFile = folder.resolve("malformed.json");
-        java.nio.file.Files.writeString(dataFile, contents);
+        Files.writeString(dataFile, contents);
         List<String> messages = new ArrayList<>();
-        seedu.boothmanagerpro.commons.core.LogsCenter.getLogger(ContactLoggingPrivacyTest.class);
+        LogsCenter.getLogger(ContactLoggingPrivacyTest.class);
         Logger parent = Logger.getLogger("ab3");
-        Handler capture = new Handler() {
+        Handler capture = recordMessages(messages);
+        parent.addHandler(capture);
+        try {
+            JsonAddressBookStorage storage = new JsonAddressBookStorage(dataFile);
+            assertThrows(DataLoadingException.class,
+                    storage::readAddressBook);
+            assertTrue(storage.isRecoveryPending());
+            assertTrue(Files.readString(dataFile).equals(contents));
+            String logged = String.join("\n", messages);
+            assertFalse(logged.contains(privateValue));
+            assertTrue(logged.contains(dataFile.toString()));
+        } finally {
+            parent.removeHandler(capture);
+        }
+    }
+
+    private static Handler recordMessages(List<String> messages) {
+        return new Handler() {
             @Override
             public void publish(LogRecord record) {
                 messages.add(record.getMessage());
@@ -104,18 +115,5 @@ public class ContactLoggingPrivacyTest {
             @Override
             public void close() {}
         };
-        parent.addHandler(capture);
-        try {
-            JsonAddressBookStorage storage = new JsonAddressBookStorage(dataFile);
-            assertThrows(seedu.boothmanagerpro.commons.exceptions.DataLoadingException.class,
-                    storage::readAddressBook);
-            assertTrue(storage.isRecoveryPending());
-            assertTrue(java.nio.file.Files.readString(dataFile).equals(contents));
-            String logged = String.join("\n", messages);
-            assertFalse(logged.contains(privateValue));
-            assertTrue(logged.contains(dataFile.toString()));
-        } finally {
-            parent.removeHandler(capture);
-        }
     }
 }
