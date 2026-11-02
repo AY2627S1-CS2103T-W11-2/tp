@@ -140,7 +140,7 @@ public class ParserUtilTest {
         assertThrows(ParseException.class, () -> ParserUtil.parsePhone(INVALID_PHONE));
         assertThrows(ParseException.class,
                 ParserUtil.MESSAGE_PHONE_CHARACTERS, ()
-                -> ParserUtil.parsePhone("1234 5678 (HP)"));
+                -> ParserUtil.parsePhone("1234 5678 (H1)"));
         assertThrows(ParseException.class, ParserUtil.MESSAGE_PHONE_DIGITS, ()
                 -> ParserUtil.parsePhone("123"));
     }
