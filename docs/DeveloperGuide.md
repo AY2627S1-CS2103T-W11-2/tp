@@ -173,7 +173,7 @@ The `Storage` component,
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`).
 * safeguards contact data through automated corruption recovery and inter-process concurrency control:
-  * **Corrupted data recovery:** Invalid JSON objects or corrupt entries produce controlled loading errors with a visible UI warning. `JsonAddressBookStorage` records failed loads using `DataFileRecovery`. Before any subsequent save to that path, it creates a unique `.recovery-<timestamp>.json` backup of the original unreadable file bytes. Backup failure blocks saving to prevent accidental data loss. Recovery files are never automatically overwritten or loaded.
+  * **Corrupted data recovery:** Invalid JSON objects or corrupt entries produce controlled loading errors with a visible UI warning. `JsonAddressBookStorage` records failed loads using `DataFileRecovery`. Before any subsequent save to that path, it creates a unique `.recovery-<unique suffix>.json` backup of the original unreadable file bytes. Backup failure blocks saving to prevent accidental data loss. Recovery files are never automatically overwritten or loaded.
   * **Concurrency protection:** `JsonAddressBookStorage` records the file state (content hash, modification time, and size) loaded by the current session. When saving, an OS-level file lock (`FileLock`) in the temporary directory coordinates across processes, and if another application instance has modified the file, stale saves are rejected with an error rather than silently overwriting the newer data.
 
 ### Common classes
@@ -689,7 +689,7 @@ Use case ends.
 
 * Values for the same field are combined using OR; criteria for different fields are combined using AND.
 * Unprefixed keywords match whole name words using OR. Prefixed name criteria match a complete name or a single whole name word. Company, email, and phone criteria (`c/`, `e/`, `p/`) match full or partial values; contact method, enquiry status, tag, and follow-up date criteria (`m/`, `s/`, `t/`, `f/`) match complete values.
-* Name, company, email, contact method, enquiry status, and tag comparisons ignore case and surrounding spaces; phone comparisons ignore spaces, hyphens, full stops, and parentheses; follow-up date criteria accept an exact date (`YYYYMMDD`) or `today`, `due`, and `overdue`, and exclude contacts without a date.
+* Name, company, email, contact method, enquiry status, and tag comparisons ignore case and surrounding spaces; phone comparisons ignore spaces, hyphens, full stops, and parentheses; follow-up date criteria accept an exact date (`YYYYMMDD`), an inclusive range (`YYYYMMDD..YYYYMMDD`), or `today`, `due`, and `overdue`, and exclude contacts without a date.
 * Repeated identical search values are ignored.
 
 **Extensions**
@@ -1054,8 +1054,8 @@ The features and improvements below represent acknowledged limitations, unfulfil
 
 ### 1. Follow-up date range search
 
-* **Current behavior:** `find` accepts exact dates and the relative keywords `today`, `due`, and `overdue`. Arbitrary date ranges are not supported.
-* **Proposed enhancement:** Add date ranges (e.g. `find f/before:YYYYMMDD` or `find f/after:YYYYMMDD`) so organizers can select follow-ups within a chosen period.
+* **Current behavior:** `find` accepts exact dates, inclusive `YYYYMMDD..YYYYMMDD` ranges, and the relative keywords `today`, `due`, and `overdue`. `FollowUpDateRange` validates both calendar dates and their order; the predicate parses each range once per search and reuses it for matching contacts.
+* **Proposed enhancement:** Add open-ended `before:` and `after:` forms for searches with one boundary.
 
 ### 2. Reversible command execution (`undo` and `redo`)
 
@@ -1109,8 +1109,8 @@ BoothManagerPro is a brownfield evolution of AddressBook-Level 3 (AB3). While AB
 
 2. **Multi-process concurrency and data corruption recovery:**
    * Desktop applications often face edge cases where users open multiple instances or edit data files externally.
-   * `JsonAddressBookStorage` integrates OS-level `FileLock` coordination in the temporary directory to serialize concurrent writes and maintains file state fingerprints (hash, size, timestamp) to detect and reject stale writes.
-   * When loading invalid or corrupted JSON files, `DataFileRecovery` automatically creates a byte-for-byte backup (`.recovery-<timestamp>.json`) before permitting subsequent saves, safeguarding user data against permanent loss.
+   * `JsonAddressBookStorage` uses an OS-level `FileLock` in the temporary directory to serialize writes. It records whether the data file exists and its bytes, then compares that snapshot before saving to reject stale writes.
+   * After a failed load, `DataFileRecovery` copies the original file to a same-directory `.recovery-<unique suffix>.json` backup before the next save. `Files.createTempFile` allocates the unique backup name.
 
 3. **Dynamic sorting with index stability:**
    * Wrapping a JavaFX `FilteredList` inside a `SortedList` required ensuring that one-based displayed indices remain consistent across all commands (`delete`, `tag`, `update`) without mutating the stored order of contacts on disk.

@@ -224,3 +224,40 @@ Before replying, run `find f/today`.
 A subsequent bare `2` should report an invalid command instead of selecting from the previous view choices.
 
 After changing these workflows, run `check coverage` and inspect both test failures and changed-line coverage.
+
+### Cross-feature follow-up checks
+
+`RelativeFollowUpWorkflowTest` also checks the following transitions:
+
+| Starting point | Action | Expected result |
+| --- | --- | --- |
+| Due contacts sorted by name | Delete the second displayed contact | The correct saved contact is removed; restarting preserves that deletion. |
+| Due contacts sorted by name | Rename the second contact to an existing identity | The update fails, preserving all contacts, the filter, order, and saved JSON. |
+| Overlapping relative and literal date alternatives | Run the combined search | Each matching contact appears once. |
+| One matching contact visible | Run `clear confirm` | The complete collection, including hidden contacts, is cleared and remains empty after restart. |
+| An overdue search is active | Add an overdue contact | Adding restores all contacts; rerunning the search includes the new contact. |
+| A second session has changed the saved file | Delete from the stale session's due results | Saving fails; the stale model rolls back and the newer disk contents remain intact. |
+| A filtered, sorted session is closed | Restart and rerun its date search | Saved contacts load in stored order and the search returns the expected subset. |
+| Due results are active and saving fails | Delete or clear | Hidden contacts and displayed indices are restored; the file bytes remain unchanged. |
+
+For the two-session check, open both sessions before changing either one's data.
+Save a phone update in the first session, then attempt a deletion in the second.
+Check the phone value from a newly opened session after the rejected deletion.
+
+When recording a manual failure, include the app version, operating system, local date,
+starting contacts, commands in order, expected result, and actual result.
+Use disposable data and remove real contact details from screenshots and attached JSON.
+If the failure concerns saved data, keep copies from before and after the command.
+
+### Inclusive date range checks
+
+`FollowUpDateRangeTest` checks both included endpoints, dates outside the range, equal endpoints,
+leap days, year boundaries, invalid intervals, and defensive copying of search criteria.
+The workflow tests exercise ranges through the real parser, model, and JSON storage.
+
+1. Create contacts dated 1, 4, 7, and 8 November 2026, plus a contact with no date.
+2. Run `find f/20261101..20261107`; expect the first three dated contacts.
+3. Add `s/Needs follow-up`; expect only contacts in the range with that status.
+4. Repeat an overlapping `f/` range; check that each matching contact appears once.
+5. Run `find f/20261107..20261101` and `find f/20261101..`; expect errors and unchanged data.
+6. Sort by name, search the range, then update a displayed index and verify the intended contact after restart.

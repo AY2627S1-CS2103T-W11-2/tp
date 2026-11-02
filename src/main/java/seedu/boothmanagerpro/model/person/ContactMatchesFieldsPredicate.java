@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -23,6 +24,7 @@ import seedu.boothmanagerpro.model.tag.Tag;
 public class ContactMatchesFieldsPredicate implements Predicate<Person> {
     private final Map<String, Set<String>> criteria;
     private final LocalDate referenceDate;
+    private final Map<String, FollowUpDateRange> dateRanges;
 
     /** Creates a predicate from normalised field values, defensively copying the supplied criteria. */
     public ContactMatchesFieldsPredicate(Map<String, Set<String>> criteria) {
@@ -34,6 +36,9 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
         referenceDate = LocalDate.now(requireNonNull(clock));
         this.criteria = criteria.entrySet().stream().collect(Collectors.toUnmodifiableMap(
                 Map.Entry::getKey, entry -> Set.copyOf(entry.getValue())));
+        dateRanges = this.criteria.getOrDefault("f/", Set.of()).stream()
+                .filter(value -> value.contains(".."))
+                .collect(Collectors.toUnmodifiableMap(Function.identity(), FollowUpDateRange::parse));
     }
 
     /** Normalises search values, including phone formatting characters (spaces, hyphens, dots, parentheses). */
@@ -103,7 +108,8 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
     private boolean matchesFollowUpDate(FollowUpDate date, Set<String> values) {
         return values.stream().anyMatch(value -> RelativeFollowUpFilter.fromKeyword(value)
                 .map(filter -> filter.matches(date, referenceDate))
-                .orElseGet(() -> value.equals(date.toIsoDate())
+                .orElseGet(() -> value.contains("..") ? dateRanges.get(value).matches(date)
+                        : value.equals(date.toIsoDate())
                         || value.equals(date.toString().toLowerCase(Locale.ROOT))));
     }
 

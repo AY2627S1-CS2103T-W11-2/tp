@@ -156,6 +156,182 @@ public class RelativeFollowUpWorkflowTest {
         assertNames("Alicia Tan");
     }
 
+    @Test
+    public void deleteAfterSortedRelativeSearch_removesDisplayedContactAndSurvivesReload() throws Exception {
+        logic.execute("list o/name");
+        logic.execute("find f/due");
+        assertNames("Alicia Tan", "Ben Lim");
+        logic.execute("delete 2");
+        assertNames("Alicia Tan");
+        model = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
+        logic = IntegrationTestFixture.createLogic(model, storage, folder.resolve("deleted-prefs.json"));
+        logic.execute("find f/due");
+        assertNames("Alicia Tan");
+        assertEquals(List.of("Cora Lim", "Dora Lim", "Alicia Tan"),
+                model.getAddressBook().getPersonList().stream().map(person -> person.getName().fullName).toList());
+    }
+
+    @Test
+    public void duplicateUpdateFromRelativeResults_preservesFilterOrderAndDisk() throws Exception {
+        logic.execute("list o/name");
+        logic.execute("find f/due");
+        List<Person> displayed = List.copyOf(model.getFilteredPersonList());
+        List<Person> all = List.copyOf(model.getAddressBook().getPersonList());
+        String json = Files.readString(storage.getAddressBookFilePath());
+        assertThrows(CommandException.class, () -> logic.execute("update 2 n/Alicia Tan"));
+        assertEquals(displayed, model.getFilteredPersonList());
+        assertEquals(all, model.getAddressBook().getPersonList());
+        assertEquals(json, Files.readString(storage.getAddressBookFilePath()));
+        logic.execute("update 2 p/89999999");
+        assertEquals("89999999", saved("Ben Lim").getPhone().value);
+    }
+
+    @Test
+    public void overlappingRelativeAndLiteralAlternatives_returnsEachContactOnce() throws Exception {
+        String json = Files.readString(storage.getAddressBookFilePath());
+        logic.execute("find f/today f/due f/overdue f/" + date(0) + " f/TODAY");
+        assertNames("Ben Lim", "Alicia Tan");
+        logic.execute("find f/overdue f/" + date(1));
+        assertNames("Cora Lim", "Alicia Tan");
+        logic.execute("find f/overdue f/" + date(1) + " t/vip");
+        assertNames();
+        assertEquals(json, Files.readString(storage.getAddressBookFilePath()));
+    }
+
+    @Test
+    public void confirmedClearFromRelativeResults_removesHiddenContactsToo() throws Exception {
+        logic.execute("find f/today");
+        assertNames("Ben Lim");
+        logic.execute("clear confirm");
+        assertNames();
+        assertEquals(0, model.getAddressBook().getPersonList().size());
+        assertEquals(0, storage.readAddressBook().orElseThrow().getPersonList().size());
+        model = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
+        logic = IntegrationTestFixture.createLogic(model, storage, folder.resolve("cleared-prefs.json"));
+        logic.execute("find f/due");
+        assertNames();
+    }
+
+    @Test
+    public void addResetsFilter_andRerunRelativeSearchIncludesNewMatchingContacts() throws Exception {
+        logic.execute("find f/overdue");
+        logic.execute("add n/Eva Tan c/Acme e/eva@example.com p/85678901 f/" + date(-2));
+        assertNames("Cora Lim", "Ben Lim", "Dora Lim", "Alicia Tan", "Eva Tan");
+        logic.execute("find f/overdue");
+        assertNames("Alicia Tan", "Eva Tan");
+        logic.execute("add n/Felix Tan c/Acme e/felix@example.com p/86789012 f/" + date(2));
+        logic.execute("find f/overdue");
+        assertNames("Alicia Tan", "Eva Tan");
+        assertEquals(6, storage.readAddressBook().orElseThrow().getPersonList().size());
+        logic.execute("find f/" + date(2));
+        assertNames("Felix Tan");
+    }
+
+    @Test
+    public void staleRelativeSession_rejectsSaveAndPreservesNewerDiskData() throws Exception {
+        JsonAddressBookStorage staleStorage = new JsonAddressBookStorage(storage.getAddressBookFilePath());
+        ModelManager staleModel = new ModelManager(staleStorage.readAddressBook().orElseThrow(), new UserPrefs());
+        LogicManager staleLogic = IntegrationTestFixture.createLogic(
+                staleModel, staleStorage, folder.resolve("stale-prefs.json"));
+        staleLogic.execute("list o/name");
+        staleLogic.execute("find f/due");
+        List<Person> displayed = List.copyOf(staleModel.getFilteredPersonList());
+        List<Person> all = List.copyOf(staleModel.getAddressBook().getPersonList());
+        logic.execute("update Ben Lim p/89999999");
+        String newerJson = Files.readString(storage.getAddressBookFilePath());
+        assertThrows(CommandException.class, () -> staleLogic.execute("delete 1"));
+        assertEquals(displayed, staleModel.getFilteredPersonList());
+        assertEquals(all, staleModel.getAddressBook().getPersonList());
+        assertEquals(newerJson, Files.readString(storage.getAddressBookFilePath()));
+        assertEquals("89999999", saved("Ben Lim").getPhone().value);
+    }
+
+    @Test
+    public void restartingRestoresSavedContactsAndSearchCanBeReapplied() throws Exception {
+        logic.execute("list o/name");
+        logic.execute("find f/today");
+        assertNames("Ben Lim");
+        String json = Files.readString(storage.getAddressBookFilePath());
+        model = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
+        logic = IntegrationTestFixture.createLogic(model, storage, folder.resolve("restart-prefs.json"));
+        assertNames("Cora Lim", "Ben Lim", "Dora Lim", "Alicia Tan");
+        logic.execute("find f/today");
+        assertNames("Ben Lim");
+        assertEquals(json, Files.readString(storage.getAddressBookFilePath()));
+    }
+
+    @Test
+    public void failedDeleteAndClear_restoreHiddenContactsAndRelativeResults() throws Exception {
+        logic.execute("list o/name");
+        logic.execute("find f/due");
+        List<Person> displayed = List.copyOf(model.getFilteredPersonList());
+        List<Person> all = List.copyOf(model.getAddressBook().getPersonList());
+        String json = Files.readString(storage.getAddressBookFilePath());
+        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(storage.getAddressBookFilePath()) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                throw new IOException("Simulated save failure");
+            }
+        };
+        LogicManager failingLogic = IntegrationTestFixture.createLogic(
+                model, failingStorage, folder.resolve("failed-deletion-prefs.json"));
+        for (String command : List.of("delete 1", "clear confirm")) {
+            assertThrows(CommandException.class, () -> failingLogic.execute(command));
+            assertEquals(all, model.getAddressBook().getPersonList());
+            assertEquals(displayed, model.getFilteredPersonList());
+            assertEquals(json, Files.readString(storage.getAddressBookFilePath()));
+        }
+        logic.execute("delete 2");
+        assertNames("Alicia Tan");
+        assertEquals(3, storage.readAddressBook().orElseThrow().getPersonList().size());
+    }
+
+    @Test
+    public void dateRange_combinesInclusiveEndpointsAlternativesAndStatus() throws Exception {
+        String json = Files.readString(storage.getAddressBookFilePath());
+        logic.execute("find f/" + date(-1) + ".." + date(1));
+        assertNames("Cora Lim", "Ben Lim", "Alicia Tan");
+        logic.execute("find f/" + date(-1) + ".." + date(1) + " f/" + date(0) + " s/In progress");
+        assertNames("Ben Lim");
+        logic.execute("find f/" + date(-1) + ".." + date(0) + " f/" + date(1) + ".." + date(2));
+        assertNames("Cora Lim", "Ben Lim", "Alicia Tan");
+        logic.execute("find f/" + date(0) + ".." + date(0));
+        assertNames("Ben Lim");
+        assertEquals(json, Files.readString(storage.getAddressBookFilePath()));
+    }
+
+    @Test
+    public void invalidDateRange_preservesContactsFilterAndSavedJson() throws Exception {
+        logic.execute("find f/today");
+        List<Person> displayed = List.copyOf(model.getFilteredPersonList());
+        List<Person> all = List.copyOf(model.getAddressBook().getPersonList());
+        String json = Files.readString(storage.getAddressBookFilePath());
+        for (String range : List.of(date(1) + ".." + date(-1), date(0) + "..", ".." + date(0),
+                date(-1) + ".." + date(0) + ".." + date(1), "20230229..20230301")) {
+            assertThrows(ParseException.class, () -> logic.execute("find f/" + range));
+            assertEquals(displayed, model.getFilteredPersonList());
+            assertEquals(all, model.getAddressBook().getPersonList());
+            assertEquals(json, Files.readString(storage.getAddressBookFilePath()));
+        }
+        assertThrows(ParseException.class, () -> logic.execute("update 1 f/" + date(-1) + ".." + date(1)));
+        assertEquals(json, Files.readString(storage.getAddressBookFilePath()));
+    }
+
+    @Test
+    public void dateRangeAfterSorting_usesDisplayedIndicesAndSurvivesReload() throws Exception {
+        logic.execute("list o/name");
+        logic.execute("find f/" + date(-1) + ".." + date(0));
+        assertNames("Alicia Tan", "Ben Lim");
+        logic.execute("update 2 f/" + date(2));
+        assertEquals(date(2), saved("Ben Lim").getFollowUpDate().orElseThrow().toIsoDate());
+        model = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
+        logic = IntegrationTestFixture.createLogic(model, storage, folder.resolve("range-reload-prefs.json"));
+        logic.execute("find f/" + date(-1) + ".." + date(0));
+        assertNames("Alicia Tan");
+        logic.execute("find f/" + date(1) + ".." + date(2));
+        assertNames("Cora Lim", "Ben Lim");
+    }
+
     private String date(int offset) {
         return today.plusDays(offset).format(DateTimeFormatter.BASIC_ISO_DATE);
     }

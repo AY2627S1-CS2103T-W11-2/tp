@@ -25,7 +25,7 @@ updating, tagging, filtering, and deleting contact records.
 
 Contacts record an enquiry status, preferred contact method, and an optional follow-up date.
 Use `update NAME_OR_INDEX s/STATUS f/YYYYMMDD` to modify these fields, and `tag` to toggle tags.
-Use `find f/YYYYMMDD` for an exact follow-up date, or `find f/today`, `find f/due`, and `find f/overdue` for relative date filtering. Due includes today and earlier dates; overdue excludes today. These searches do not imply an enquiry status. Date ranges and automatic reminders remain planned.
+Use `find f/YYYYMMDD` for an exact follow-up date, `find f/YYYYMMDD..YYYYMMDD` for an inclusive date range, or `find f/today`, `find f/due`, and `find f/overdue` for relative date filtering. Due includes today and earlier dates; overdue excludes today. Combine date criteria with `s/` to select an enquiry status. Automatic reminders remain planned.
 
 ## UI preview
 

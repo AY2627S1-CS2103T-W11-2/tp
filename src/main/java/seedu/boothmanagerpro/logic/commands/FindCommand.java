@@ -26,7 +26,7 @@ public class FindCommand extends Command {
             + "Names match a complete name or a whole name word; companies, emails, and phones match full or partial "
             + "values; methods, statuses, tags, and dates match complete values. "
             + "Repeat a prefix for alternatives (OR); different fields use AND.\n"
-            + "Date: YYYYMMDD, today, due (today or earlier), or overdue (earlier than today). "
+            + "Date: YYYYMMDD, YYYYMMDD..YYYYMMDD (inclusive), today, due (today or earlier), or overdue. "
             + "Uses the local calendar date when the search is run; status is a separate criterion.\n"
             + "Example: " + COMMAND_WORD + " n/Alice Pauline t/friends";
 

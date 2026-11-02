@@ -41,6 +41,7 @@ import seedu.boothmanagerpro.logic.parser.ArgumentTokenizer;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
 import seedu.boothmanagerpro.model.person.ContactMethod;
 import seedu.boothmanagerpro.model.person.EnquiryStatus;
+import seedu.boothmanagerpro.model.person.RelativeFollowUpFilter;
 import seedu.boothmanagerpro.model.person.SortField;
 
 /**
@@ -277,6 +278,10 @@ public class CommandBox extends UiPart<Region> {
         MatchResult lastMatch = prefixes.getLast();
         String prefix = lastMatch.group(1);
         List<String> allowedValues = PREFIX_VALUES.get(prefix);
+        if (commandWord.equals(FindCommand.COMMAND_WORD) && prefix.equals(PREFIX_FOLLOW_UP.toString())) {
+            allowedValues = Arrays.stream(RelativeFollowUpFilter.values())
+                    .map(value -> value.name().toLowerCase(Locale.ROOT)).toList();
+        }
         if (allowedValues == null || !supportedPrefixes.contains(prefix)) {
             return false;
         }

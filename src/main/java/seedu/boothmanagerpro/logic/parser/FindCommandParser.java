@@ -29,6 +29,7 @@ import seedu.boothmanagerpro.model.person.ContactMethod;
 import seedu.boothmanagerpro.model.person.Email;
 import seedu.boothmanagerpro.model.person.EnquiryStatus;
 import seedu.boothmanagerpro.model.person.FollowUpDate;
+import seedu.boothmanagerpro.model.person.FollowUpDateRange;
 import seedu.boothmanagerpro.model.person.Name;
 import seedu.boothmanagerpro.model.person.NameContainsKeywordsPredicate;
 import seedu.boothmanagerpro.model.person.Phone;
@@ -107,7 +108,9 @@ public class FindCommandParser implements Parser<FindCommand> {
 
     private void validateFollowUpCriterion(String value) throws ParseException {
         requireSearchValue(value);
-        if (RelativeFollowUpFilter.fromKeyword(value).isEmpty()) {
+        if (value.contains("..")) {
+            parseValue(PREFIX_FOLLOW_UP, value, FollowUpDateRange::parse);
+        } else if (RelativeFollowUpFilter.fromKeyword(value).isEmpty()) {
             validateCriterion(PREFIX_FOLLOW_UP, value, FollowUpDate::new);
         }
     }

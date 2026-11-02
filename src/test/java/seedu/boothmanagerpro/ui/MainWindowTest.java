@@ -379,6 +379,31 @@ public class MainWindowTest {
     }
 
     @Test
+    public void tabAutocomplete_completesRelativeDatesOnlyForFind() throws Exception {
+        runOnFxThread(() -> {
+            CommandBox commandBox = new CommandBox(command -> new CommandResult(command));
+            TextField commandInput = (TextField) commandBox.getRoot().lookup("#commandTextField");
+            for (String[] example : new String[][] {
+                {"find f/to", "find f/today"},
+                {"find f/d", "find f/due"},
+                {"FIND f/OV", "FIND f/overdue"},
+                {"find t/vip f/ov", "find t/vip f/overdue"},
+                {"find f/today f/d", "find f/today f/due"},
+                {"find f/20261105", "find f/20261105"},
+                {"find f/", "find f/"},
+                {"update Alicia Tan f/ov", "update Alicia Tan f/ov"},
+                {"add n/Alicia Tan c/Acme e/a@example.com p/91234567 f/ov",
+                    "add n/Alicia Tan c/Acme e/a@example.com p/91234567 f/ov"}
+            }) {
+                commandInput.setText(example[0]);
+                pressKey(commandInput, KeyCode.TAB);
+                assertEquals(example[1], commandInput.getText());
+            }
+            return null;
+        });
+    }
+
+    @Test
     public void tabAutocomplete_completesCommandsAndRequiredPrefixes() throws Exception {
         withWindow(new ModelManager(), (window, root, storage) -> {
             TextField commandInput = input(root);
