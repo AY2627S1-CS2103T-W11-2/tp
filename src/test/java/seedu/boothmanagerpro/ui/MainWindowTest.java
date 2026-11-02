@@ -515,9 +515,12 @@ public class MainWindowTest {
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("add n/", commandInput.getText());
 
-            commandInput.setText("ADD n/Alicia Tan");
+            commandInput.setText("ADD N/Alicia Tan");
             pressKey(commandInput, KeyCode.TAB);
-            assertEquals("ADD n/Alicia Tan c/", commandInput.getText());
+            assertEquals("ADD N/Alicia Tan c/", commandInput.getText());
+            commandInput.setText("update 1 S/Completed S");
+            pressKey(commandInput, KeyCode.TAB);
+            assertEquals("update 1 S/Completed S", commandInput.getText());
 
             commandInput.setText("LIST");
             pressKey(commandInput, KeyCode.TAB);
@@ -527,11 +530,11 @@ public class MainWindowTest {
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("find n/", commandInput.getText());
 
-            commandInput.setText("LIST o/st");
+            commandInput.setText("LIST O/st");
             pressKey(commandInput, KeyCode.TAB);
-            assertEquals("LIST o/status", commandInput.getText());
+            assertEquals("LIST O/status", commandInput.getText());
 
-            commandInput.setText("VIEW n");
+            commandInput.setText("VIEW N");
             pressKey(commandInput, KeyCode.TAB);
             assertEquals("VIEW n/", commandInput.getText());
 

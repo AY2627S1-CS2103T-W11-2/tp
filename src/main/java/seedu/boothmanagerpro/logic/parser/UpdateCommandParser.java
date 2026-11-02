@@ -12,6 +12,7 @@ import static seedu.boothmanagerpro.logic.parser.ContactFieldParser.parseValue;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -62,7 +63,7 @@ public class UpdateCommandParser implements Parser<UpdateCommand> {
     /** Rejects unsupported single-letter prefix tokens before tokenising recognised fields and the target. */
     private ArgumentMultimap tokenize(String args) throws ParseException {
         for (MatchResult match : ArgumentTokenizer.findSingleLetterPrefixes(args)) {
-            if (!PREFIXES.contains(new Prefix(match.group(1)))) {
+            if (!PREFIXES.contains(new Prefix(match.group(1).toLowerCase(Locale.ROOT)))) {
                 throw new ParseException(String.format(AddCommandParser.MESSAGE_UNKNOWN_FIELD, match.group(1)));
             }
         }

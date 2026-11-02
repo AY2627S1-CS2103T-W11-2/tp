@@ -4,7 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_NAME;
 
 import java.util.List;
-import java.util.regex.MatchResult;
+import java.util.Locale;
 
 import seedu.boothmanagerpro.logic.commands.ViewCommand;
 import seedu.boothmanagerpro.logic.parser.exceptions.ParseException;
@@ -54,7 +54,7 @@ public class ViewCommandParser implements Parser<ViewCommand> {
      */
     private void rejectOtherPrefixes(String input) throws ParseException {
         List<String> prefixes = ArgumentTokenizer.findSingleLetterPrefixes(input).stream()
-                .map(MatchResult::group).toList();
+                .map(match -> match.group().toLowerCase(Locale.ROOT)).toList();
         boolean hasName = prefixes.contains(PREFIX_NAME.getPrefix());
         boolean hasUnknownField = prefixes.stream()
                 .anyMatch(prefix -> !prefix.equals(PREFIX_NAME.getPrefix()) && !prefix.matches(OTHER_CONTACT_FIELD));
