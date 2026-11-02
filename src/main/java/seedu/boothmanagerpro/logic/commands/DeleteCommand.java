@@ -2,7 +2,6 @@ package seedu.boothmanagerpro.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.List;
 import java.util.Objects;
 
 import seedu.boothmanagerpro.commons.core.index.Index;
@@ -58,37 +57,11 @@ public class DeleteCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Person personToDelete = targetIndex == null
-                ? findPersonByName(model)
-                : findPersonByIndex(model);
+        Person personToDelete = ContactTargetResolver.resolve(
+                model, targetIndex, targetName, MESSAGE_PERSON_NOT_FOUND, MESSAGE_MULTIPLE_PERSONS_FOUND);
         model.deletePerson(personToDelete);
         return new CommandResult(String.format(MESSAGE_DELETE_PERSON_SUCCESS,
                 Messages.formatContactDetails(personToDelete)));
-    }
-
-    private Person findPersonByIndex(Model model) throws CommandException {
-        assert targetIndex != null && targetIndex.getZeroBased() >= 0 : "Target index must be non-negative";
-        List<Person> lastShownList = model.getFilteredPersonList();
-        if (targetIndex.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-        }
-        assert targetIndex.getZeroBased() < lastShownList.size() : "Resolved index must be within list bounds";
-        return lastShownList.get(targetIndex.getZeroBased());
-    }
-
-    private Person findPersonByName(Model model) throws CommandException {
-        assert targetName != null : "Target name cannot be null when finding by name";
-        List<Person> matches = model.getAddressBook().getPersonList().stream()
-                .filter(person -> person.getName().fullName.equalsIgnoreCase(targetName.fullName))
-                .toList();
-
-        if (matches.isEmpty()) {
-            throw new CommandException(String.format(MESSAGE_PERSON_NOT_FOUND, targetName));
-        }
-        if (matches.size() > 1) {
-            throw new CommandException(String.format(MESSAGE_MULTIPLE_PERSONS_FOUND, targetName));
-        }
-        return matches.get(0);
     }
 
     @Override

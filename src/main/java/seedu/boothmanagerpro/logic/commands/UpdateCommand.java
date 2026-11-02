@@ -3,7 +3,6 @@ package seedu.boothmanagerpro.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.boothmanagerpro.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -59,7 +58,8 @@ public class UpdateCommand extends Command {
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
         logger.fine("Executing UpdateCommand.");
-        Person original = resolveTarget(model);
+        Person original = ContactTargetResolver.resolve(
+                model, index, name, DeleteCommand.MESSAGE_PERSON_NOT_FOUND, MESSAGE_AMBIGUOUS);
         Person updated = changes.applyTo(original);
         if (isUnchanged(original, updated)) {
             // Failing keeps the current filter and prevents LogicManager from rewriting an unchanged data file.
@@ -72,36 +72,6 @@ public class UpdateCommand extends Command {
         String identity = AddCommand.formatIdentity(updated);
         logger.info("Successfully updated contact.");
         return new CommandResult("Updated " + identity + (identity.endsWith(".") ? "" : "."));
-    }
-
-    /** Resolves ambiguity without selecting an arbitrary matching contact. */
-    private Person resolveTarget(Model model) throws CommandException {
-        if (index != null) {
-            assert index.getZeroBased() >= 0 : "Target index must be non-negative";
-            List<Person> displayed = model.getFilteredPersonList();
-            if (index.getZeroBased() >= displayed.size()) {
-                logger.warning("UpdateCommand failed: invalid displayed index " + index.getOneBased());
-                throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-            }
-            assert index.getZeroBased() < displayed.size() : "Resolved index must be within list bounds";
-            Person target = displayed.get(index.getZeroBased());
-            logger.fine("Resolved target contact by displayed index.");
-            return target;
-        }
-        assert name != null : "Target name cannot be null when index is null";
-        List<Person> matches = model.getAddressBook().getPersonList().stream()
-                .filter(person -> person.getName().fullName.equalsIgnoreCase(name.fullName)).toList();
-        if (matches.isEmpty()) {
-            logger.warning("UpdateCommand failed: contact not found.");
-            throw new CommandException(String.format(DeleteCommand.MESSAGE_PERSON_NOT_FOUND, name));
-        }
-        if (matches.size() > 1) {
-            logger.warning("UpdateCommand failed; matching contacts: " + matches.size());
-            throw new CommandException(String.format(MESSAGE_AMBIGUOUS, name));
-        }
-        Person target = matches.getFirst();
-        logger.fine("Resolved target contact by name.");
-        return target;
     }
 
     /**
