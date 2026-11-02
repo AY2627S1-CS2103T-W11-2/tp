@@ -38,6 +38,18 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_labelledPhones_success() throws Exception {
+        for (String phone : new String[]{"9123 4567 (HP) / 6123 4567 (Office)", "9123 4567 (HP)/6123 4567 (Office)"}) {
+            ModelManager model = new ModelManager();
+            parser.parse(" n/Alice Tan c/Acme e/alice@example.com p/" + phone).execute(model);
+            Person person = model.getFilteredPersonList().getFirst();
+            assertEquals("Alice Tan", person.getName().fullName);
+            assertEquals("Acme", person.getCompany().orElseThrow().value);
+            assertEquals(phone, person.getPhone().value);
+        }
+    }
+
+    @Test
     public void parse_optionalFieldsAbsentAndAnyOrder_success() throws Exception {
         ModelManager model = new ModelManager();
         parser.parse("p/91234567\te/alicia@technova.com c/ TechNova Pte Ltd   n/ Alicia Tan ").execute(model);
@@ -123,7 +135,7 @@ public class AddCommandParserTest {
             assertParseFailure(parser, valid.replace("91234567", phone),
                     "Invalid value for p/: " + ParserUtil.MESSAGE_PHONE_DIGITS);
         }
-        for (String phone : new String[]{"abc1234567", "1234 5678 (HP)"}) {
+        for (String phone : new String[]{"abc1234567", "1234 5678 HP", "1234 5678 (H1)"}) {
             assertParseFailure(parser, valid.replace("91234567", phone), "Invalid value for p/: "
                     + ParserUtil.MESSAGE_PHONE_CHARACTERS);
         }

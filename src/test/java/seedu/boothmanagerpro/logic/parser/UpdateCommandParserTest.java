@@ -104,8 +104,18 @@ public class UpdateCommandParserTest {
     }
 
     @Test
+    public void parse_labelledPhones_success() {
+        for (String phone : new String[]{"9123 4567 (HP) / 6123 4567 (Office)", "9123 4567 (HP)/6123 4567 (Office)"}) {
+            ContactUpdate changes = changes(Optional.empty(), Optional.of(new Phone(phone)), Optional.empty(),
+                    Optional.empty(), Optional.empty());
+            assertParseSuccess(parser, "1 p/" + phone, new UpdateCommand(INDEX_FIRST_PERSON, changes));
+            assertParseSuccess(parser, "Alice Tan p/" + phone, new UpdateCommand(new Name("Alice Tan"), changes));
+        }
+    }
+
+    @Test
     public void parse_invalidPhone_failure() {
-        assertParseFailure(parser, "1 p/1234 5678 (HP)", "Invalid value for p/: "
+        assertParseFailure(parser, "1 p/1234 5678 (H1)", "Invalid value for p/: "
                 + ParserUtil.MESSAGE_PHONE_CHARACTERS);
         assertParseFailure(parser, "1 p/123",
                 "Invalid value for p/: " + ParserUtil.MESSAGE_PHONE_DIGITS);
