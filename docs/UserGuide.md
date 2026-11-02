@@ -52,7 +52,7 @@ BoothManagerPro is a desktop contact manager for **convention organisers followi
 
 ### Working through commands
 
-* Type a command and press **Enter**. Command words are case-insensitive (for example, `list` or `LIST`), while field prefixes use lowercase letters (for example, `n/`, `c/`, `t/`).
+* Type a command and press **Enter**. Command words and field prefixes are case-insensitive (for example, `list` or `LIST`, and `n/` or `N/`).
 * The command box starts with keyboard focus. Press **Ctrl+L** on Windows/Linux or **Command+L** on macOS to return to it. Use `help` or **F1** for the guide, and `exit` to close the app.
 * Press **Tab** to complete an unambiguous command word, field prefix, contact method, enquiry status, or list sort
   field. It also supplies any missing required `add` prefix, `view n/`, `find n/`, `list o/`, or the first `tag t/` after
@@ -82,6 +82,9 @@ BoothManagerPro is a desktop contact manager for **convention organisers followi
 
 * Items followed by `…`​ can appear zero or more times.<br>
   For example, `[t/TAG]…​` may be omitted, or written as `t/friend` or `t/friend t/family`.
+
+* Command words and field prefixes are case-insensitive.<br>
+  For example, `List`, `ADD n/Alice Tan ...`, and `add N/Alice Tan C/Acme ...` are all accepted.
 
 * Prefixed fields can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
@@ -422,6 +425,7 @@ Format: `delete NAME` or `delete INDEX`
 * The index refers to the index number shown in the current numbered command results.
 * The index **must be an unsigned positive integer** 1, 2, 3, …​ `delete 0` or `delete -1` shows `Index must be a positive integer.`, `delete +1` shows `Index must be an unsigned positive integer (e.g. 1, not +1).`, an index too large to be a list position, such as `delete 99999999999999`, shows `Index is too large. Use a number shown in the current list, find or view results.`, and multiple indices such as `delete 1 2` show `Specify only one displayed index at a time.`
 * Don't include field prefixes: `delete n/Alex Yeoh` shows `Don't include n/ for delete. Use: delete NAME or delete INDEX`, and other prefixes such as `delete 1 t/vip` show `Unexpected field prefix: t/. Use: delete NAME or delete INDEX`. Invalid names show the standard name constraint message.
+* A successful deletion identifies the deleted contact in the feedback and saves the updated contact list automatically.
 
 Examples:
 

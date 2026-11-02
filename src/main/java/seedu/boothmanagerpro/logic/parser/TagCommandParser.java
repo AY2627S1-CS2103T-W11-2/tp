@@ -4,6 +4,7 @@ import static seedu.boothmanagerpro.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.boothmanagerpro.logic.parser.ContactFieldParser.parseValue;
 
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.regex.MatchResult;
 
@@ -33,7 +34,7 @@ public class TagCommandParser implements Parser<TagCommand> {
     /** Rejects unsupported prefix-like tokens before tokenising t/TAG fields and the target. */
     private ArgumentMultimap tokenize(String args) throws ParseException {
         for (MatchResult match : ArgumentTokenizer.findSingleLetterPrefixes(args)) {
-            if (!PREFIX_TAG.equals(new Prefix(match.group(1)))) {
+            if (!PREFIX_TAG.equals(new Prefix(match.group(1).toLowerCase(Locale.ROOT)))) {
                 throw new ParseException(String.format(MESSAGE_UNKNOWN_FIELD, match.group(1)));
             }
         }

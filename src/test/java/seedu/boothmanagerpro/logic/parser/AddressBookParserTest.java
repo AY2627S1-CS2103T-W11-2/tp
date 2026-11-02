@@ -129,12 +129,22 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_caseInsensitiveCommandWord_success() throws Exception {
-        assertEquals(new ListCommand(), parser.parseCommand("LIST"));
-        assertEquals(new ListCommand(SortField.NAME), parser.parseCommand("List o/name"));
+        assertEquals(new ListCommand(), parser.parseCommand("List"));
+        assertEquals(new ListCommand(SortField.NAME), parser.parseCommand("LIST O/name"));
         assertTrue(parser.parseCommand("Help") instanceof HelpCommand);
         assertTrue(parser.parseCommand("eXiT") instanceof ExitCommand);
         assertEquals(new DeleteCommand(INDEX_FIRST_PERSON), parser.parseCommand("DELETE 1"));
-        assertEquals(new ViewCommand(new Name("Alicia Tan")), parser.parseCommand("View n/Alicia Tan"));
+        Person alice = new PersonBuilder().withName("Alice Tan").withCompany("Acme")
+                .withEmail("alice@example.com").withPhone("91234567").withAddress("Not provided").withTags().build();
+        assertEquals(new AddCommand(alice),
+                parser.parseCommand("ADD n/Alice Tan c/Acme e/alice@example.com p/91234567"));
+        assertEquals(new AddCommand(alice),
+                parser.parseCommand("add N/Alice Tan C/Acme E/alice@example.com P/91234567"));
+        assertTrue(parser.parseCommand("Clear Confirm") instanceof ClearCommand);
+        assertTrue(parser.parseCommand("UPDATE 1 S/Completed") instanceof UpdateCommand);
+        assertEquals(new TagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("vip"))), parser.parseCommand("TAG 1 T/vip"));
+        assertTrue(parser.parseCommand("FIND N/Alicia") instanceof FindCommand);
+        assertEquals(new ViewCommand(new Name("Alicia Tan")), parser.parseCommand("View N/Alicia Tan"));
     }
 
     @Test

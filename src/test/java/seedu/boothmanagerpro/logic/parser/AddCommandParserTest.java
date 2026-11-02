@@ -46,6 +46,10 @@ public class AddCommandParserTest {
         assertEquals("TechNova Pte Ltd", person.getCompany().orElseThrow().value);
         assertTrue(person.getContactMethod().isEmpty());
         assertTrue(person.getTags().isEmpty());
+        ModelManager upper = new ModelManager();
+        parser.parse("N/Alicia Tan C/TechNova t/a Events E/a@b.com P/91234567 M/email S/Completed F/20261025 T/vip")
+                .execute(upper);
+        assertEquals("TechNova t/a Events", upper.getFilteredPersonList().getFirst().getCompany().orElseThrow().value);
     }
 
     @Test
@@ -76,13 +80,13 @@ public class AddCommandParserTest {
         }
         assertParseFailure(parser, valid + " m/email m/phone",
                 String.format(AddCommandParser.MESSAGE_REPEATED_FIELD, "m/"));
-        assertParseFailure(parser, "n/A n/B c/C c/D",
+        assertParseFailure(parser, "n/A N/B c/C c/D",
                 String.format(AddCommandParser.MESSAGE_REPEATED_FIELD, "n/, c/"));
     }
 
     @Test
     public void parse_unknownPrefixOrPreamble_identifiesProblem() {
-        for (String prefix : new String[]{"a/", "x/"}) {
+        for (String prefix : new String[]{"a/", "x/", "X/"}) {
             assertParseFailure(parser, valid + " " + prefix + "value",
                     String.format(AddCommandParser.MESSAGE_UNKNOWN_FIELD, prefix));
         }

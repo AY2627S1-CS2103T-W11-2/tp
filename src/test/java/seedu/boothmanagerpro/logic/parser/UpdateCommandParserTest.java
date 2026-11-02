@@ -35,7 +35,7 @@ public class UpdateCommandParserTest {
         ContactUpdate completed = changes(Optional.empty(), Optional.empty(), Optional.of(EnquiryStatus.COMPLETED),
                 Optional.empty(), Optional.empty());
         assertParseSuccess(parser, "1 s/Completed", new UpdateCommand(INDEX_FIRST_PERSON, completed));
-        assertParseSuccess(parser, "  1   s/ completed ", new UpdateCommand(INDEX_FIRST_PERSON, completed));
+        assertParseSuccess(parser, "  1   S/ completed ", new UpdateCommand(INDEX_FIRST_PERSON, completed));
         assertParseSuccess(parser, "Alicia Tan s/Completed", new UpdateCommand(new Name("Alicia Tan"), completed));
     }
 
@@ -118,7 +118,8 @@ public class UpdateCommandParserTest {
 
     @Test
     public void parse_namePrefixBeforeTarget_failure() {
-        for (String args : new String[]{"n/Alicia Tan s/Completed", " n/1 s/Completed", "n/"}) {
+        for (String args : new String[]{"n/Alicia Tan s/Completed", "N/Alicia Tan s/Completed",
+            " n/1 s/Completed", "n/"}) {
             assertNamePrefixFailure(parser, args, "update", TARGET_USAGE);
         }
     }

@@ -3,6 +3,7 @@ package seedu.boothmanagerpro.logic.parser;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -68,7 +69,7 @@ public final class ArgumentTokenizer {
                 continue;
             }
             accepted.add(match);
-            activePrefix = match.group(1);
+            activePrefix = match.group(1).toLowerCase(Locale.ROOT);
             activeValueStart = match.end();
         }
         return List.copyOf(accepted);
@@ -113,7 +114,7 @@ public final class ArgumentTokenizer {
         List<Prefix> prefixList = Arrays.asList(prefixes);
         List<PrefixPosition> positions = new ArrayList<>();
         for (MatchResult match : findSingleLetterPrefixes(argsString)) {
-            Prefix candidate = new Prefix(match.group(1));
+            Prefix candidate = new Prefix(match.group(1).toLowerCase(Locale.ROOT));
             if (prefixList.contains(candidate)) {
                 positions.add(new PrefixPosition(candidate, match.start()));
             }

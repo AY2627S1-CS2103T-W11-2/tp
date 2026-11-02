@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Set;
 
 import seedu.boothmanagerpro.commons.core.index.Index;
@@ -84,7 +85,7 @@ public class ParserUtil {
      * @throws ParseException If {@code args} starts with {@code n/}.
      */
     public static void rejectNamePrefix(String args, String commandWord, String usage) throws ParseException {
-        if (args.strip().startsWith(CliSyntax.PREFIX_NAME.getPrefix())) {
+        if (args.strip().toLowerCase(Locale.ROOT).startsWith(CliSyntax.PREFIX_NAME.getPrefix())) {
             throw new ParseException(String.format(MESSAGE_NAME_PREFIX_NOT_ALLOWED, commandWord, usage));
         }
     }

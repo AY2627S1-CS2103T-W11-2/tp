@@ -28,7 +28,7 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
 <div markdown="span" class="alert alert-primary">
 
-:bulb: **Tip:** The `.puml` files used to create diagrams are in `docs/diagrams`. Refer to the [_PlantUML Tutorial_ at se-edu/guides](https://se-education.org/guides/tutorials/plantUml.html) to learn how to create and edit diagrams.
+:bulb: **Tip:** The `.puml` files used to create diagrams are in `docs/diagrams`. Refer to the [_PlantUML Tutorial_ at se-edu/guides](https://se-education.org/guides/tutorials/plantUml.html) to learn how to create and edit diagrams. Diagrams follow the course [_Modeling (Using UML)_ conventions](https://nus-cs2103-ay2627-s1.github.io/website/se-book-adapted/chapters/modeling.html).
 </div>
 
 ### Architecture
@@ -134,7 +134,8 @@ How the `Logic` component works:
 1. `LogicManager` executes the `DeleteCommand` with `Model`.
 1. `DeleteCommand` obtains the filtered and sorted contact list from `Model`, resolves the one-based displayed index
    to `personToDelete`, and asks `Model` to delete that `Person`.
-1. `DeleteCommand` creates and returns a `CommandResult` containing the deleted contact's details.
+1. `DeleteCommand` sends the `CommandResult(...)` creation message. The resulting object, `r`, contains the deleted
+   contact's details and is returned to `LogicManager`.
 1. `LogicManager` obtains the updated address book from `Model` and asks `Storage` to save it.
 1. If command execution fails (throwing `CommandException` or a `RuntimeException`) or disk persistence fails (throwing `IOException` or `AccessDeniedException`), `LogicManager` executes `rollbackModel(...)` to revert in-memory contacts, the filter predicate, and the display comparator to their prior snapshot.
 1. After persistence succeeds, `LogicManager` returns the `CommandResult` to its caller.
@@ -146,6 +147,7 @@ Here are the other classes in `Logic` (omitted from the class diagram above) tha
 How the parsing works:
 * When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+* Command words (`AddressBookParser`), confirmation keywords (`clear confirm`), and single-letter field prefixes (`n/`, `c/`, `e/`, `p/`, `m/`, `s/`, `f/`, `t/`, `o/`) are matched case-insensitively by normalising tokens with `Locale.ROOT`, while `ArgumentTokenizer` continues to preserve legal-name patronymics (`s/o`, `d/o`, `a/l`, `a/p`) between words and common business slash abbreviations inside `c/` (`C/`).
 
 ### Model component
 **API** : [`Model.java`](../src/main/java/seedu/boothmanagerpro/model/Model.java)
@@ -419,8 +421,9 @@ date never match. Repeated `f/` values are deduplicated and combined with OR, wh
 clearing remain owned by `update`.
 
 The class diagram below shows the main classes involved in follow-up-date search. `FindCommandParser` validates date
-criteria using `FollowUpDate` and creates a `FindCommand` with `ContactMatchesFieldsPredicate`, which implements
-`Predicate<Person>`.
+criteria using `FollowUpDate` and creates a `FindCommand` with `ContactMatchesFieldsPredicate`, which implements the
+`Predicate<Person>` interface and tests each `Person`. Dependencies use UML stereotypes such as `<<create>>` and
+`<<use>>`; associations retain their labels and multiplicities.
 
 ![Classes involved in follow-up-date search](images/FindFollowUpDateClass.png)
 
@@ -819,7 +822,7 @@ These are requirements for the intended product, not claims that every target ha
 * **Index**: The number shown beside a contact in a displayed list, used to select a specific contact when several share the same name
 * **Mainstream OS**: Windows, Linux, Unix, and macOS
 * **Normalisation**: Converting input to a standard form before storing or comparing it, such as lowercasing emails, collapsing repeated spaces in names, and removing formatting from phone numbers for search comparisons
-* **Prefix**: A marker ending in `/` that identifies which field a value belongs to, e.g. `n/` for name or `t/` for tag
+* **Prefix**: A case-insensitive marker ending in `/` that identifies which field a value belongs to, e.g. `n/` (or `N/`) for name or `t/` (or `T/`) for tag
 * **Primary contact**: The representative to contact first when an exhibitor has several representatives
 * **Representative**: A person who acts on behalf of an exhibitor. One exhibitor may have several
 * **Tag**: A short label attached to a contact to group it beyond enquiry status, for example by industry or priority
