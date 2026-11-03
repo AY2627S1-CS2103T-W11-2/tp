@@ -57,7 +57,7 @@ public class FindFollowUpDateIntegrationTest {
     public void find_sameFieldOrDifferentFieldAnd_preservesExistingMatching() throws Exception {
         logic.execute("find f/20261025 f/20261026 f/20261025 t/VIP");
         assertNames("Zoe Tan", "Ben Lim");
-        logic.execute("find c/TECHNOVA f/20261025 e/ALICIA@example.com p/8123-4567 n/ALICIA TAN");
+        logic.execute("find c/TECHNOVA f/20261025 e/ALICIA@example.com p/81234567 n/ALICIA TAN");
         assertNames("Alicia Tan");
         logic.execute("find f/20261026 c/TechNova");
         assertNames();

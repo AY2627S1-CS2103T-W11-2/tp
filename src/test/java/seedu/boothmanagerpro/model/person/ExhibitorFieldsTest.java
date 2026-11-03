@@ -47,7 +47,7 @@ public class ExhibitorFieldsTest {
         assertTrue(Name.isValidName("John2"));
         assertEquals("alicia@example.com", new Email("ALICIA@EXAMPLE.COM").value);
         assertEquals(new Email("alicia@example.com"), new Email("ALICIA@EXAMPLE.COM"));
-        assertEquals("+65 9123-4567", new Phone(" +65 9123-4567 ").value);
+        assertEquals("+6591234567", new Phone(" +6591234567 ").value);
         assertFalse(Phone.isValidPhone("++1234567"));
         assertFalse(Phone.isValidPhone("1234\t567"));
         assertEquals("high-priority", new Tag(" high-priority ").tagName);

@@ -106,25 +106,25 @@ public class FindFieldsTest {
         assertEquals(List.of(ALICE, BENSON), model.getFilteredPersonList());
         parser.parse("n/Alice Pauline t/owesMoney").execute(model);
         assertTrue(model.getFilteredPersonList().isEmpty());
-        parser.parse("e/JOHND@EXAMPLE.COM p/9876-5432").execute(model);
+        parser.parse("e/JOHND@EXAMPLE.COM p/98765432").execute(model);
         assertEquals(List.of(BENSON), model.getFilteredPersonList());
         assertEquals(getTypicalAddressBook(), model.getAddressBook());
     }
 
     @Test
-    public void execute_labelledPhone_matchesDigitsButNotLabel() throws Exception {
+    public void execute_phone_matchesPartialDigitsAndRejectsPunctuation() throws Exception {
         Model model = new ModelManager();
-        Person labelled = new PersonBuilder().withPhone("9123 4567 (HP) / 6123 4567 (Office)").build();
-        model.addPerson(labelled);
+        Person person = new PersonBuilder().withPhone("+6591234567").build();
+        model.addPerson(person);
+        parser.parse("p/+659123").execute(model);
+        assertEquals(List.of(person), model.getFilteredPersonList());
         parser.parse("p/91234567").execute(model);
-        assertEquals(List.of(labelled), model.getFilteredPersonList());
-        parser.parse("p/61234567").execute(model);
-        assertEquals(List.of(labelled), model.getFilteredPersonList());
-        assertThrows(ParseException.class, () -> parser.parse("p/HP"));
+        assertEquals(List.of(person), model.getFilteredPersonList());
+        assertThrows(ParseException.class, () -> parser.parse("p/9123-4567"));
     }
 
     @Test
-    public void execute_phoneWhitespaceAndTagAlternatives_match() throws Exception {
+    public void execute_phoneAndTagAlternatives_match() throws Exception {
         Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
         parser.parse("p/9435 1253 t/vip t/friends").execute(model);
         assertEquals(List.of(ALICE), model.getFilteredPersonList());
@@ -196,12 +196,12 @@ public class FindFieldsTest {
         parser.parse("e/greenworks").execute(model);
         assertEquals(List.of(chloe), model.getFilteredPersonList());
 
-        // Partial phone search (including country code, spaces, and hyphens)
+        // Partial phone search, including a leading country code
         parser.parse("p/8743").execute(model);
         assertEquals(List.of(alicia), model.getFilteredPersonList());
         parser.parse("p/+65 9123").execute(model);
         assertEquals(List.of(ben), model.getFilteredPersonList());
-        parser.parse("p/9123-45").execute(model);
+        parser.parse("p/912345").execute(model);
         assertEquals(List.of(ben), model.getFilteredPersonList());
 
         // Enquiry status (s/) and contact method (m/) filters with OR/AND and absent-method handling

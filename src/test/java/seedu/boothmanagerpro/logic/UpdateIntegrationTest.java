@@ -41,13 +41,13 @@ public class UpdateIntegrationTest {
     @Test
     public void update_allFields_normalisesAndPersists() throws Exception {
         assertEquals("Updated Alice Tan at New Company.", logic.execute("update alicia tan n/Alice Tan "
-                + "c/New Company e/ALICE@example.com p/+65 8123-4567 m/PHONE s/COMPLETED "
+                + "c/New Company e/ALICE@example.com p/+6581234567 m/PHONE s/COMPLETED "
                 + "f/20280229 t/new t/priority t/new").getFeedbackToUser());
         Person updated = saved().getFirst();
         assertEquals("Alice Tan", updated.getName().fullName);
         assertEquals("New Company", updated.getCompany().orElseThrow().value);
         assertEquals("alice@example.com", updated.getEmail().value);
-        assertEquals("+65 8123-4567", updated.getPhone().value);
+        assertEquals("+6581234567", updated.getPhone().value);
         assertEquals("phone", updated.getContactMethod().orElseThrow().toString());
         assertEquals("Completed", updated.getEnquiryStatus().toString());
         assertEquals("29 Feb 2028", updated.getFollowUpDate().orElseThrow().toString());
@@ -197,23 +197,23 @@ public class UpdateIntegrationTest {
         logic.execute("update 1 t/OLD t/new");
         logic.execute("update 1 t/new t/OLD");
         assertEquals("new, OLD", Messages.formatTags(saved().getFirst()));
-        logic.execute("update 1 n/ALICIA TAN c/TECHNOVA p/9123-4567");
+        logic.execute("update 1 n/ALICIA TAN c/TECHNOVA p/91234568");
         Person updated = saved().getFirst();
         assertEquals("ALICIA TAN", updated.getName().fullName);
         assertEquals("TECHNOVA", updated.getCompany().orElseThrow().value);
-        assertEquals("9123-4567", updated.getPhone().value);
+        assertEquals("91234568", updated.getPhone().value);
     }
 
     @Test
     public void expandedNamesAndPhones_roundTripAcrossCommands() throws Exception {
         for (String name : List.of("Raj a/l Kumar", "Priya A/P Raman", "John @ Johnny",
                 "John Smith, Jr., PhD", "John (Johnny) Smith", "Peter the 2nd", "Henry VIII")) {
-            String phone = "(65) 6123-4567 ext 88 / +65 8765-4321";
+            String phone = "+6561234567";
             logic.execute("add n/" + name.replace(" ", "\t") + " c/Acme e/new@example.com p/" + phone);
             assertEquals(name, saved().get(2).getName().fullName);
             assertEquals(phone, saved().get(2).getPhone().value);
             assertTrue(logic.execute("view n/" + name).getFeedbackToUser().contains("Phone: " + phone));
-            for (String query : List.of("n/" + name, name, "p/(65) 6123.4567", "p/8765-4321")) {
+            for (String query : List.of("n/" + name, name, "p/+656123", "p/656123")) {
                 logic.execute("find " + query);
                 assertEquals(List.of(name), model.getFilteredPersonList().stream()
                         .map(person -> person.getName().fullName).toList());
