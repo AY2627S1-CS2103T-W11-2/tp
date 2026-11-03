@@ -83,18 +83,20 @@ public class FindCommandParser implements Parser<FindCommand> {
     }
 
     private void addCriterion(Map<String, Set<String>> criteria, String field, String value) throws ParseException {
+        String parsedValue = field.equals(PREFIX_COMPANY.getPrefix())
+                ? ArgumentTokenizer.unquoteCompanyValue(value) : value;
         switch (field) {
-            case "n/" -> validateCriterion(PREFIX_NAME, value, Name::new);
-            case "c/" -> validateCriterion(PREFIX_COMPANY, value, Company::new);
-            case "e/" -> validateEmailCriterion(value);
-            case "p/" -> validatePhoneCriterion(value);
-            case "m/" -> validateCriterion(PREFIX_METHOD, value, ContactMethod::fromString);
-            case "s/" -> validateCriterion(PREFIX_STATUS, value, EnquiryStatus::fromString);
-            case "t/" -> validateCriterion(PREFIX_TAG, value, Tag::new);
-            case "f/" -> validateCriterion(PREFIX_FOLLOW_UP, value, FollowUpDate::new);
+            case "n/" -> validateCriterion(PREFIX_NAME, parsedValue, Name::new);
+            case "c/" -> validateCriterion(PREFIX_COMPANY, parsedValue, Company::new);
+            case "e/" -> validateEmailCriterion(parsedValue);
+            case "p/" -> validatePhoneCriterion(parsedValue);
+            case "m/" -> validateCriterion(PREFIX_METHOD, parsedValue, ContactMethod::fromString);
+            case "s/" -> validateCriterion(PREFIX_STATUS, parsedValue, EnquiryStatus::fromString);
+            case "t/" -> validateCriterion(PREFIX_TAG, parsedValue, Tag::new);
+            case "f/" -> validateCriterion(PREFIX_FOLLOW_UP, parsedValue, FollowUpDate::new);
             default -> throw new ParseException(MESSAGE_UNSUPPORTED_FIELD);
         }
-        String normalised = ContactMatchesFieldsPredicate.normalise(field, value);
+        String normalised = ContactMatchesFieldsPredicate.normalise(field, parsedValue);
         criteria.computeIfAbsent(field, unused -> new HashSet<>()).add(normalised);
     }
 

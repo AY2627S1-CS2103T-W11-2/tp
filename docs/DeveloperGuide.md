@@ -338,7 +338,7 @@ Integration notes:
 - `Person.getCompany()` and `getContactMethod()` return optional values. New additions require company; legacy records may lack it. Omitted method displays as `Not specified`.
 - Name/company duplicate matching ignores case and normalises Unicode (NFC); contacts without a company match only by normalised email.
 - The legacy address field remains for compatibility, using `Not provided` for new contacts. `add` no longer accepts `a/`.
-- Single-letter prefix tokens are reserved except `s/o`, `d/o`, `a/l`, and `a/p` between name words and common business slash abbreviations (`t/a`, `d/b/a`, `c/o`, `M/s`, and uppercase initialisms such as `S/B`, `P/L`, `I/O`, `A/B`) inside `c/`. Other words between prefixes belong to that field, allowing multi-word names and companies.
+- Single-letter prefix tokens are reserved except `s/o`, `d/o`, `a/l`, and `a/p` between name words and unambiguous business slash abbreviations (`d/b/a`, `c/o`, `M/s`, and uppercase initialisms such as `S/B`, `P/L`, `I/O`, `A/B`) inside `c/`. An unquoted `t/` always starts a tag. Users quote the complete company value to preserve `t/a`, for example `c/"Acme t/a Company"`; the parser ignores prefixes inside the quotes and removes the wrapping quotes before validation and storage. Other words between prefixes belong to that field, allowing multi-word names and companies.
 - JSON includes `company` and `contactMethod`; legacy files without them are accepted if their other values meet current validation rules.
 - `list`, `find`, and `view` output includes company and contact method. Logic tests run without a display server.
 

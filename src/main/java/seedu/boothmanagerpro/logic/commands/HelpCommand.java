@@ -20,7 +20,8 @@ public class HelpCommand extends Command {
                     + "Email local parts accept !#$%&'*+/=?^_`{|}~.- between letters or digits; "
                     + "quoted addresses are not supported.",
             formatCommandHelp(1, AddCommand.COMMAND_WORD,
-                    "Adds a new exhibitor contact.",
+                    "Adds a new exhibitor contact. Unquoted t/ starts a tag; quote the whole company value when "
+                            + "using t/a, e.g. c/\"Acme t/a Company\".",
                     "add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...",
                     "add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567 "
                             + "m/email s/In progress f/20261025 t/high-priority"),

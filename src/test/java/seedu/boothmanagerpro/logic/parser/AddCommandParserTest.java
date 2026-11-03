@@ -169,7 +169,8 @@ public class AddCommandParserTest {
             "Acme Corp d/b/a Acme Studio"
         }) {
             ModelManager abbreviationModel = new ModelManager();
-            parser.parse(" n/Alicia Tan c/ " + company + " e/alicia@example.com p/91234567")
+            String companyInput = company.contains("t/a") ? "\"" + company + "\"" : company;
+            parser.parse(" n/Alicia Tan c/ " + companyInput + " e/alicia@example.com p/91234567")
                     .execute(abbreviationModel);
             assertEquals(company,
                     abbreviationModel.getFilteredPersonList().getFirst().getCompany().orElseThrow().value);
@@ -184,6 +185,16 @@ public class AddCommandParserTest {
         assertEquals(Set.of(new Tag("a"), new Tag("b")), taggedPerson.getTags());
         assertEquals("A/B Corp",
                 model2.getFilteredPersonList().getFirst().getCompany().orElseThrow().value);
+    }
+
+    @Test
+    public void parse_unquotedTagAfterCompany_takesPriorityOverTradingAsAbbreviation() throws Exception {
+        ModelManager model = new ModelManager();
+        parser.parse(" n/Tag Ambiguity c/Acme t/a Company e/tagamb@example.com p/81234569").execute(model);
+
+        Person person = model.getFilteredPersonList().getFirst();
+        assertEquals("Acme", person.getCompany().orElseThrow().value);
+        assertEquals(Set.of(new Tag("a Company")), person.getTags());
     }
 
     @Test

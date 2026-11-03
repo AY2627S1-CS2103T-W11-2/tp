@@ -22,7 +22,8 @@ public class HelpCommandTest {
     @Test
     public void showingHelpMessage_usesConsistentEntryFormat() {
         assertTrue(SHOWING_HELP_MESSAGE.contains("1. ADD\n"
-                + "   Description: Adds a new exhibitor contact.\n"
+                + "   Description: Adds a new exhibitor contact. Unquoted t/ starts a tag; quote the whole company "
+                + "value when using t/a, e.g. c/\"Acme t/a Company\".\n"
                 + "   Format:      add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD] "
                 + "[t/TAG]...\n"
                 + "   Example:     add n/Alicia Tan c/TechNova e/alicia@example.com p/91234567 "

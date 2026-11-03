@@ -33,7 +33,7 @@ public final class ArgumentTokenizer {
             "(?i:c/o)\\s+" + COMPANY_FOLLOWING_WORD + "(?:\\s.*|$)",
             Pattern.DOTALL);
     private static final Pattern COMPANY_INFIX_ABBREVIATION = Pattern.compile(
-            "(?i:t/a|d/b/a)\\s+" + COMPANY_FOLLOWING_WORD + "(?:\\s.*|$)",
+            "(?i:d/b/a)\\s+" + COMPANY_FOLLOWING_WORD + "(?:\\s.*|$)",
             Pattern.DOTALL);
 
     private ArgumentTokenizer() {}
@@ -54,8 +54,10 @@ public final class ArgumentTokenizer {
 
     /**
      * Finds all whitespace-delimited single-letter prefix tokens (e.g. {@code n/}, {@code c/}),
-     * excluding legal-name patronymic markers ({@code s/o}, {@code d/o}, {@code a/l}, {@code a/p}) between words
-     * and common business slash abbreviations inside a {@code c/} company value.
+     * excluding tokens inside double quotes, legal-name patronymic markers ({@code s/o}, {@code d/o},
+     * {@code a/l}, {@code a/p}) between words, and unambiguous business slash abbreviations inside a
+     * {@code c/} company value. In particular, an unquoted {@code t/} always remains a tag prefix; quote the
+     * complete company value when it contains the business abbreviation {@code t/a}.
      */
     public static List<MatchResult> findSingleLetterPrefixes(String argsString) {
         List<MatchResult> accepted = new ArrayList<>();
@@ -63,7 +65,8 @@ public final class ArgumentTokenizer {
         int activeValueStart = 0;
         for (MatchResult match : SINGLE_LETTER_PREFIX.matcher(argsString).results().toList()) {
             int start = match.start();
-            if (isPatronymicToken(argsString, start)
+            if (isInsideDoubleQuotes(argsString, start)
+                    || isPatronymicToken(argsString, start)
                     || isCompanySlashAbbreviation(argsString, start, activePrefix, activeValueStart)) {
                 continue;
             }
@@ -72,6 +75,26 @@ public final class ArgumentTokenizer {
             activeValueStart = match.end();
         }
         return List.copyOf(accepted);
+    }
+
+    /** Returns true when {@code position} occurs between a pair of double quotes. */
+    static boolean isInsideDoubleQuotes(String args, int position) {
+        boolean insideQuotes = false;
+        for (int i = 0; i < position; i++) {
+            if (args.charAt(i) == '"') {
+                insideQuotes = !insideQuotes;
+            }
+        }
+        return insideQuotes;
+    }
+
+    /** Removes a pair of double quotes wrapping an entire company value. */
+    static String unquoteCompanyValue(String value) {
+        String stripped = value.strip();
+        if (stripped.length() >= 2 && stripped.charAt(0) == '"' && stripped.charAt(stripped.length() - 1) == '"') {
+            return stripped.substring(1, stripped.length() - 1).strip();
+        }
+        return stripped;
     }
 
     /**
@@ -87,7 +110,8 @@ public final class ArgumentTokenizer {
     /**
      * Returns true if the token starting at {@code start} is a common business slash abbreviation
      * inside an active {@code c/} company field (such as {@code S/B}, {@code P/L}, {@code I/O},
-     * {@code A/B}, {@code M/s}, {@code c/o}, {@code t/a}, or {@code d/b/a}), rather than a field prefix.
+     * {@code A/B}, {@code M/s}, {@code c/o}, or {@code d/b/a}), rather than a field prefix.
+     * The ambiguous {@code t/a} form is deliberately excluded because {@code t/} is a documented tag prefix.
      */
     static boolean isCompanySlashAbbreviation(String args, int start, String activePrefix, int activeValueStart) {
         if (!COMPANY_PREFIX.equals(activePrefix)) {
@@ -181,7 +205,8 @@ public final class ArgumentTokenizer {
         int valueStartPos = currentPrefixPosition.getStartPosition() + prefix.getPrefix().length();
         String value = argsString.substring(valueStartPos, nextPrefixPosition.getStartPosition());
 
-        return value.strip();
+        String stripped = value.strip();
+        return COMPANY_PREFIX.equals(prefix.getPrefix()) ? unquoteCompanyValue(stripped) : stripped;
     }
 
     /**

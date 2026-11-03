@@ -149,7 +149,11 @@ public class AddCommandParser implements Parser<AddCommand> {
                 throw new ParseException(String.format(MESSAGE_UNKNOWN_FIELD, prefix));
             }
             int end = i + 1 < matches.size() ? matches.get(i + 1).start() : args.length();
-            fields.put(prefix, args.substring(match.end(), end).strip());
+            String value = args.substring(match.end(), end).strip();
+            if (PREFIX_COMPANY.equals(prefix)) {
+                value = ArgumentTokenizer.unquoteCompanyValue(value);
+            }
+            fields.put(prefix, value);
         }
         return fields;
     }

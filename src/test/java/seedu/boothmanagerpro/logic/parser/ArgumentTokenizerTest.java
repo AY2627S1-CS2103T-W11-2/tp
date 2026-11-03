@@ -164,12 +164,19 @@ public class ArgumentTokenizerTest {
         Prefix eSlash = CliSyntax.PREFIX_EMAIL;
         Prefix tSlash = CliSyntax.PREFIX_TAG;
 
-        ArgumentMultimap tradingAs = ArgumentTokenizer.tokenize(
+        ArgumentMultimap unquotedTradingAs = ArgumentTokenizer.tokenize(
                 " n/Alicia c/Acme Pte Ltd t/a Acme Events t/vip e/a@b.com",
                 nSlash, cSlash, eSlash, tSlash);
-        assertArgumentPresent(tradingAs, cSlash, "Acme Pte Ltd t/a Acme Events");
-        assertArgumentPresent(tradingAs, tSlash, "vip");
-        assertArgumentPresent(tradingAs, eSlash, "a@b.com");
+        assertArgumentPresent(unquotedTradingAs, cSlash, "Acme Pte Ltd");
+        assertArgumentPresent(unquotedTradingAs, tSlash, "a Acme Events", "vip");
+        assertArgumentPresent(unquotedTradingAs, eSlash, "a@b.com");
+
+        ArgumentMultimap quotedTradingAs = ArgumentTokenizer.tokenize(
+                " n/Alicia c/\"Acme Pte Ltd t/a Acme Events\" t/vip e/a@b.com",
+                nSlash, cSlash, eSlash, tSlash);
+        assertArgumentPresent(quotedTradingAs, cSlash, "Acme Pte Ltd t/a Acme Events");
+        assertArgumentPresent(quotedTradingAs, tSlash, "vip");
+        assertArgumentPresent(quotedTradingAs, eSlash, "a@b.com");
 
         ArgumentMultimap careOf = ArgumentTokenizer.tokenize(
                 "c/Holdings c/o Legal Dept e/legal@b.com", cSlash, eSlash);
@@ -189,9 +196,10 @@ public class ArgumentTokenizerTest {
         assertPreamblePresent(partialPrefixes, "x/ignored");
         assertArgumentPresent(partialPrefixes, pSlash, "91234567");
 
-        // Non-abbreviation cases: blank company before t/a, trailing t/a, or t/a outside c/ remain prefixes
+        // t/a is always a tag prefix when unquoted, including inside an active company field.
         assertFalse(ArgumentTokenizer.isCompanySlashAbbreviation("t/a Events", 0, "", 0));
         assertFalse(ArgumentTokenizer.isCompanySlashAbbreviation("c/ t/a Events", 3, "c/", 2));
+        assertFalse(ArgumentTokenizer.isCompanySlashAbbreviation("c/Acme t/a Events", 7, "c/", 2));
         assertFalse(ArgumentTokenizer.isCompanySlashAbbreviation("c/Acme t/a", 7, "c/", 2));
         assertFalse(ArgumentTokenizer.isCompanySlashAbbreviation("c/Acme t/a t/b", 7, "c/", 2));
         assertFalse(ArgumentTokenizer.isCompanySlashAbbreviation("c/Acme t/a 123", 7, "c/", 2));

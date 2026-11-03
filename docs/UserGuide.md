@@ -111,7 +111,7 @@ Format: `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD]
 | Field | Rules |
 | --- | --- |
 | `n/NAME` | 1-80 characters; at least one letter. Allows letters, digits, spaces, hyphens, apostrophes (`'` and `’`, stored as `'`), full stops, commas, parentheses, `@`, and `s/o`, `d/o`, `a/l`, or `a/p` between words. |
-| `c/COMPANY` | 1-100 characters; cannot be blank. Supports common business slash abbreviations such as `t/a`, `d/b/a`, `c/o`, `S/B`, `P/L`, `I/O`, `A/B`, and `M/s`. |
+| `c/COMPANY` | 1-100 characters; cannot be blank. Supports common business slash abbreviations such as `t/a`, `d/b/a`, `c/o`, `S/B`, `P/L`, `I/O`, `A/B`, and `M/s`. Quote the complete company value when it contains `t/a`, e.g. `c/"Acme t/a Company"`. The quotes are not stored. |
 | `e/EMAIL` | A conventional unquoted email address, up to 254 characters with a local part up to 64 characters. The local part starts and ends with a letter or digit and may use <code>! # $ % &amp; ' * + / = ? ^ _ &#96; { &#124; } ~ . -</code> individually between letters or digits. Quoted addresses and other uncommon mailbox formats are not supported. Stored in lowercase. |
 | `p/PHONE` | Each number has 7-15 digits, optionally starting with `+`; spaces, hyphens, full stops, and parentheses are allowed. Extensions use `ext`, `ext.`, or `x` followed by 1-6 digits. Separate multiple numbers with `,`, `;`, or `/`, e.g. `(65) 6123-4567 ext 88 / 9123 4567`. Formatting is preserved, with repeated spaces collapsed. Maximum 100 characters overall; labels such as `(HP)` are not accepted. |
 | `m/METHOD` | Optional: `email`, `phone`, or `other`, ignoring case. Omitted method is `Not specified`. |
@@ -120,6 +120,8 @@ Format: `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD]
 | `t/TAG` | Optional and repeatable: 1-30 characters, nonblank, without `/`. Consecutive spaces are collapsed; comparisons are case-insensitive while preserving the first supplied casing. |
 
 Leading and trailing spaces are removed from field values. Repeated whitespace in names, including pasted tabs and line breaks, becomes a single space. Fields can appear in any order. Only `t/` may repeat. Dates contain no time or timezone; past dates are accepted. Omit `f/` for no date (do not enter `f/none`). Status does not advance automatically. `add` does not accept a postal address (`a/`).
+
+An unquoted, whitespace-delimited `t/` always starts a tag. For example, `c/Acme t/a Company` stores company `Acme` and tag `a Company`. To keep `t/a` as part of a company name, quote the complete company value: `c/"Acme t/a Company"`.
 
 Examples (enter each command on one line):
 
