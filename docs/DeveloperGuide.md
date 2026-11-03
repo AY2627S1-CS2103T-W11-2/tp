@@ -881,7 +881,7 @@ Use a separate test data folder with no Alicia Tan or Ben Lim records. Run each 
 
 | Check | Command / action | Expected result |
 | --- | --- | --- |
-| Full record and normalisation | `add n/Alicia Tan c/TechNova Pte Ltd e/ALICIA@example.com p/+65 9123-4567 m/EMAIL t/technology t/technology t/high-priority` | Contact added; a subsequent `view n/Alicia Tan` card shows `alicia@example.com`, `+6591234567`, `email`, and each tag once. |
+| Full record and normalisation | `add n/Alicia Tan c/TechNova Pte Ltd e/ALICIA@example.com p/+65 9123-4567 m/EMAIL t/technology t/technology t/high-priority` | Contact added; a subsequent `view n/Alicia Tan` card shows `alicia@example.com`, `+65 9123-4567`, `email`, and each tag once. |
 | Optional fields omitted | `add n/Ben Lim c/GreenWorks e/ben@example.com p/87654321` | Contact added; a subsequent `view n/Ben Lim` card shows status `Needs follow-up`, method `Not specified`, follow-up date `None`, and `None` for tags. |
 | Duplicate email, even when hidden | Run `find Ben`, then `add n/Another Person c/Another Company e/ALICIA@example.com p/98765432` | Rejected; identifies Alicia Tan at TechNova Pte Ltd. |
 | Duplicate name and company | `add n/alicia tan c/technova pte ltd e/different@example.com p/98765432` | Rejected despite different email and letter case. |
@@ -918,7 +918,7 @@ Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibit
 1. Update by full name: `update Alicia Tan m/phone s/In progress f/20261025`<br>
    Expected: Output confirms `Updated Alicia Tan at TechNova Pte Ltd.` Running `view n/Alicia Tan` shows a card with badge `In progress`, contact method `phone`, follow-up date `25 Oct 2026`, and existing email, phone, and `tech` tag preserved.
 1. Clear optional method, date, and tags: `update Alicia Tan m/ f/ t/`<br>
-   Expected: Confirmation appears; `view n/Alicia Tan` shows `Contact method: Not specified`, `Follow-up date: None`, and `No tags`.
+   Expected: Confirmation appears; `view n/Alicia Tan` shows `Contact method: Not specified`, `Follow-up date: None`, and `None` for tags.
 
 1. Ambiguous name vs displayed index: Add a second `Alicia Tan` (`add n/Alicia Tan c/OtherCo e/alicia2@example.com p/87654321`), then run `update Alicia Tan s/Completed`.<br>
    Expected: Rejected with an ambiguity message; neither contact is updated. Run `find n/Alicia Tan`, then `update 2 s/Completed`; only the second `Alicia Tan` is updated and the filter resets.
