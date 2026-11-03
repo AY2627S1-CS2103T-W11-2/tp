@@ -116,7 +116,7 @@ Format: `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD]
 | `n/NAME` | 1-80 characters; at least one letter. Allows letters, digits, spaces, hyphens, apostrophes (`'` and `’`, stored as `'`), full stops, commas, parentheses, `@`, and `s/o`, `d/o`, `a/l`, or `a/p` between words. |
 | `c/COMPANY` | 1-100 characters; cannot be blank. Supports common business slash abbreviations such as `t/a`, `d/b/a`, `c/o`, `S/B`, `P/L`, `I/O`, `A/B`, and `M/s`. |
 | `e/EMAIL` | A conventional unquoted email address, up to 254 characters with a local part up to 64 characters. The local part starts and ends with a letter or digit and may use <code>! # $ % &amp; ' * + / = ? ^ _ &#96; { &#124; } ~ . -</code> individually between letters or digits. Quoted addresses and other uncommon mailbox formats are not supported. Stored in lowercase. |
-| `p/PHONE` | Each number has 7-15 digits, optionally starting with `+`; spaces, hyphens, full stops, and parentheses are allowed. Extensions use `ext`, `ext.`, or `x` followed by 1-6 digits. Separate multiple numbers with `,`, `;`, or `/`, e.g. `(65) 6123-4567 ext 88 / 9123 4567`. Formatting is preserved, with repeated spaces collapsed. Each number may end with one label in brackets, after any extension: up to 20 letters and spaces, starting with a letter, e.g. `9123 4567 (HP) / 6123 4567 (Office)`. Labels can't be searched: `find p/` matches digits only. Maximum 100 characters overall. |
+| `p/PHONE` | 7-15 digits, optionally starting with `+`. Single spaces are allowed between digit groups; consecutive spaces and other punctuation are rejected. Example: `+65 9123 4567`. |
 | `m/METHOD` | Optional: `email`, `phone`, or `other`, ignoring case. Omitted method is `Not specified`. |
 | `s/STATUS` | Optional: `Needs follow-up` (default), `In progress`, `Completed`, or `Cancelled`, ignoring case. |
 | `f/YYYYMMDD` | Optional calendar date, e.g. `20261025`; omitted date displays as `None`. Years 0001-9999; invalid dates are rejected. |
@@ -128,7 +128,7 @@ Examples (enter each command on one line):
 
 ```text
 add n/Alicia Tan c/TechNova Pte Ltd e/alicia@technova.com p/91234567 m/email t/technology t/high-priority
-add n/Ben Lim c/GreenWorks e/BEN@example.com p/+65 8765-4321 s/In progress f/20261025
+add n/Ben Lim c/GreenWorks e/BEN@example.com p/+65 8765 4321 s/In progress f/20261025
 add n/Chloe Ng c/ExpoWorks e/chloe%expo@example.com p/87654321
 ```
 
@@ -148,7 +148,7 @@ After a successful add:
 * Use `view n/NAME` to print the saved details, or `list` to print all contacts.
 * The command box clears and keeps keyboard focus, ready for the next command.
 
-The second example stores the email in lowercase as `ben@example.com` and keeps the phone as typed, `+65 8765-4321`. A subsequent `view n/Ben Lim` shows `Not specified` for the omitted method and `None` for an empty tag set. The third example demonstrates `%`, one of the supported email local-part characters.
+The second example stores the email in lowercase as `ben@example.com` and the phone as `+65 8765 4321`. A subsequent `view n/Ben Lim` shows `Not specified` for the omitted method and `None` for an empty tag set. The third example demonstrates `%`, one of the supported email local-part characters.
 
 If validation or duplicate detection fails, the typed command remains available for correction. No contact is added.
 
@@ -180,8 +180,8 @@ Use the field rules above to correct invalid values. Rejected input does not add
 | Invalid name | `Invalid value for n/: Names must be 1 to 80 characters and contain a letter. Use only letters, digits, spaces, hyphens, apostrophes, full stops, commas, parentheses, @, or s/o, d/o, a/l and a/p between words.` |
 | Invalid company | `Invalid value for c/: Company name must contain 1 to 100 characters.` |
 | Invalid email | `Invalid value for e/: Email address is invalid. Use a conventional unquoted address; run help and follow the User Guide for supported email formats.` |
-| Phone with a disallowed character or misplaced label, e.g. `1234 5678 HP` or `(HP) 1234 5678` | `Invalid value for p/: Phone number can only contain digits, spaces, hyphens, full stops, parentheses, a leading +, an extension (ext or x), a label in brackets after a number (e.g. (HP), up to 20 letters or spaces), and , ; or / between multiple numbers.` |
-| Phone with too few or too many digits | `Invalid value for p/: Each phone number must contain 7 to 15 digits (excluding any extension), optionally starting with +.` |
+| Phone with consecutive spaces or punctuation other than a leading `+`, e.g. `9123  4567`, `9123-4567`, or `(65)91234567` | `Invalid value for p/: Phone number can only contain digits, single spaces between digit groups, and an optional leading +. Example: +65 9123 4567.` |
+| Phone with too few or too many digits | `Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +. Single spaces are allowed between digit groups. Example: +65 9123 4567.` |
 | Invalid method | `Invalid value for m/: Contact method must be email, phone, or other.` |
 | Invalid status | `Invalid value for s/: Enquiry status must be Needs follow-up, In progress, Completed, or Cancelled.` |
 | Invalid date | `Invalid value for f/: Follow-up date must be a valid date in YYYYMMDD format (years 0001 to 9999), e.g. 20261025.` |
@@ -229,7 +229,7 @@ Tags: technology, high-priority
 
 2. Ben Lim at GreenWorks
 Email: ben@example.com
-Phone: +65 8765-4321
+Phone: +65 8765 4321
 Contact method: Not specified
 Enquiry status: In progress
 Follow-up date: 25 Oct 2026
@@ -312,11 +312,11 @@ Format: `update NAME_OR_INDEX [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD
 - Don't put `n/` before the contact: `update n/Alicia Tan s/Completed` shows `Don't include n/ for update. Use: update NAME_OR_INDEX FIELD... (n/ only sets a new name, e.g. update Alicia Tan n/Alicia Lim)`.
 - An index of `0` or below shows `Index must be a positive integer.`; a leading `+` such as `+1` shows `Index must be an unsigned positive integer (e.g. 1, not +1).`; an index too large to be a list position, such as `99999999999999` or `+99999999999999`, shows `Index is too large. Use a number shown in the current list, find or view results.`
 - Success prints `Updated NAME at COMPANY.`, clears the filter and command input, and retains keyboard focus. Run `list` or `find` before reusing an index, or `view n/NAME` to check details.
-- Supplying only existing values reports `No changes made: NAME at COMPANY already has the supplied values.` It keeps the current filter, sort order, and command input, and does not save to disk. Changes to displayed casing, phone formatting, or tag order still count as updates.
+- Supplying only existing values reports `No changes made: NAME at COMPANY already has the supplied values.` It keeps the current filter, sort order, and command input, and does not save to disk. Changes to displayed casing or tag order still count as updates.
 - Updating contact details does not change any postal address saved in the data file.
 
 ```text
-update Alicia Tan p/+65 9876-5432 m/phone s/In progress f/20261025
+update Alicia Tan p/+65 9876 5432 m/phone s/In progress f/20261025
 update Alicia Tan n/Alicia Lim c/New Company
 update 2 s/Completed m/ f/ t/
 update Alicia Tan s/Cancelled
@@ -346,8 +346,8 @@ Use prefixed criteria to match a complete name or a whole name word, full or par
 
 Format: `find [n/NAME] [c/COMPANY] [e/EMAIL] [p/PHONE] [m/METHOD] [s/STATUS] [t/TAG] [f/YYYYMMDD]...`
 
-* Supply at least one non-empty criterion. Phone search values accept 1 to 15 digits with optional leading `+`, spaces, hyphens, full stops, and parentheses (up to 100 characters; tabs inside phone numbers are not accepted); email search values accept full or partial email addresses and domains (such as `@technova.com`).
-* Names, companies, emails, methods, statuses, and tags ignore case and surrounding whitespace. Phone comparisons ignore spaces, hyphens, full stops, and parentheses.
+* Supply at least one non-empty criterion. Phone search values accept 1 to 15 digits with an optional leading `+` and single spaces between digit groups, for example `find p/+65 9123`; other punctuation is not accepted. Email search values accept full or partial email addresses and domains (such as `@technova.com`).
+* Names, companies, emails, methods, statuses, and tags ignore case and surrounding whitespace. Permitted spaces in phone searches are ignored during substring matching.
 * Name criteria (`n/`) match a complete name or a single whole name word, ignoring case and repeated spaces.
   For example, `find n/Alex` matches `Alex Yeo` and `Alex Yeoh`, but not `Alexandra Tan`.
   A multi-word value such as `n/Alex Yeo` must match the complete name.

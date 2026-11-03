@@ -89,6 +89,9 @@ public class HelpCommandTest {
         assertTrue(SHOWING_HELP_MESSAGE.contains(
                 "Email local parts accept !#$%&'*+/=?^_`{|}~.- between letters or digits; "
                         + "quoted addresses are not supported."));
+        assertTrue(SHOWING_HELP_MESSAGE.contains(
+                "Phone numbers use 7-15 digits with an optional leading + and single spaces between groups, "
+                        + "e.g. +65 9123 4567."));
         assertTrue(SHOWING_HELP_MESSAGE.contains("clear confirm"));
         assertTrue(SHOWING_HELP_MESSAGE.contains("Enter: run command  |  Tab: autofill or focus output"));
         assertTrue(SHOWING_HELP_MESSAGE.contains("F1: show help       |  Ctrl/Cmd+L: focus command box"));

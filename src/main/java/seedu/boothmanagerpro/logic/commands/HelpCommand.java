@@ -20,7 +20,9 @@ public class HelpCommand extends Command {
                     + "[ ] optional  |  ... repeatable\n"
                     + "Use an exact full name or a displayed number for NAME_OR_INDEX.\n"
                     + "Email local parts accept !#$%&'*+/=?^_`{|}~.- between letters or digits; "
-                    + "quoted addresses are not supported.",
+                    + "quoted addresses are not supported.\n"
+                    + "Phone numbers use 7-15 digits with an optional leading + and single spaces between groups, "
+                    + "e.g. +65 9123 4567.",
             formatCommandHelp(1, AddCommand.COMMAND_WORD,
                     "Adds a new exhibitor contact.",
                     "add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD] [t/TAG]...",

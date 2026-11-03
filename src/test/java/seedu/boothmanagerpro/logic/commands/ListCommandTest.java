@@ -161,7 +161,7 @@ public class ListCommandTest {
     public void formatContactList_exhibitors_showsDocumentedFormat() {
         Person alicia = createExhibitor("Alicia Tan", "TechNova Pte Ltd", "alicia@technova.com", "91234567",
                 ContactMethod.EMAIL, "technology", "high-priority");
-        Person john = createExhibitor("John Smith", "GlobalTech Inc", "john@globaltech.com", "+65-6234-5678",
+        Person john = createExhibitor("John Smith", "GlobalTech Inc", "john@globaltech.com", "+6562345678",
                 ContactMethod.PHONE, "hardware");
 
         String divider = "──────────────────────────────────────";
@@ -170,7 +170,7 @@ public class ListCommandTest {
                 + "1. Alicia Tan at TechNova Pte Ltd\nEmail: alicia@technova.com\nPhone: 91234567\n"
                 + "Contact method: email"
                 + "\nEnquiry status: Needs follow-up\nFollow-up date: None\nTags: technology, high-priority\n\n"
-                + "2. John Smith at GlobalTech Inc\nEmail: john@globaltech.com\nPhone: +65-6234-5678\n"
+                + "2. John Smith at GlobalTech Inc\nEmail: john@globaltech.com\nPhone: +6562345678\n"
                 + "Contact method: phone"
                 + "\nEnquiry status: Needs follow-up\nFollow-up date: None\nTags: hardware\n\n"
                 + divider + "\n"

@@ -308,7 +308,7 @@ public class MainWindowTest {
         ModelManager model = sampleModel();
         withWindow(model, (window, root, storage) -> {
             enterCommand(root, "find Nobody");
-            String add = "add n/Alicia Tan c/TechNova e/ALICIA@example.com p/+65 9123-4567 m/email"
+            String add = "add n/Alicia Tan c/TechNova e/ALICIA@example.com p/+6591234567 m/email"
                     + " t/technology t/high-priority";
             enterCommand(root, add);
             assertEquals("Added Alicia Tan at TechNova.", output(root));
@@ -320,7 +320,7 @@ public class MainWindowTest {
             assertEquals(7, storage.readAddressBook().orElseThrow().getPersonList().size());
             enterCommand(root, "view n/Alicia");
             assertTrue(output(root).contains("Email: alicia@example.com"));
-            assertTrue(output(root).contains("Phone: +65 9123-4567"));
+            assertTrue(output(root).contains("Phone: +6591234567"));
             assertTrue(output(root).contains("Tags: technology, high-priority"));
             assertFalse(root.lookup("#resultDisplay").getStyleClass().contains("error"));
             assertNoContactPanels(root);
@@ -992,7 +992,7 @@ public class MainWindowTest {
             assertEquals("Added Alicia Tan at TechNova Pte Ltd.", output(root));
             assertEquals("", input(root).getText());
             savePreview(root, 1180, 820, "ug-add.png");
-            enterCommand(root, "add n/Ben Lim c/GreenWorks e/ben@example.com p/+65 8765-4321 "
+            enterCommand(root, "add n/Ben Lim c/GreenWorks e/ben@example.com p/+65 8765 4321 "
                     + "s/In progress f/20261025");
             enterCommand(root, "list");
             assertEquals(2, storage.readAddressBook().orElseThrow().getPersonList().size());

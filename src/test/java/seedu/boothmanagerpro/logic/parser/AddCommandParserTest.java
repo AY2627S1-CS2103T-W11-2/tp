@@ -26,26 +26,23 @@ public class AddCommandParserTest {
     public void parse_example_normalisesAndFormatsContact() throws Exception {
         ModelManager model = new ModelManager();
         String result = parser.parse(valid.replace("alicia@technova.com", "ALICIA@TechNova.COM")
-                .replace("91234567", "+65 9123-4567")
+                .replace("91234567", "+65 9123 4567")
                 + " m/EMAIL t/technology t/high-priority t/technology").execute(model).getFeedbackToUser();
         assertEquals("Added Alicia Tan at TechNova Pte Ltd.", result);
         Person person = model.getFilteredPersonList().getFirst();
         assertEquals("TechNova Pte Ltd", person.getCompany().orElseThrow().value);
         assertEquals(ContactMethod.EMAIL, person.getContactMethod().orElseThrow());
         assertEquals("alicia@technova.com", person.getEmail().value);
-        assertEquals("+65 9123-4567", person.getPhone().value);
+        assertEquals("+65 9123 4567", person.getPhone().value);
         assertEquals(2, person.getTags().size());
     }
 
     @Test
-    public void parse_labelledPhones_success() throws Exception {
-        for (String phone : new String[]{"9123 4567 (HP) / 6123 4567 (Office)", "9123 4567 (HP)/6123 4567 (Office)"}) {
-            ModelManager model = new ModelManager();
-            parser.parse(" n/Alice Tan c/Acme e/alice@example.com p/" + phone).execute(model);
-            Person person = model.getFilteredPersonList().getFirst();
-            assertEquals("Alice Tan", person.getName().fullName);
-            assertEquals("Acme", person.getCompany().orElseThrow().value);
-            assertEquals(phone, person.getPhone().value);
+    public void parse_phoneWithPunctuation_failure() {
+        for (String phone : new String[]{"(((((((1234567", "1)2)3)4)5)6)7", "1...2---3(((4)))567",
+            "9123  4567", "9123-4567"}) {
+            assertParseFailure(parser, " n/Alice Tan c/Acme e/alice@example.com p/" + phone,
+                    "Invalid value for p/: " + ParserUtil.MESSAGE_PHONE_CHARACTERS);
         }
     }
 

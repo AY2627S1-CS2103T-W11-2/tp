@@ -265,7 +265,7 @@ All contact workflows share `Person` and its validated value objects.
 | --- | --- |
 | Name | `Name` owns validation: 1-80 Unicode code points, at least one letter, digits and supported punctuation, and `s/o`, `d/o`, `a/l`, or `a/p` between words. `view` uses the same validator as `add` and prefixed `find`. |
 | Company | `Optional<Company>`; required by `add`, absent in legacy records. `find c/` matches full or partial values, ignoring case. |
-| Email / phone | Emails are stored lowercase. Phones are a single validated string that preserves formatting and supports extensions, multiple numbers, and a bracketed label after each number, e.g. `(HP)`. Labels do not count towards the digit limit. Phone searches validate partial numbers separately, accept digits only rather than labels, and ignore spaces, hyphens, dots, and parentheses when matching. |
+| Email / phone | Emails are stored lowercase. Phones contain 7-15 digits with an optional leading `+` and single spaces between digit groups; consecutive spaces and other punctuation are rejected. Phone searches use the same character rule, allow 1-15 digits for partial matching, and ignore permitted spaces when matching. |
 | Contact method | `Optional<ContactMethod>`; `email`, `phone`, or `other`. An absent method is shown as `Not specified` and does not match `find m/`. |
 | Follow-up date | `Optional<FollowUpDate>`; validated and stored in JSON as `YYYYMMDD`, formatted as `d MMM uuuu` (e.g. `25 Oct 2026`) for display, and shown as `None` when absent. |
 | Tags | Case-insensitive duplicates collapse on `add` and `update` while preserving display casing; consecutive spaces collapse. Search ignores case and matches whole tags. `add`, `update`, `tag`, storage, and command feedback preserve stored order. Empty tags show `None` in text and on cards. |
@@ -326,7 +326,7 @@ Legacy address is preserved. Supplied tags replace the tag set; a sole blank `t/
 
 1. `AddressBookParser` routes `add` to `AddCommandParser`.
 2. The parser rejects unknown prefixes, preambles, repeated non-tag fields, and missing required prefixes.
-3. Value objects validate fields, normalise Unicode and whitespace in names/companies/tags, lowercase email, and preserve phone formatting (collapsing repeated spaces). Repeated tags are ignored.
+3. Value objects validate fields, normalise Unicode and whitespace in names/companies/tags, lowercase email, and enforce the canonical phone format. Repeated tags are ignored.
 4. `AddCommand` checks the complete address book for matching email or name/company, logging execution, duplicate rejections, and successful additions via `LogsCenter`, then adds the contact or reports the existing match.
 5. `LogicManager` saves through `JsonAddressBookStorage` before returning the success result, rolling back the in-memory model, filter, and display ordering if saving fails.
 6. The result contains a concise identity confirmation. `MainWindow` displays it in `ResultDisplay` and focuses command input. `CommandBox` clears successful input and retains failed input. A later `view`, `find`, or `list` displays the saved contact as a `ContactCard`.
@@ -698,7 +698,7 @@ Use case ends.
 
 * Values for the same field are combined using OR; criteria for different fields are combined using AND.
 * Unprefixed keywords match whole name words using OR. Prefixed name criteria match a complete name or a single whole name word. Company, email, and phone criteria (`c/`, `e/`, `p/`) match full or partial values; contact method, enquiry status, tag, and follow-up date criteria (`m/`, `s/`, `t/`, `f/`) match complete values.
-* Name, company, email, contact method, enquiry status, and tag comparisons ignore case and surrounding spaces; phone comparisons ignore spaces, hyphens, full stops, and parentheses; follow-up date criteria match the exact calendar date (`YYYYMMDD`) and exclude contacts without a date.
+* Name, company, email, contact method, enquiry status, and tag comparisons ignore case and surrounding spaces; phone searches ignore permitted single spaces and match digit substrings; follow-up date criteria match the exact calendar date (`YYYYMMDD`) and exclude contacts without a date.
 * Repeated identical search values are ignored.
 
 **Extensions**
@@ -838,7 +838,7 @@ These are requirements for the intended product, not claims that every target ha
 * **Exact match**: A search result where the search value matches the complete field value after its field-specific normalisation, not just part of it. Contact method, enquiry status, tag, and follow-up date criteria use exact matching; for example, `find t/tech` does not match the tag "technology". Name criteria additionally accept a whole name word, so `find n/Alicia` matches "Alicia Tan". Company, email, and phone criteria match partial values instead, so `find c/Tech` matches "TechNova".
 * **Index**: The number shown beside a contact in a displayed list, used to select a specific contact when several share the same name
 * **Mainstream OS**: Windows, Linux, Unix, and macOS
-* **Normalisation**: Converting input to a standard form before storing or comparing it, such as lowercasing emails, collapsing repeated spaces in names, and removing formatting from phone numbers for search comparisons
+* **Normalisation**: Converting input to a standard form before storing or comparing it, such as lowercasing emails and collapsing repeated spaces in names
 * **Prefix**: A case-insensitive marker ending in `/` that identifies which field a value belongs to, e.g. `n/` (or `N/`) for name or `t/` (or `T/`) for tag
 * **Primary contact**: The representative to contact first when an exhibitor has several representatives
 * **Representative**: A person who acts on behalf of an exhibitor. One exhibitor may have several
@@ -898,7 +898,7 @@ Use a separate test data folder with no Alicia Tan or Ben Lim records. Run each 
 
 | Check | Command / action | Expected result |
 | --- | --- | --- |
-| Full record and normalisation | `add n/Alicia Tan c/TechNova Pte Ltd e/ALICIA@example.com p/+65 9123-4567 m/EMAIL t/technology t/technology t/high-priority` | Contact added; a subsequent `view n/Alicia Tan` card shows `alicia@example.com`, `+65 9123-4567`, `email`, and each tag once. |
+| Full record and normalisation | `add n/Alicia Tan c/TechNova Pte Ltd e/ALICIA@example.com p/+65 9123 4567 m/EMAIL t/technology t/technology t/high-priority` | Contact added; a subsequent `view n/Alicia Tan` card shows `alicia@example.com`, `+65 9123 4567`, `email`, and each tag once. |
 | Optional fields omitted | `add n/Ben Lim c/GreenWorks e/ben@example.com p/87654321` | Contact added; a subsequent `view n/Ben Lim` card shows status `Needs follow-up`, method `Not specified`, follow-up date `None`, and `None` for tags. |
 | Duplicate email, even when hidden | Run `find Ben`, then `add n/Another Person c/Another Company e/ALICIA@example.com p/98765432` | Rejected; identifies Alicia Tan at TechNova Pte Ltd. |
 | Duplicate name and company | `add n/alicia tan c/technova pte ltd e/different@example.com p/98765432` | Rejected despite different email and letter case. |
@@ -906,7 +906,7 @@ Use a separate test data folder with no Alicia Tan or Ben Lim records. Run each 
 | Repeated field | `add n/Chris Tan n/Chris Lim c/Example Ltd e/chris@example.com p/98765432` | Each-field-once error; no contact added. |
 | Unknown prefix | `add n/Chris Tan c/Example Ltd e/chris@example.com p/98765432 a/Somewhere` | Unknown-field-prefix error; no contact added. |
 | Invalid phone | `add n/Chris Tan c/Example Ltd e/chris@example.com p/123` | Phone-length error; no contact added. |
-| Labelled phone numbers | `add n/Alice Tan c/Acme e/alice@example.com p/9123 4567 (HP) / 6123 4567 (Office)` | Contact added; a subsequent `view n/Alice Tan` card shows the phone as typed. `find p/91234567` finds the contact, and `find p/HP` is rejected. |
+| Phone punctuation | `add n/Alice Tan c/Acme e/alice@example.com p/9123-4567` | Rejected with the digits, single-spaces, and optional-leading-`+` format and the example `+65 9123 4567`; no contact is added. |
 | Persistence | Exit and relaunch from the same folder; run `list`, then repeat the first add command. | Both added contacts remain; repeated add is rejected. The saved `data/addressbook.json` retains company and contact method. |
 
 Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibitor-contact-add). Verify the brief identity confirmation, saved JSON, and the card shown by a subsequent `view`. Repeat an add after `find Nobody`; the filter should reset, the input should clear and retain focus, and no persistent side panels should appear.
@@ -984,9 +984,9 @@ Start with the sample data and run `list` first. Each command below is rejected 
 | View without a prefix | `view alex` | `view needs the n/ prefix before the name. Use: view n/NAME, e.g. view n/Alicia Tan` |
 | View with an empty name | `view n/` | `Name cannot be empty. Use: view n/NAME, e.g. view n/Alicia Tan` |
 | View with invalid slash in name | `view n/John/Doe` | `Names must be 1 to 80 characters and contain a letter. Use only letters, digits, spaces, hyphens, apostrophes, full stops, commas, parentheses, @, or s/o, d/o, a/l and a/p between words.` |
-| Phone with a disallowed character | `add n/Chris Tan c/Example Ltd e/chris@example.com p/1234 5678 HP` | `Invalid value for p/: Phone number can only contain digits, spaces, hyphens, full stops, parentheses, a leading +, an extension (ext or x), a label in brackets after a number (e.g. (HP), up to 20 letters or spaces), and , ; or / between multiple numbers.` |
-| Phone with too few digits | `add n/Chris Tan c/Example Ltd e/chris@example.com p/123` | `Invalid value for p/: Each phone number must contain 7 to 15 digits (excluding any extension), optionally starting with +.` |
-| Invalid field value in find | `find e/bad email`, `find p/+` | `Invalid value for e/: Email search value is invalid. Supply a full or partial email or domain (e.g. alicia@technova.com or @technova.com).` / `Invalid value for p/: Phone search value must contain 1 to 15 digits, optionally starting with +, and may only include spaces, hyphens, full stops, or parentheses as formatting.` |
+| Phone with a disallowed character | `add n/Chris Tan c/Example Ltd e/chris@example.com p/1234-5678` | `Invalid value for p/: Phone number can only contain digits, single spaces between digit groups, and an optional leading +. Example: +65 9123 4567.` |
+| Phone with too few digits | `add n/Chris Tan c/Example Ltd e/chris@example.com p/123` | `Invalid value for p/: Phone number must contain 7 to 15 digits, optionally starting with +. Single spaces are allowed between digit groups. Example: +65 9123 4567.` |
+| Invalid field value in find | `find e/bad email`, `find p/+` | `Invalid value for e/: Email search value is invalid. Supply a full or partial email or domain (e.g. alicia@technova.com or @technova.com).` / `Invalid value for p/: Phone search value must contain 1 to 15 digits, optionally starting with +. Single spaces are allowed between digit groups. Example: +65 9123.` |
 | Unexpected parameters on parameterless commands | `help extra`, `exit 1` | `Invalid command format!` followed by the `help` or `exit` usage |
 
 ### Deleting a contact

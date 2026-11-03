@@ -66,9 +66,9 @@ public class JsonAdaptedPersonTest {
 
     @Test
     public void toModelType_normalisesValuesLikeAdd() throws Exception {
-        Person expected = new PersonBuilder(BENSON).withPhone("+65 9876-5432")
+        Person expected = new PersonBuilder(BENSON).withPhone("+6598765432")
                 .withCompany("TechNova").withContactMethod("email").build();
-        JsonAdaptedPerson stored = new JsonAdaptedPerson("  " + VALID_NAME + "  ", "+65 9876-5432",
+        JsonAdaptedPerson stored = new JsonAdaptedPerson("  " + VALID_NAME + "  ", "+6598765432",
                 "  " + VALID_EMAIL.toUpperCase(java.util.Locale.ROOT) + "  ", VALID_ADDRESS,
                 VALID_TAGS, "  TechNova  ", " EMAIL ");
         assertEquals(expected, stored.toModelType());
@@ -124,12 +124,12 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
-    public void toModelType_labelledPhone_roundTrip() throws Exception {
-        Person person = new PersonBuilder(BENSON).withPhone("9123 4567 (HP) / 6123 4567 (Office)").build();
+    public void toModelType_phoneWithLeadingPlus_roundTrip() throws Exception {
+        Person person = new PersonBuilder(BENSON).withPhone("+6591234567").build();
         String json = JsonUtil.toJsonString(new JsonAdaptedPerson(person));
         Person reloaded = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
         assertEquals(person, reloaded);
-        assertEquals("9123 4567 (HP) / 6123 4567 (Office)", reloaded.getPhone().value);
+        assertEquals("+6591234567", reloaded.getPhone().value);
     }
 
     @Test

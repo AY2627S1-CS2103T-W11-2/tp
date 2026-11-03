@@ -25,7 +25,7 @@ public class ContactMatchesFieldsPredicate implements Predicate<Person> {
                 Map.Entry::getKey, entry -> Set.copyOf(entry.getValue())));
     }
 
-    /** Normalises search values, including phone formatting characters (spaces, hyphens, dots, parentheses). */
+    /** Normalises search values, removing permitted spaces from phone representations. */
     public static String normalise(String field, String value) {
         if (field.equals("n/")) {
             return foldName(value);

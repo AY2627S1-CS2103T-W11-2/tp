@@ -29,9 +29,8 @@ public class ParserUtil {
     public static final String MESSAGE_MULTIPLE_INDICES = "Specify only one displayed index at a time.";
     public static final String MESSAGE_NAME_PREFIX_NOT_ALLOWED = "Don't include n/ for %1$s. Use: %2$s";
     public static final String MESSAGE_PHONE_CHARACTERS =
-            "Phone number can only contain digits, spaces, hyphens, full stops, parentheses, a leading +, "
-            + "an extension (ext or x), a label in brackets after a number (e.g. (HP), up to 20 letters or spaces), "
-            + "and , ; or / between multiple numbers.";
+            "Phone number can only contain digits, single spaces between digit groups, and an optional leading +. "
+                    + "Example: +65 9123 4567.";
     public static final String MESSAGE_PHONE_DIGITS = Phone.MESSAGE_CONSTRAINTS;
 
     private static final String INDEX_LIKE_REGEX = "[+-]?[0-9]+";

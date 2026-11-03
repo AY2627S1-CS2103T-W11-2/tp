@@ -47,10 +47,10 @@ public class UpdateCommandParserTest {
     }
 
     @Test
-    public void parse_phoneWithSeparators_success() {
-        ContactUpdate phone = changes(Optional.empty(), Optional.of(new Phone("+65 9123-4567")), Optional.empty(),
+    public void parse_phoneWithLeadingPlus_success() {
+        ContactUpdate phone = changes(Optional.empty(), Optional.of(new Phone("+6591234567")), Optional.empty(),
                 Optional.empty(), Optional.empty());
-        assertParseSuccess(parser, "1 p/+65 9123-4567", new UpdateCommand(INDEX_FIRST_PERSON, phone));
+        assertParseSuccess(parser, "1 p/+6591234567", new UpdateCommand(INDEX_FIRST_PERSON, phone));
     }
 
     @Test
@@ -104,12 +104,10 @@ public class UpdateCommandParserTest {
     }
 
     @Test
-    public void parse_labelledPhones_success() {
-        for (String phone : new String[]{"9123 4567 (HP) / 6123 4567 (Office)", "9123 4567 (HP)/6123 4567 (Office)"}) {
-            ContactUpdate changes = changes(Optional.empty(), Optional.of(new Phone(phone)), Optional.empty(),
-                    Optional.empty(), Optional.empty());
-            assertParseSuccess(parser, "1 p/" + phone, new UpdateCommand(INDEX_FIRST_PERSON, changes));
-            assertParseSuccess(parser, "Alice Tan p/" + phone, new UpdateCommand(new Name("Alice Tan"), changes));
+    public void parse_phoneWithPunctuation_failure() {
+        for (String phone : new String[]{"(((((((1234567", "1)2)3)4)5)6)7", "1...2---3(((4)))567"}) {
+            assertParseFailure(parser, "1 p/" + phone,
+                    "Invalid value for p/: " + ParserUtil.MESSAGE_PHONE_CHARACTERS);
         }
     }
 

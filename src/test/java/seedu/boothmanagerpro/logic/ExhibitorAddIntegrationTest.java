@@ -159,11 +159,11 @@ public class ExhibitorAddIntegrationTest {
         logic.execute(ADD + " m/email t/high-priority t/technology");
         ModelManager reloaded = new ModelManager(storage.readAddressBook().orElseThrow(), new UserPrefs());
         assertEquals(model.getAddressBook(), reloaded.getAddressBook());
-        logic.execute("update 1 p/+65 9876-5432");
+        logic.execute("update 1 p/+6598765432");
         Person edited = storage.readAddressBook().orElseThrow().getPersonList().getFirst();
         assertEquals("TechNova Pte Ltd", edited.getCompany().orElseThrow().value);
         assertEquals(ContactMethod.EMAIL, edited.getContactMethod().orElseThrow());
-        assertEquals("+65 9876-5432", edited.getPhone().value);
+        assertEquals("+6598765432", edited.getPhone().value);
         assertEquals(2, edited.getTags().size());
     }
 
