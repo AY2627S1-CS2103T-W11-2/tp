@@ -2,13 +2,17 @@
 !include style.puml
 title Delete the first displayed contact - successful request
 skinparam ArrowFontStyle plain
+skinparam defaultFontName Arial
+skinparam defaultFontSize 13
+skinparam ParticipantFontColor #FFFFFF
+skinparam SequenceBoxFontColor #222222
 
 box Logic LOGIC_COLOR_T1
 participant ":LogicManager" as LogicManager LOGIC_COLOR
 participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
 participant ":DeleteCommandParser" as DeleteCommandParser LOGIC_COLOR
 participant "d:DeleteCommand" as DeleteCommand LOGIC_COLOR
-participant "ContactTargetResolver" as TargetResolver LOGIC_COLOR
+participant "<<class>>\nContactTargetResolver" as TargetResolver LOGIC_COLOR
 participant "r:CommandResult" as CommandResult LOGIC_COLOR
 end box
 

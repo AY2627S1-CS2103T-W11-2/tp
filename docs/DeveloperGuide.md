@@ -101,12 +101,13 @@ The `UI` component,
 | Component | Responsibility |
 | --- | --- |
 | `MainWindow.fxml` / `BoothManagerPro.css` | Command-driven layout, colours, spacing, and a single output area that fills available space. |
-| `ContactCard.fxml` / `ContactCard` | A static, read-only card for one contact, shown by `ResultDisplay` when a `CommandResult` carries contacts to show. The enquiry status appears as a badge beside the name; `ContactCard` adds a `status-*` style class (e.g. `status-in-progress`) to the badge and card, and `BoothManagerPro.css` colours both. |
+| `ContactCard.fxml` / `ContactCard` | A read-only card for one contact, shown by `ResultDisplay` when a `CommandResult` carries contacts to show. Right-clicking the card offers Copy Email, Copy Phone, and Copy Contact Details; right-clicking or double-clicking the name, company, email, or phone copies that value to the clipboard. The enquiry status appears as a badge beside the name; `ContactCard` adds a `status-*` style class (e.g. `status-in-progress`) to the badge and card, and `BoothManagerPro.css` colours both. |
 | `CommandBox` | Typed input through `Logic.execute()` with `Tab` autocomplete; successful input clears, failed input remains editable. |
-| `ResultDisplay` | Summary heading, scrollable static `ContactCard` container (with virtualized batch loading for performance at scale and an optional total label for `list`), read-only `TextArea` output, and error styling. Each result replaces the previous output. |
+| `ResultDisplay` | Summary heading, scrollable static `ContactCard` container (with virtualized batch loading for performance at scale and an optional total label for `list`), read-only `TextArea` output, a "Copy Result as Text" context menu on the card area, and error styling. Each result replaces the previous output. |
 
 - Startup shows only a ready prompt; contacts are loaded into the model without being displayed.
-- There are no separate persistent contact-list or details side panels, no contact-selection listeners, and no visibility flag; `ContactCard`s are static and non-selectable.
+- There are no separate persistent contact-list or details side panels and no visibility flag. `ContactCard`s cannot be selected and hold no selection state; their only mouse actions are the clipboard copies above.
+- `MainWindow` records the contacts shown by the last successful result: its contact cards, or the numbered choices of a `view` prompt. Before passing `delete`, `update`, or `tag` with a numeric index to `Logic`, it rejects the command with `Run list, find, or view before using a contact index.` if no contacts are displayed or they differ from `Logic#getFilteredPersonList()`. Errors and results without contacts (such as `help`, `add`, or a successful `delete`) clear this record, so an index always refers to contacts the user can currently see.
 - Non-empty `list` and `find` results render numbered `ContactCard`s; `view` renders an unnumbered `ContactCard` for a single or selected match, or displays numbered text choices when multiple contacts match.
 - `Enter` executes commands, `Tab` autocompletes unambiguous input or moves focus between the command box and output area when no completion applies, `Ctrl+L` (`Command+L` on macOS) focuses command input, and `F1` displays help.
 - `MainWindowTest` checks FXML, `ContactCard` rendering and text output, filtered indices, keyboard controls, persistence, and the absence of persistent side panels. It writes previews to `build/reports/ui/`; Linux needs a display such as Xvfb.
@@ -445,8 +446,8 @@ criteria using `FollowUpDate` and creates a `FindCommand` with `ContactMatchesFi
 ![Classes involved in follow-up-date search](images/FindFollowUpDateClass.png)
 
 The sequence diagram below illustrates a successful `find f/20261025` request. The command updates the filtered contact
-list and returns the matching contacts. Shared validation helpers, predicate evaluation, result formatting, and
-unchanged `LogicManager` persistence calls are omitted for clarity.
+list and returns the matching contacts. Shared validation helpers, predicate evaluation, and result formatting are
+omitted for clarity. `find` does not change contacts, so `LogicManager` does not save after it.
 
 ![Successful follow-up-date search](images/FindFollowUpDateSequence.png)
 
