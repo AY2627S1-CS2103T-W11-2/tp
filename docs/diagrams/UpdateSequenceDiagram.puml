@@ -12,7 +12,7 @@ participant ":LogicManager" as LogicManager LOGIC_COLOR
 participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
 participant ":UpdateCommandParser" as UpdateCommandParser LOGIC_COLOR
 participant "u:UpdateCommand" as UpdateCommand LOGIC_COLOR
-participant "ContactTargetResolver" as TargetResolver LOGIC_COLOR
+participant "<<class>>\nContactTargetResolver" as TargetResolver LOGIC_COLOR
 participant "r:CommandResult" as CommandResult LOGIC_COLOR
 end box
 

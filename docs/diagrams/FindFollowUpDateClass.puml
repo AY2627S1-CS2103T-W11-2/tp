@@ -24,7 +24,7 @@ package "Model" as ModelPackage {
 FindCommandParser ..> FindCommand : <<create>>
 FindCommandParser ..> ContactMatchesFieldsPredicate : <<create>>
 FindCommandParser ..> FollowUpDate : <<create>>
-FindCommand -right-> "1" PersonPredicate : predicate
+FindCommand -right-> "predicate 1" PersonPredicate
 FindCommand ..> ModelApi : <<use>>
 ContactMatchesFieldsPredicate ..|> PersonPredicate
 ContactMatchesFieldsPredicate ..> Person : <<use>>
