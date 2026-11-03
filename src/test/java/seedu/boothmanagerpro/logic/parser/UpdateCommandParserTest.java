@@ -35,7 +35,7 @@ public class UpdateCommandParserTest {
         ContactUpdate completed = changes(Optional.empty(), Optional.empty(), Optional.of(EnquiryStatus.COMPLETED),
                 Optional.empty(), Optional.empty());
         assertParseSuccess(parser, "1 s/Completed", new UpdateCommand(INDEX_FIRST_PERSON, completed));
-        assertParseSuccess(parser, "  1   s/ completed ", new UpdateCommand(INDEX_FIRST_PERSON, completed));
+        assertParseSuccess(parser, "  1   S/ completed ", new UpdateCommand(INDEX_FIRST_PERSON, completed));
         assertParseSuccess(parser, "Alicia Tan s/Completed", new UpdateCommand(new Name("Alicia Tan"), completed));
     }
 
@@ -104,8 +104,18 @@ public class UpdateCommandParserTest {
     }
 
     @Test
+    public void parse_labelledPhones_success() {
+        for (String phone : new String[]{"9123 4567 (HP) / 6123 4567 (Office)", "9123 4567 (HP)/6123 4567 (Office)"}) {
+            ContactUpdate changes = changes(Optional.empty(), Optional.of(new Phone(phone)), Optional.empty(),
+                    Optional.empty(), Optional.empty());
+            assertParseSuccess(parser, "1 p/" + phone, new UpdateCommand(INDEX_FIRST_PERSON, changes));
+            assertParseSuccess(parser, "Alice Tan p/" + phone, new UpdateCommand(new Name("Alice Tan"), changes));
+        }
+    }
+
+    @Test
     public void parse_invalidPhone_failure() {
-        assertParseFailure(parser, "1 p/1234 5678 (HP)", "Invalid value for p/: "
+        assertParseFailure(parser, "1 p/1234 5678 (H1)", "Invalid value for p/: "
                 + ParserUtil.MESSAGE_PHONE_CHARACTERS);
         assertParseFailure(parser, "1 p/123",
                 "Invalid value for p/: " + ParserUtil.MESSAGE_PHONE_DIGITS);
@@ -118,7 +128,8 @@ public class UpdateCommandParserTest {
 
     @Test
     public void parse_namePrefixBeforeTarget_failure() {
-        for (String args : new String[]{"n/Alicia Tan s/Completed", " n/1 s/Completed", "n/"}) {
+        for (String args : new String[]{"n/Alicia Tan s/Completed", "N/Alicia Tan s/Completed",
+            " n/1 s/Completed", "n/"}) {
             assertNamePrefixFailure(parser, args, "update", TARGET_USAGE);
         }
     }

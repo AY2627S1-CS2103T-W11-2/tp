@@ -32,7 +32,7 @@ import seedu.boothmanagerpro.ui.UiManager;
  */
 public class MainApp extends Application {
 
-    public static final String VERSION = "V0.5.1";
+    public static final String VERSION = "V1.6";
     public static final String MESSAGE_DATA_LOAD_FAILURE = "Contact data could not be loaded. "
             + "The original file will be backed up before any new data is saved.";
 

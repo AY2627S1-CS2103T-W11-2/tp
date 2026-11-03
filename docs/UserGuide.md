@@ -52,7 +52,7 @@ BoothManagerPro is a desktop contact manager for **convention organisers followi
 
 ### Working through commands
 
-* Type a command and press **Enter**. Command words are case-insensitive (for example, `list` or `LIST`), while field prefixes use lowercase letters (for example, `n/`, `c/`, `t/`).
+* Type a command and press **Enter**. Command words and field prefixes are case-insensitive (for example, `list` or `LIST`, and `n/` or `N/`).
 * The command box starts with keyboard focus. Press **Ctrl+L** on Windows/Linux or **Command+L** on macOS to return to it. Use `help` or **F1** for the guide, and `exit` to close the app.
 * Press **Tab** to complete an unambiguous command word, field prefix, contact method, enquiry status, or list sort
   field. It also supplies any missing required `add` prefix, `view n/`, `find n/`, `list o/`, or the first `tag t/` after
@@ -65,7 +65,7 @@ BoothManagerPro is a desktop contact manager for **convention organisers followi
 * Each command replaces the previous output. The output fills the available space and scrolls for longer results.
   When no autofill is available, use **Tab** to focus it and the arrow keys to read it; **Ctrl+L** or **Command+L**
   returns to command entry.
-* For `update INDEX`, `tag INDEX`, and `delete INDEX`, use the numbers from the current `list`, `find`, or `view` matches. A successful `add`, `update`, or `tag` resets the filter; run `list` or `find` again before choosing another index. After deleting a contact, later indices shift down.
+* For `update INDEX`, `tag INDEX`, and `delete INDEX`, first display the target using `list`, `find`, or `view`. If a command, help, or error replaces those results, display them again before using an index. A successful `add`, `update`, or `tag` resets the filter; deleting a contact shifts later indices. You can also target a contact by its full name.
 * Company and contact method show `Not specified` when absent. Tags appear in saved order, with `None` for an empty tag set. Postal addresses are not used when adding exhibitor contacts.
 
 ## Features
@@ -82,6 +82,9 @@ BoothManagerPro is a desktop contact manager for **convention organisers followi
 
 * Items followed by `…`​ can appear zero or more times.<br>
   For example, `[t/TAG]…​` may be omitted, or written as `t/friend` or `t/friend t/family`.
+
+* Command words and field prefixes are case-insensitive.<br>
+  For example, `List`, `ADD n/Alice Tan ...`, and `add N/Alice Tan C/Acme ...` are all accepted.
 
 * Prefixed fields can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
@@ -113,7 +116,7 @@ Format: `add n/NAME c/COMPANY e/EMAIL p/PHONE [m/METHOD] [s/STATUS] [f/YYYYMMDD]
 | `n/NAME` | 1-80 characters; at least one letter. Allows letters, digits, spaces, hyphens, apostrophes (`'` and `’`, stored as `'`), full stops, commas, parentheses, `@`, and `s/o`, `d/o`, `a/l`, or `a/p` between words. |
 | `c/COMPANY` | 1-100 characters; cannot be blank. Supports common business slash abbreviations such as `t/a`, `d/b/a`, `c/o`, `S/B`, `P/L`, `I/O`, `A/B`, and `M/s`. Quote the complete company value when it contains `t/a`, e.g. `c/"Acme t/a Company"`. The quotes are not stored. |
 | `e/EMAIL` | A conventional unquoted email address, up to 254 characters with a local part up to 64 characters. The local part starts and ends with a letter or digit and may use <code>! # $ % &amp; ' * + / = ? ^ _ &#96; { &#124; } ~ . -</code> individually between letters or digits. Quoted addresses and other uncommon mailbox formats are not supported. Stored in lowercase. |
-| `p/PHONE` | Each number has 7-15 digits, optionally starting with `+`; spaces, hyphens, full stops, and parentheses are allowed. Extensions use `ext`, `ext.`, or `x` followed by 1-6 digits. Separate multiple numbers with `,`, `;`, or `/`, e.g. `(65) 6123-4567 ext 88 / 9123 4567`. Formatting is preserved, with repeated spaces collapsed. Maximum 100 characters overall; labels such as `(HP)` are not accepted. |
+| `p/PHONE` | Each number has 7-15 digits, optionally starting with `+`; spaces, hyphens, full stops, and parentheses are allowed. Extensions use `ext`, `ext.`, or `x` followed by 1-6 digits. Separate multiple numbers with `,`, `;`, or `/`, e.g. `(65) 6123-4567 ext 88 / 9123 4567`. Formatting is preserved, with repeated spaces collapsed. Each number may end with one label in brackets, after any extension: up to 20 letters and spaces, starting with a letter, e.g. `9123 4567 (HP) / 6123 4567 (Office)`. Labels can't be searched: `find p/` matches digits only. Maximum 100 characters overall. |
 | `m/METHOD` | Optional: `email`, `phone`, or `other`, ignoring case. Omitted method is `Not specified`. |
 | `s/STATUS` | Optional: `Needs follow-up` (default), `In progress`, `Completed`, or `Cancelled`, ignoring case. |
 | `f/YYYYMMDD` | Optional calendar date, e.g. `20261025`; omitted date displays as `None`. Years 0001-9999; invalid dates are rejected. |
@@ -179,7 +182,7 @@ Use the field rules above to correct invalid values. Rejected input does not add
 | Invalid name | `Invalid value for n/: Names must be 1 to 80 characters and contain a letter. Use only letters, digits, spaces, hyphens, apostrophes, full stops, commas, parentheses, @, or s/o, d/o, a/l and a/p between words.` |
 | Invalid company | `Invalid value for c/: Company name must contain 1 to 100 characters.` |
 | Invalid email | `Invalid value for e/: Email address is invalid. Use a conventional unquoted address; run help and follow the User Guide for supported email formats.` |
-| Phone with a disallowed label, e.g. `(HP)` | `Invalid value for p/: Phone number can only contain digits, spaces, hyphens, full stops, parentheses, a leading +, an extension (ext or x), and , ; or / between multiple numbers.` |
+| Phone with a disallowed character or misplaced label, e.g. `1234 5678 HP` or `(HP) 1234 5678` | `Invalid value for p/: Phone number can only contain digits, spaces, hyphens, full stops, parentheses, a leading +, an extension (ext or x), a label in brackets after a number (e.g. (HP), up to 20 letters or spaces), and , ; or / between multiple numbers.` |
 | Phone with too few or too many digits | `Invalid value for p/: Each phone number must contain 7 to 15 digits (excluding any extension), optionally starting with +.` |
 | Invalid method | `Invalid value for m/: Contact method must be email, phone, or other.` |
 | Invalid status | `Invalid value for s/: Enquiry status must be Needs follow-up, In progress, Completed, or Cancelled.` |
@@ -377,6 +380,18 @@ Examples:
 * `find f/20261025 f/20261026 t/high-priority` returns high-priority contacts due on either date.
 * `update Alicia Tan f/20261028`, then `find f/20261028`, changes Alicia's date using the existing update command and finds contacts due on the new date. Use `update Alicia Tan f/` to clear her date; she will no longer match any date criterion.
 
+#### Using the numbers in search results
+
+The numbers shown by `find` refer to the current results, not to permanent contact IDs.
+For example, after `find n/Alicia`, `delete 1` deletes the first contact in those results,
+even if that contact had a different number in an earlier `list` output.
+
+* Read the latest output before using a number with `update`, `tag`, or `delete`.
+* Run `list` again if you want to choose from all contacts in the order they were added. To sort the full list,
+  use `list o/name`, `list o/company`, or `list o/status`, then read the newly displayed numbers.
+* After another search or sort, use the newly displayed numbers rather than numbers copied from older output.
+* An empty result set has no valid contact index; use another `find` or `list` before an index-based action.
+
 #### Searching by name keywords
 
 Finds contacts whose names contain any of the given keywords.
@@ -455,6 +470,23 @@ If your changes make the data file invalid, BoothManagerPro starts with an empty
 To recover contacts, close BoothManagerPro first. Keep a separate copy of the recovery backup, repair the invalid values, and restore the repaired contents to `data/addressbook.json` before restarting. Backups are not loaded automatically. We still recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause BoothManagerPro to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
+
+#### Recovering from a loading-failure warning
+
+An empty contact list after a loading error does not mean the original file was empty.
+If you expected existing contacts, preserve the file before making further changes:
+
+1. Close all BoothManagerPro windows using the same data folder.
+2. Copy `data/addressbook.json` and any `.recovery-` backups to a separate folder. Keep these copies unchanged.
+3. If a recovery backup exists, work on a copy of it. Otherwise, work on a copy of the original file.
+   A backup is created before the next save, not immediately when the loading warning appears.
+4. Repair the invalid data in that working copy, or use a known-good backup. A recovery backup preserves the
+   unreadable bytes; it does not automatically repair them.
+5. Put the repaired or known-good contents in `data/addressbook.json`, then restart BoothManagerPro.
+6. Run `list` and check the expected contacts and their details. Keep the untouched copies until you are satisfied.
+
+If the loading warning remains, close the app and recheck the working copy. Repeatedly adding contacts does not
+restore the old collection, and `clear confirm` clears the collection rather than recovering it.
 
 ### Planned features [Coming soon]
 

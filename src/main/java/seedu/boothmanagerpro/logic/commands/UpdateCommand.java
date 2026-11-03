@@ -3,7 +3,6 @@ package seedu.boothmanagerpro.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static seedu.boothmanagerpro.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.logging.Logger;
 
@@ -58,51 +57,21 @@ public class UpdateCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        logger.fine("Executing UpdateCommand targeting: " + (index != null ? index.getOneBased() : name));
-        Person original = resolveTarget(model);
+        logger.fine("Executing UpdateCommand.");
+        Person original = ContactTargetResolver.resolve(
+                model, index, name, DeleteCommand.MESSAGE_PERSON_NOT_FOUND, MESSAGE_AMBIGUOUS);
         Person updated = changes.applyTo(original);
         if (isUnchanged(original, updated)) {
             // Failing keeps the current filter and prevents LogicManager from rewriting an unchanged data file.
-            logger.info("UpdateCommand made no changes to contact: " + AddCommand.formatIdentity(original));
+            logger.info("UpdateCommand made no changes.");
             throw new CommandException(String.format(MESSAGE_NO_CHANGES, AddCommand.formatIdentity(original)));
         }
         rejectDuplicates(model, original, updated);
         model.setPerson(original, updated);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         String identity = AddCommand.formatIdentity(updated);
-        logger.info("Successfully updated contact: " + identity);
+        logger.info("Successfully updated contact.");
         return new CommandResult("Updated " + identity + (identity.endsWith(".") ? "" : "."));
-    }
-
-    /** Resolves ambiguity without selecting an arbitrary matching contact. */
-    private Person resolveTarget(Model model) throws CommandException {
-        if (index != null) {
-            assert index.getZeroBased() >= 0 : "Target index must be non-negative";
-            List<Person> displayed = model.getFilteredPersonList();
-            if (index.getZeroBased() >= displayed.size()) {
-                logger.warning("UpdateCommand failed: invalid displayed index " + index.getOneBased());
-                throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-            }
-            assert index.getZeroBased() < displayed.size() : "Resolved index must be within list bounds";
-            Person target = displayed.get(index.getZeroBased());
-            logger.fine("Resolved target contact by index " + index.getOneBased() + ": "
-                    + AddCommand.formatIdentity(target));
-            return target;
-        }
-        assert name != null : "Target name cannot be null when index is null";
-        List<Person> matches = model.getAddressBook().getPersonList().stream()
-                .filter(person -> person.getName().fullName.equalsIgnoreCase(name.fullName)).toList();
-        if (matches.isEmpty()) {
-            logger.warning("UpdateCommand failed: contact not found with name: " + name);
-            throw new CommandException(String.format(DeleteCommand.MESSAGE_PERSON_NOT_FOUND, name));
-        }
-        if (matches.size() > 1) {
-            logger.warning("UpdateCommand failed: ambiguous matches found for name: " + name);
-            throw new CommandException(String.format(MESSAGE_AMBIGUOUS, name));
-        }
-        Person target = matches.getFirst();
-        logger.fine("Resolved target contact by name " + name + ": " + AddCommand.formatIdentity(target));
-        return target;
     }
 
     /**
@@ -117,8 +86,7 @@ public class UpdateCommand extends Command {
     private void rejectDuplicates(Model model, Person original, Person updated) throws CommandException {
         for (Person other : model.getAddressBook().getPersonList()) {
             if (!other.equals(original) && other.isSamePerson(updated)) {
-                logger.warning("UpdateCommand rejected: conflict with existing contact: "
-                        + AddCommand.formatIdentity(other));
+                logger.warning("UpdateCommand rejected: conflicting contact.");
                 throw new CommandException(String.format(MESSAGE_DUPLICATE, AddCommand.formatIdentity(other)));
             }
         }

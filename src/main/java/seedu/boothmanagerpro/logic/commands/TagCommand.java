@@ -5,7 +5,6 @@ import static seedu.boothmanagerpro.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -53,7 +52,8 @@ public class TagCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        Person original = resolveTarget(model);
+        Person original = ContactTargetResolver.resolve(
+                model, index, name, DeleteCommand.MESSAGE_PERSON_NOT_FOUND, MESSAGE_AMBIGUOUS);
         Set<Tag> updatedTags = new LinkedHashSet<>(original.getTags());
         Set<Tag> added = new LinkedHashSet<>();
         Set<Tag> removed = new LinkedHashSet<>();
@@ -76,29 +76,6 @@ public class TagCommand extends Command {
                 "Updated tags for %s. Added: %s. Removed: %s. Current tags: %s.",
                 AddCommand.formatIdentity(updated), formatTagSet(added), formatTagSet(removed),
                 Messages.formatTags(updated)));
-    }
-
-    /** Resolves ambiguity without selecting an arbitrary matching contact. */
-    private Person resolveTarget(Model model) throws CommandException {
-        if (index != null) {
-            assert index.getZeroBased() >= 0 : "Target index must be non-negative";
-            List<Person> displayed = model.getFilteredPersonList();
-            if (index.getZeroBased() >= displayed.size()) {
-                throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
-            }
-            assert index.getZeroBased() < displayed.size() : "Resolved index must be within list bounds";
-            return displayed.get(index.getZeroBased());
-        }
-        assert name != null : "Target name cannot be null when index is null";
-        List<Person> matches = model.getAddressBook().getPersonList().stream()
-                .filter(person -> person.getName().fullName.equalsIgnoreCase(name.fullName)).toList();
-        if (matches.isEmpty()) {
-            throw new CommandException(String.format(DeleteCommand.MESSAGE_PERSON_NOT_FOUND, name));
-        }
-        if (matches.size() > 1) {
-            throw new CommandException(String.format(MESSAGE_AMBIGUOUS, name));
-        }
-        return matches.getFirst();
     }
 
     private static Tag findMatchingTag(Set<Tag> tags, Tag target) {

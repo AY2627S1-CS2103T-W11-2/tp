@@ -77,6 +77,7 @@ public class JsonAddressBookStorage {
                 lastKnownFileState = FileState.capture(normalisedPath);
                 return readAddressBookFile(normalisedPath);
             } catch (IOException ioe) {
+                recovery.markFailed(normalisedPath);
                 throw new DataLoadingException(ioe);
             }
         }
@@ -161,9 +162,9 @@ public class JsonAddressBookStorage {
         return JVM_FILE_LOCKS.computeIfAbsent(path, unused -> new Object());
     }
 
-    /** Opens the process lock shared by every application instance using this data path. */
+    /** Opens the shared process lock beside the data file, keeping application files in its data directory. */
     private static FileChannel openLockChannel(Path addressBookPath) throws IOException {
-        Path lockDirectory = Path.of(System.getProperty("java.io.tmpdir"), "boothmanagerpro-locks");
+        Path lockDirectory = addressBookPath.resolveSibling(".boothmanagerpro-locks");
         Files.createDirectories(lockDirectory);
         String lockName = UUID.nameUUIDFromBytes(addressBookPath.toString()
                 .getBytes(StandardCharsets.UTF_8)) + ".lock";

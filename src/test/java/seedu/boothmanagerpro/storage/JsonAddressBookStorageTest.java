@@ -3,6 +3,7 @@ package seedu.boothmanagerpro.storage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.boothmanagerpro.testutil.TypicalPersons.ALICE;
 import static seedu.boothmanagerpro.testutil.TypicalPersons.HOON;
 import static seedu.boothmanagerpro.testutil.TypicalPersons.IDA;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.boothmanagerpro.commons.exceptions.DataLoadingException;
+import seedu.boothmanagerpro.commons.util.JsonUtil;
 import seedu.boothmanagerpro.model.AddressBook;
 import seedu.boothmanagerpro.model.ReadOnlyAddressBook;
 
@@ -104,19 +106,50 @@ public class JsonAddressBookStorageTest {
 
     @Test
     public void readAddressBook_lockDirectoryCannotBeCreated_throwsDataLoadingException() throws Exception {
-        Path unusableTemporaryDirectory = testFolder.resolve("not-a-directory");
-        Files.writeString(unusableTemporaryDirectory, "file blocks child directory creation");
-        String originalTemporaryDirectory = System.getProperty("java.io.tmpdir");
-        System.setProperty("java.io.tmpdir", unusableTemporaryDirectory.toString());
-        try {
-            JsonAddressBookStorage storage = new JsonAddressBookStorage(testFolder.resolve("addressbook.json"));
-            assertThrows(DataLoadingException.class, storage::readAddressBook);
-        } finally {
-            if (originalTemporaryDirectory == null) {
-                System.clearProperty("java.io.tmpdir");
-            } else {
-                System.setProperty("java.io.tmpdir", originalTemporaryDirectory);
-            }
+        Path blockedDirectory = testFolder.resolve(".boothmanagerpro-locks");
+        Files.writeString(blockedDirectory, "file blocks lock directory creation");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(testFolder.resolve("addressbook.json"));
+        assertThrows(DataLoadingException.class, storage::readAddressBook);
+    }
+
+    @Test
+    public void read_lockFailureThenRecovery_preservesUnreadContactData() throws Exception {
+        Path dataFile = testFolder.resolve("unread-contacts.json");
+        String original = JsonUtil.toJsonString(
+                new JsonSerializableAddressBook(getTypicalAddressBook()));
+        Files.writeString(dataFile, original);
+        Path blockedDirectory = testFolder.resolve(".boothmanagerpro-locks");
+        Files.writeString(blockedDirectory, "lock directory unavailable");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(dataFile);
+        assertThrows(DataLoadingException.class, storage::readAddressBook);
+        assertTrue(storage.isRecoveryPending());
+        assertEquals(original, Files.readString(dataFile));
+        Files.delete(blockedDirectory);
+        storage.saveAddressBook(new AddressBook());
+        try (var files = Files.list(testFolder)) {
+            var backups = files.filter(path -> path.getFileName().toString().contains(".recovery-")).toList();
+            assertEquals(1, backups.size());
+            assertEquals(original, Files.readString(backups.getFirst()));
+        }
+        assertTrue(storage.readAddressBook().orElseThrow().getPersonList().isEmpty());
+    }
+
+    @Test
+    public void saveAndRead_lockFilesStayInsideDataDirectory() throws Exception {
+        Path dataDirectory = testFolder.resolve("data");
+        Path filePath = dataDirectory.resolve("addressbook.json");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+        storage.saveAddressBook(getTypicalAddressBook());
+        Path locks = dataDirectory.resolve(".boothmanagerpro-locks");
+        assertTrue(Files.isDirectory(locks));
+        try (var files = Files.list(locks)) {
+            var lockFiles = files.toList();
+            assertEquals(1, lockFiles.size());
+            assertTrue(lockFiles.getFirst().getFileName().toString().endsWith(".lock"));
+        }
+        assertEquals(getTypicalAddressBook(), storage.readAddressBook().orElseThrow());
+        try (var files = Files.list(locks)) {
+            assertEquals(1, files.count());
         }
     }
 

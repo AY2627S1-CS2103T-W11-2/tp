@@ -12,6 +12,7 @@ import static seedu.boothmanagerpro.logic.parser.ContactFieldParser.parseValue;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -42,7 +43,7 @@ public class UpdateCommandParser implements Parser<UpdateCommand> {
 
     @Override
     public UpdateCommand parse(String args) throws ParseException {
-        logger.finer("Parsing UpdateCommand arguments: " + args);
+        logger.finer("Parsing UpdateCommand fields.");
         ParserUtil.rejectNamePrefix(args, UpdateCommand.COMMAND_WORD, TARGET_USAGE);
         ArgumentMultimap fields = tokenize(args);
         validateStructure(fields);
@@ -55,14 +56,14 @@ public class UpdateCommandParser implements Parser<UpdateCommand> {
             ParserUtil.rejectMultipleIndices(target);
             command = new UpdateCommand(ParserUtil.parseName(target), changes);
         }
-        logger.fine("Successfully parsed UpdateCommand targeting: " + target);
+        logger.fine("Successfully parsed UpdateCommand.");
         return command;
     }
 
     /** Rejects unsupported single-letter prefix tokens before tokenising recognised fields and the target. */
     private ArgumentMultimap tokenize(String args) throws ParseException {
         for (MatchResult match : ArgumentTokenizer.findSingleLetterPrefixes(args)) {
-            if (!PREFIXES.contains(new Prefix(match.group(1)))) {
+            if (!PREFIXES.contains(new Prefix(match.group(1).toLowerCase(Locale.ROOT)))) {
                 throw new ParseException(String.format(AddCommandParser.MESSAGE_UNKNOWN_FIELD, match.group(1)));
             }
         }

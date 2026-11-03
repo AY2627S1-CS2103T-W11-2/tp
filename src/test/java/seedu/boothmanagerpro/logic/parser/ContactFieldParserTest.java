@@ -49,8 +49,22 @@ public class ContactFieldParserTest {
 
     @Test
     public void parsePhone_disallowedCharacter_failure() {
-        for (String phone : new String[]{"1234 5678 (HP)", "abc1234567", "9123\t4567"}) {
+        for (String phone : new String[]{"1234 5678 HP", "1234 5678 (H1)", "abc1234567", "9123\t4567",
+            "(HP) 9123 4567", "9123 4567 (HP) (Office)", "9123 4567 ()", "9123 4567 (" + "A".repeat(21) + ")"}) {
             assertThrows(ParseException.class, PHONE_CHARACTERS, () -> ContactFieldParser.parsePhone(phone));
+        }
+    }
+
+    @Test
+    public void parsePhone_labelledNumber_preserved() throws Exception {
+        assertEquals(new Phone("9123 4567 (HP) / 6123 4567 (Office)"),
+                ContactFieldParser.parsePhone(" 9123 4567 (HP) / 6123 4567 (Office) "));
+    }
+
+    @Test
+    public void parsePhone_labelWithoutEnoughDigits_reportsDigitCount() {
+        for (String phone : new String[]{"(HP)", "123 (HP)"}) {
+            assertThrows(ParseException.class, PHONE_DIGITS, () -> ContactFieldParser.parsePhone(phone));
         }
     }
 

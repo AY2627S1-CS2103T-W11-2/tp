@@ -16,6 +16,8 @@ title: Developer Guide
   * [JUnit 5](https://junit.org/junit5/) for automated unit and integration testing.
   * [Gradle](https://gradle.org/), [Shadow](https://gradleup.com/shadow/), [Checkstyle](https://checkstyle.org/), and [JaCoCo](https://www.jacoco.org/jacoco/) for build automation, JAR packaging, style verification, and test coverage reporting.
 
+* Li Wenze (legned-wenze) used Codex throughout his contributions to discuss implementation approaches, generate and revise code, tests and documentation, and run automated checks. He reviewed proposed changes and results, requested revisions, and performed selected manual checks.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Setting up, getting started**
@@ -116,6 +118,8 @@ The `UI` component,
 Here's a (partial) class diagram of the `Logic` component. `LogicManager` owns one `AddressBookParser`, which creates
 the command-specific parser and command required for the user's input. The concrete command operates on `Model` and
 creates a `CommandResult`, while `LogicManager` coordinates persistence through `Storage`.
+`delete`, `update`, and `tag` share `ContactTargetResolver` for displayed-index and exact-name lookup.
+The resolver checks index bounds and rejects missing or ambiguous names before a command changes the model.
 
 <img src="images/LogicClassDiagram.png" alt="Partial class diagram of the Logic component" width="700" style="max-width: 100%; height: auto;" />
 
@@ -147,6 +151,7 @@ Here are the other classes in `Logic` (omitted from the class diagram above) tha
 How the parsing works:
 * When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+* Command words (`AddressBookParser`), confirmation keywords (`clear confirm`), and single-letter field prefixes (`n/`, `c/`, `e/`, `p/`, `m/`, `s/`, `f/`, `t/`, `o/`) are matched case-insensitively by normalising tokens with `Locale.ROOT`, while `ArgumentTokenizer` continues to preserve legal-name patronymics (`s/o`, `d/o`, `a/l`, `a/p`) between words and common business slash abbreviations inside `c/` (`C/`).
 
 ### Model component
 **API** : [`Model.java`](../src/main/java/seedu/boothmanagerpro/model/Model.java)
@@ -163,6 +168,19 @@ The `Model` component,
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components).
 
 
+
+#### Bulk contact validation
+
+`UniquePersonList#setPersons` validates a replacement before notifying observers or changing the stored list.
+It checks each email and each case-folded name/company pair against separate sets. A conflict in either set
+rejects the whole replacement, matching `Person#isSamePerson`. Contacts without a company participate in
+email checking only. The name/company key keeps the two fields separate and uses `StringUtil.foldCase`
+for the same Unicode case equivalence as the existing identity rule.
+
+This one-pass check replaces pairwise comparisons when copying the collection for command rollback.
+Validation uses O(n) additional space and expected O(n) set operations for n contacts, while preserving
+input order. The key sets exist only during validation; they add no persistent state or storage fields.
+
 ### Storage component
 
 **API** : [`Storage.java`](../src/main/java/seedu/boothmanagerpro/storage/Storage.java)
@@ -174,8 +192,8 @@ The `Storage` component,
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`).
 * safeguards contact data through automated corruption recovery and inter-process concurrency control:
-  * **Corrupted data recovery:** Invalid JSON objects or corrupt entries produce controlled loading errors with a visible UI warning. `JsonAddressBookStorage` records failed loads using `DataFileRecovery`. Before any subsequent save to that path, it creates a unique `.recovery-<timestamp>.json` backup of the original unreadable file bytes. Backup failure blocks saving to prevent accidental data loss. Recovery files are never automatically overwritten or loaded.
-  * **Concurrency protection:** `JsonAddressBookStorage` records the file state (content hash, modification time, and size) loaded by the current session. When saving, an OS-level file lock (`FileLock`) in the temporary directory coordinates across processes, and if another application instance has modified the file, stale saves are rejected with an error rather than silently overwriting the newer data.
+  * **Corrupted data recovery:** Invalid JSON, corrupt entries, or contact-file access failures produce controlled loading errors with a visible UI warning. `JsonAddressBookStorage` records failed loads using `DataFileRecovery`. Before any subsequent save to that path, it creates a unique `.recovery-<unique suffix>.json` backup of the original unreadable file bytes. Backup failure blocks saving to prevent accidental data loss. Recovery files are never automatically overwritten or loaded.
+  * **Concurrency protection:** `JsonAddressBookStorage` records file-existence and byte-content snapshots loaded by the current session. When saving, an OS-level file lock (`FileLock`) in the data directory's `.boothmanagerpro-locks` subfolder coordinates across processes, and if another application instance has modified the file, stale saves are rejected with an error rather than silently overwriting the newer data.
 
 ### Common classes
 
@@ -247,7 +265,7 @@ All contact workflows share `Person` and its validated value objects.
 | --- | --- |
 | Name | `Name` owns validation: 1-80 Unicode code points, at least one letter, digits and supported punctuation, and `s/o`, `d/o`, `a/l`, or `a/p` between words. `view` uses the same validator as `add` and prefixed `find`. |
 | Company | `Optional<Company>`; required by `add`, absent in legacy records. `find c/` matches full or partial values, ignoring case. |
-| Email / phone | Emails are stored lowercase. Phones preserve formatting and support extensions and multiple numbers; phone searches validate partial numbers separately and ignore spaces, hyphens, dots, and parentheses when matching. |
+| Email / phone | Emails are stored lowercase. Phones are a single validated string that preserves formatting and supports extensions, multiple numbers, and a bracketed label after each number, e.g. `(HP)`. Labels do not count towards the digit limit. Phone searches validate partial numbers separately, accept digits only rather than labels, and ignore spaces, hyphens, dots, and parentheses when matching. |
 | Contact method | `Optional<ContactMethod>`; `email`, `phone`, or `other`. An absent method is shown as `Not specified` and does not match `find m/`. |
 | Follow-up date | `Optional<FollowUpDate>`; validated and stored in JSON as `YYYYMMDD`, formatted as `d MMM uuuu` (e.g. `25 Oct 2026`) for display, and shown as `None` when absent. |
 | Tags | Case-insensitive duplicates collapse on `add` and `update` while preserving display casing; consecutive spaces collapse. Search ignores case and matches whole tags. `add`, `update`, `tag`, storage, and command feedback preserve stored order. Empty tags show `None` in text and on cards. |
@@ -277,8 +295,8 @@ covers same-name contacts at different companies, numbered replies, and cancella
 1. `AddressBookParser` routes `update` to `UpdateCommandParser`, which validates the target, field cardinality, and supplied values.
 2. `ContactFieldParser` shares prefix-specific validation feedback with `add`; domain value types remain the source of constraints and normalisation.
 3. Immutable `ContactUpdate` represents partial changes. An absent optional preserves the value; a present empty contact method, date, or tag set explicitly clears it. Tags are defensively copied.
-4. `UpdateCommand` resolves an exact case-insensitive full name across all contacts or a one-based index in the current displayed list. Missing or ambiguous targets fail before mutation.
-5. The command constructs a replacement `Person` via `ContactUpdate#applyTo`. If all stored values are unchanged, it throws `CommandException` with a no-change message before mutation or persistence. The comparison includes displayed tag casing and order, which `Person#equals` alone ignores. Otherwise, it checks every other contact for duplicate email or name/company, including hidden records. Target resolution, duplicate warnings, and successful updates are logged via `LogsCenter`. Only then does it call `Model#setPerson` and reset the filter.
+4. `UpdateCommand` delegates to `ContactTargetResolver`, which resolves an exact case-insensitive full name across all contacts or a one-based index in the current displayed list. Missing or ambiguous targets fail before mutation.
+5. The command constructs a replacement `Person` via `ContactUpdate#applyTo`. If all stored values are unchanged, it throws `CommandException` with a no-change message before mutation or persistence. The comparison includes displayed tag casing and order, which `Person#equals` alone ignores. Otherwise, it checks every other contact for duplicate email or name/company, including hidden records. Execution, duplicate rejections, and successful updates are logged via `LogsCenter` using diagnostic messages that omit contact details. Only then does it call `Model#setPerson` and reset the filter.
 6. `LogicManager` persists the updated address book through `Storage#saveAddressBook` (rolling back the in-memory model, filter, and display ordering if saving fails), and the UI displays a concise confirmation. Subsequent `view`, `list`, and `find` commands display the updated attributes on `ContactCard`s.
 
 The sequence diagram below illustrates a successful `update` request, showing both index-based and name-based target resolution.
@@ -297,7 +315,7 @@ Legacy address is preserved. Supplied tags replace the tag set; a sole blank `t/
 `tag NAME_OR_INDEX t/TAG [t/TAG]...`
 
 1. `AddressBookParser` routes `tag` to `TagCommandParser`, which rejects unsupported prefixes, requires a target and at least one `t/TAG` field, and validates each tag through `ContactFieldParser` and `Tag`. Duplicate `t/TAG` inputs in the same command collapse in input order.
-2. `TagCommand` follows the same execution flow illustrated in the update sequence diagram above: `resolveTarget` resolves a one-based index against `Model#getFilteredPersonList()` or an exact case-insensitive full name against `Model#getAddressBook()`, failing before mutation when the target is missing or ambiguous.
+2. `TagCommand` follows the same execution flow illustrated in the update sequence diagram above: `ContactTargetResolver` resolves a one-based index against `Model#getFilteredPersonList()` or an exact case-insensitive full name against `Model#getAddressBook()`, failing before mutation when the target is missing or ambiguous.
 3. Unlike `UpdateCommand`, `TagCommand` does not construct a `ContactUpdate` or run `rejectDuplicates`, because toggling tags never alters email, name, or company identity. Instead, each supplied tag is toggled against a copy of the contact's existing tag set using `Tag#equals` (case-insensitive): absent tags are appended and recorded as added, while present tags are removed and recorded as removed.
 4. `TagCommand` constructs a replacement `Person` with all other attributes preserved, calls `Model#setPerson`, resets the filtered list, and returns `Updated tags for NAME at COMPANY. Added: .... Removed: .... Current tags: ....` (`None` when a tag list is empty), after which `LogicManager` saves the updated address book.
 5. `TagIntegrationTest` and `MainWindowTest` verify toggling, exact change summaries, target resolution, persistence, and unchanged state on rejection.
@@ -821,7 +839,7 @@ These are requirements for the intended product, not claims that every target ha
 * **Index**: The number shown beside a contact in a displayed list, used to select a specific contact when several share the same name
 * **Mainstream OS**: Windows, Linux, Unix, and macOS
 * **Normalisation**: Converting input to a standard form before storing or comparing it, such as lowercasing emails, collapsing repeated spaces in names, and removing formatting from phone numbers for search comparisons
-* **Prefix**: A marker ending in `/` that identifies which field a value belongs to, e.g. `n/` for name or `t/` for tag
+* **Prefix**: A case-insensitive marker ending in `/` that identifies which field a value belongs to, e.g. `n/` (or `N/`) for name or `t/` (or `T/`) for tag
 * **Primary contact**: The representative to contact first when an exhibitor has several representatives
 * **Representative**: A person who acts on behalf of an exhibitor. One exhibitor may have several
 * **Tag**: A short label attached to a contact to group it beyond enquiry status, for example by industry or priority
@@ -880,7 +898,7 @@ Use a separate test data folder with no Alicia Tan or Ben Lim records. Run each 
 
 | Check | Command / action | Expected result |
 | --- | --- | --- |
-| Full record and normalisation | `add n/Alicia Tan c/TechNova Pte Ltd e/ALICIA@example.com p/+65 9123-4567 m/EMAIL t/technology t/technology t/high-priority` | Contact added; a subsequent `view n/Alicia Tan` card shows `alicia@example.com`, `+6591234567`, `email`, and each tag once. |
+| Full record and normalisation | `add n/Alicia Tan c/TechNova Pte Ltd e/ALICIA@example.com p/+65 9123-4567 m/EMAIL t/technology t/technology t/high-priority` | Contact added; a subsequent `view n/Alicia Tan` card shows `alicia@example.com`, `+65 9123-4567`, `email`, and each tag once. |
 | Optional fields omitted | `add n/Ben Lim c/GreenWorks e/ben@example.com p/87654321` | Contact added; a subsequent `view n/Ben Lim` card shows status `Needs follow-up`, method `Not specified`, follow-up date `None`, and `None` for tags. |
 | Duplicate email, even when hidden | Run `find Ben`, then `add n/Another Person c/Another Company e/ALICIA@example.com p/98765432` | Rejected; identifies Alicia Tan at TechNova Pte Ltd. |
 | Duplicate name and company | `add n/alicia tan c/technova pte ltd e/different@example.com p/98765432` | Rejected despite different email and letter case. |
@@ -888,6 +906,7 @@ Use a separate test data folder with no Alicia Tan or Ben Lim records. Run each 
 | Repeated field | `add n/Chris Tan n/Chris Lim c/Example Ltd e/chris@example.com p/98765432` | Each-field-once error; no contact added. |
 | Unknown prefix | `add n/Chris Tan c/Example Ltd e/chris@example.com p/98765432 a/Somewhere` | Unknown-field-prefix error; no contact added. |
 | Invalid phone | `add n/Chris Tan c/Example Ltd e/chris@example.com p/123` | Phone-length error; no contact added. |
+| Labelled phone numbers | `add n/Alice Tan c/Acme e/alice@example.com p/9123 4567 (HP) / 6123 4567 (Office)` | Contact added; a subsequent `view n/Alice Tan` card shows the phone as typed. `find p/91234567` finds the contact, and `find p/HP` is rejected. |
 | Persistence | Exit and relaunch from the same folder; run `list`, then repeat the first add command. | Both added contacts remain; repeated add is rejected. The saved `data/addressbook.json` retains company and contact method. |
 
 Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibitor-contact-add). Verify the brief identity confirmation, saved JSON, and the card shown by a subsequent `view`. Repeat an add after `find Nobody`; the filter should reset, the input should clear and retain focus, and no persistent side panels should appear.
@@ -916,7 +935,7 @@ Compare feedback with the [add command reference](UserGuide.md#adding-an-exhibit
 1. Update by full name: `update Alicia Tan m/phone s/In progress f/20261025`<br>
    Expected: Output confirms `Updated Alicia Tan at TechNova Pte Ltd.` Running `view n/Alicia Tan` shows a card with badge `In progress`, contact method `phone`, follow-up date `25 Oct 2026`, and existing email, phone, and `tech` tag preserved.
 1. Clear optional method, date, and tags: `update Alicia Tan m/ f/ t/`<br>
-   Expected: Confirmation appears; `view n/Alicia Tan` shows `Contact method: Not specified`, `Follow-up date: None`, and `No tags`.
+   Expected: Confirmation appears; `view n/Alicia Tan` shows `Contact method: Not specified`, `Follow-up date: None`, and `None` for tags.
 
 1. Ambiguous name vs displayed index: Add a second `Alicia Tan` (`add n/Alicia Tan c/OtherCo e/alicia2@example.com p/87654321`), then run `update Alicia Tan s/Completed`.<br>
    Expected: Rejected with an ambiguity message; neither contact is updated. Run `find n/Alicia Tan`, then `update 2 s/Completed`; only the second `Alicia Tan` is updated and the filter resets.
@@ -965,7 +984,7 @@ Start with the sample data and run `list` first. Each command below is rejected 
 | View without a prefix | `view alex` | `view needs the n/ prefix before the name. Use: view n/NAME, e.g. view n/Alicia Tan` |
 | View with an empty name | `view n/` | `Name cannot be empty. Use: view n/NAME, e.g. view n/Alicia Tan` |
 | View with invalid slash in name | `view n/John/Doe` | `Names must be 1 to 80 characters and contain a letter. Use only letters, digits, spaces, hyphens, apostrophes, full stops, commas, parentheses, @, or s/o, d/o, a/l and a/p between words.` |
-| Phone with a disallowed character | `add n/Chris Tan c/Example Ltd e/chris@example.com p/1234 5678 (HP)` | `Invalid value for p/: Phone number can only contain digits, spaces, hyphens, full stops, parentheses, a leading +, an extension (ext or x), and , ; or / between multiple numbers.` |
+| Phone with a disallowed character | `add n/Chris Tan c/Example Ltd e/chris@example.com p/1234 5678 HP` | `Invalid value for p/: Phone number can only contain digits, spaces, hyphens, full stops, parentheses, a leading +, an extension (ext or x), a label in brackets after a number (e.g. (HP), up to 20 letters or spaces), and , ; or / between multiple numbers.` |
 | Phone with too few digits | `add n/Chris Tan c/Example Ltd e/chris@example.com p/123` | `Invalid value for p/: Each phone number must contain 7 to 15 digits (excluding any extension), optionally starting with +.` |
 | Invalid field value in find | `find e/bad email`, `find p/+` | `Invalid value for e/: Email search value is invalid. Supply a full or partial email or domain (e.g. alicia@technova.com or @technova.com).` / `Invalid value for p/: Phone search value must contain 1 to 15 digits, optionally starting with +, and may only include spaces, hyphens, full stops, or parentheses as formatting.` |
 | Unexpected parameters on parameterless commands | `help extra`, `exit 1` | `Invalid command format!` followed by the `help` or `exit` usage |
@@ -1027,6 +1046,17 @@ Start with the sample data and run `list` first. Each command below is rejected 
 
    1. Close BoothManagerPro, remove a required field such as `"email"` or `"name"` from a contact in `data/addressbook.json`, and relaunch.<br>
       Expected: Loading fails safely with the same warning banner and empty contact list as a corrupted file, preserving the original file in a `.recovery-` backup before the next save.
+
+1. Manual recovery verification
+
+   1. Use an isolated data folder and keep a known-good copy of its JSON file before corrupting it.
+   1. Repeat the corrupted-file scenario above, including one successful `add` to trigger the recovery backup.
+   1. Close every application window using that folder. Copy the original and recovery files elsewhere before editing.
+   1. Restore the known-good JSON to `data/addressbook.json`, restart, and run `list`.<br>
+      Expected: The loading warning is absent and the known-good contacts are displayed. The application does not
+      import the `.recovery-` file automatically or merge contacts from the temporary empty collection.
+   1. Close and restart once more, then run `list` again.<br>
+      Expected: The restored contacts still load, and the separately preserved backup copies remain unchanged.
 
 1. Concurrent sessions and stale file detection
 
@@ -1100,8 +1130,8 @@ BoothManagerPro is a brownfield evolution of AddressBook-Level 3 (AB3). While AB
 
 2. **Multi-process concurrency and data corruption recovery:**
    * Desktop applications often face edge cases where users open multiple instances or edit data files externally.
-   * `JsonAddressBookStorage` integrates OS-level `FileLock` coordination in the temporary directory to serialize concurrent writes and maintains file state fingerprints (hash, size, timestamp) to detect and reject stale writes.
-   * When loading invalid or corrupted JSON files, `DataFileRecovery` automatically creates a byte-for-byte backup (`.recovery-<timestamp>.json`) before permitting subsequent saves, safeguarding user data against permanent loss.
+   * `JsonAddressBookStorage` integrates OS-level `FileLock` coordination in the data directory's `.boothmanagerpro-locks` subfolder to serialize concurrent writes and compares file-existence and byte-content snapshots to detect and reject stale writes.
+   * When loading invalid or corrupted JSON files, `DataFileRecovery` automatically creates a byte-for-byte backup (`.recovery-<unique suffix>.json`) before permitting subsequent saves, safeguarding user data against permanent loss.
 
 3. **Dynamic sorting with index stability:**
    * Wrapping a JavaFX `FilteredList` inside a `SortedList` required ensuring that one-based displayed indices remain consistent across all commands (`delete`, `tag`, `update`) without mutating the stored order of contacts on disk.

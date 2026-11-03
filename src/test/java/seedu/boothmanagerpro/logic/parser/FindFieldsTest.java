@@ -69,7 +69,7 @@ public class FindFieldsTest {
     public void parse_invalidValues_rejectsInput() {
         assertParseFailure(parser, "n/@", "Invalid value for n/: " + Name.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "c/" + "A".repeat(101), "Invalid value for c/: " + Company.MESSAGE_CONSTRAINTS);
-        for (String badEmail : List.of("e/@", "e/bad email", "e/a@@b.com", "e/a!b", "e/" + "a".repeat(255))) {
+        for (String badEmail : List.of("e/@", "e/bad email", "e/a@@b.com", "e/a\"b", "e/" + "a".repeat(255))) {
             assertParseFailure(parser, badEmail,
                     "Invalid value for e/: " + FindCommandParser.MESSAGE_INVALID_EMAIL_SEARCH);
         }
@@ -109,6 +109,18 @@ public class FindFieldsTest {
         parser.parse("e/JOHND@EXAMPLE.COM p/9876-5432").execute(model);
         assertEquals(List.of(BENSON), model.getFilteredPersonList());
         assertEquals(getTypicalAddressBook(), model.getAddressBook());
+    }
+
+    @Test
+    public void execute_labelledPhone_matchesDigitsButNotLabel() throws Exception {
+        Model model = new ModelManager();
+        Person labelled = new PersonBuilder().withPhone("9123 4567 (HP) / 6123 4567 (Office)").build();
+        model.addPerson(labelled);
+        parser.parse("p/91234567").execute(model);
+        assertEquals(List.of(labelled), model.getFilteredPersonList());
+        parser.parse("p/61234567").execute(model);
+        assertEquals(List.of(labelled), model.getFilteredPersonList());
+        assertThrows(ParseException.class, () -> parser.parse("p/HP"));
     }
 
     @Test

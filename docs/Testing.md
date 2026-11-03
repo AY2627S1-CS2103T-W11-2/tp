@@ -133,10 +133,73 @@ Manual check in a separate test folder:
 
 `StorageRecoveryTest` checks null JSON roots, null contact/tag entries, invalid JSON, unchanged source bytes after failed reads, unique recovery backups, failed-copy retry, successful manual repair, and saves through the command layer. `StartupRecoveryTest` checks the real startup fallbacks for contacts and preferences. `MainWindowTest` checks the visible loading warning and continued command entry.
 
-Manual check in a disposable folder: write `null` to `data/addressbook.json`, launch the JAR, and check the loading warning. Run `list`; verify that a same-directory `.recovery-` backup contains exactly `null`, while the active data file contains a valid empty collection. Restart and check ordinary startup. Keep all real contact files outside the test folder.
+Manual check in a disposable folder: write `null` to `data/addressbook.json`, launch the JAR, and check the loading warning. Run `list`; the unreadable source file should remain unchanged. Then run `add n/Recovery Check c/Test e/recovery@example.com p/91234567`. Verify that a same-directory `.recovery-` backup contains exactly `null`, while the active data file contains the newly added contact in valid JSON. Restart and check that the contact loads normally. Keep all real contact files outside the test folder.
+
+## Hidden index protection
+
+`MainWindowTest` checks index commands through the real command box and rendered output.
+Startup, help, error feedback and successful mutations require fresh contact results before an index can be used.
+The checks compare saved JSON and contacts after rejected commands, and cover sorted results and view choices.
+
+1. Launch with saved contacts and immediately run `delete 1`, `update 1 s/Completed`, or `tag 1 t/vip`.
+2. Expect a request to run `list`, `find`, or `view`, with no contact or saved-file changes.
+3. Run `find` or `list`; an index command should now target the displayed contact.
+4. Run `help` or an invalid command; a later index command should require fresh results.
+5. Run `view n/NAME`; verify index 1 can target that displayed contact.
+6. Restart and confirm an index cannot be used until contacts are displayed again.
 
 ## Update regression checks
 
 `UpdateIntegrationTest` exercises all eight supported fields through actual command routing and JSON storage. It checks preservation of omitted values, date/tag clearing, duplicate names, hidden duplicate contacts, filtered indices, normalisation, invalid values/prefixes, and unchanged memory/filter/disk on rejection. `TagIntegrationTest` covers `tag` toggling (adding new tags and removing existing ones), change summaries, target resolution, and rejection preservation. `MainWindowTest` checks update and tag feedback and rendered enquiry fields.
 
 Manual check: add a contact, update its status/date by name, verify with `view`, then clear the date with `update NAME f/`. Add another contact with the same name but different company/email; an update by name must fail. Use `find` and its displayed index to update only the intended contact. Restart and verify the saved result.
+
+## Shared contact targeting
+
+`DeleteCommandTest`, `UpdateCommandTest`, and `TagCommandTest` exercise the common target resolver through
+the public commands. They check displayed-index bounds, exact case-insensitive names, missing contacts
+and ambiguous names. Their integration tests check that rejected requests preserve the stored contacts.
+
+After changing `ContactTargetResolver`, run all three command suites together with `MainWindowTest`.
+The window tests check the additional requirement that a contact index must correspond to visible results.
+
+## Log privacy regression checks
+
+`ContactLoggingPrivacyTest` checks successful commands, duplicate additions, no-change updates, unknown
+contacts, invalid commands and malformed saved JSON. It verifies that logs retain diagnostic outcomes
+while excluding the contact fields used by the tests. It also checks that saved contact values remain
+unchanged and that malformed source data remains protected for recovery.
+
+For a manual check, use disposable contacts in a separate folder. Add and update a contact, trigger a
+duplicate error, and inspect `addressbook.log.0` in that folder. Expect operation messages rather than
+full commands or contact details. Confirm that `view` still displays the contact correctly.
+
+## Bulk identity and snapshot regressions
+
+`BulkContactValidationTest` compares bulk acceptance with the public `Person#isSamePerson` rule.
+Its cases cover:
+
+| Scenario | Expected result |
+| --- | --- |
+| Same email with different names or companies | Reject the replacement |
+| Same name and company with different emails | Reject the replacement |
+| Unicode case and canonically equivalent spellings | Agree with the existing identity rule |
+| Same legacy name with different emails | Accept both contacts |
+| Duplicate or null entry in a replacement | Preserve the original list and send no change notification |
+| A copied 1,000-contact collection | Preserve order and remain independent of later mutations |
+
+The suite also checks shuffled batches and non-transitive conflicts: A can conflict with B, and B with C,
+while A and C are valid together. Checking either identity dimension independently must still reject B.
+The caller's input list and the observable model view are checked for unintended sharing.
+
+For performance comparisons, use the same 1,000-contact dataset, Java version and machine before and after
+changes. Warm up the command path, measure several runs, and record the dataset size and median duration.
+Keep this measurement separate from correctness tests so machine load does not cause intermittent failures.
+
+`JsonAddressBookStorageTest` checks that process-lock files remain inside the data directory's
+`.boothmanagerpro-locks` subfolder, that reads reuse the same lock, and that a blocked lock directory
+produces a controlled loading failure. `ConcurrentSessionIntegrationTest` checks that the new location
+continues to prevent a stale application session from overwriting another session's saved contacts.
+
+`JsonAddressBookStorageTest` also blocks the lock directory during a read, restores access, and then
+saves. It checks that the unread original contact data is preserved in a recovery backup before replacement.

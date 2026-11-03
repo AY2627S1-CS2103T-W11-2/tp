@@ -31,7 +31,7 @@ public class ListCommandParserTest {
         assertParseSuccess(parser, " o/name", new ListCommand(SortField.NAME));
         assertParseSuccess(parser, " o/company", new ListCommand(SortField.COMPANY));
         assertParseSuccess(parser, "  o/ Company  ", new ListCommand(SortField.COMPANY));
-        assertParseSuccess(parser, " o/status", new ListCommand(SortField.STATUS));
+        assertParseSuccess(parser, " O/status", new ListCommand(SortField.STATUS));
     }
 
     @Test
@@ -51,7 +51,7 @@ public class ListCommandParserTest {
 
     @Test
     public void parse_repeatedOrder_throwsParseException() {
-        assertParseFailure(parser, " o/name o/company", Messages.getErrorMessageForDuplicatePrefixes(PREFIX_ORDER));
+        assertParseFailure(parser, " o/name O/company", Messages.getErrorMessageForDuplicatePrefixes(PREFIX_ORDER));
         assertParseFailure(parser, " o/status o/name", Messages.getErrorMessageForDuplicatePrefixes(PREFIX_ORDER));
         assertParseFailure(parser, " o/name o/name", Messages.getErrorMessageForDuplicatePrefixes(PREFIX_ORDER));
     }

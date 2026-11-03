@@ -14,6 +14,7 @@ import static seedu.boothmanagerpro.logic.parser.ContactFieldParser.parseValue;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -47,7 +48,7 @@ public class FindCommandParser implements Parser<FindCommand> {
     public static final String MESSAGE_INVALID_PHONE_SEARCH =
             "Phone search value must contain 1 to 15 digits, optionally starting with +, "
             + "and may only include spaces, hyphens, full stops, or parentheses as formatting.";
-    private static final String EMAIL_SEARCH_REGEX = "[A-Za-z0-9+_.-]*(?:@[A-Za-z0-9.-]*)?";
+    private static final String EMAIL_SEARCH_REGEX = "[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]*(?:@[A-Za-z0-9.-]*)?";
     private static final String PHONE_CHARACTERS_REGEX = "\\+?[0-9 ().-]*";
     private static final String PHONE_SEARCH_DIGITS_REGEX = "\\+?[0-9]{1,15}";
     private static final Logger logger = LogsCenter.getLogger(FindCommandParser.class);
@@ -74,7 +75,8 @@ public class FindCommandParser implements Parser<FindCommand> {
         for (int i = 0; i < matches.size(); i++) {
             MatchResult current = matches.get(i);
             int end = i + 1 < matches.size() ? matches.get(i + 1).start() : trimmedArgs.length();
-            addCriterion(criteria, current.group(1), trimmedArgs.substring(current.end(), end));
+            addCriterion(criteria, current.group(1).toLowerCase(Locale.ROOT),
+                    trimmedArgs.substring(current.end(), end));
         }
         assert !criteria.isEmpty() : "Parsed field search must contain at least one criterion";
         FindCommand command = new FindCommand(new ContactMatchesFieldsPredicate(criteria));
