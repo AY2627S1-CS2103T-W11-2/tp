@@ -48,7 +48,7 @@ public class FindCommandParser implements Parser<FindCommand> {
     public static final String MESSAGE_INVALID_PHONE_SEARCH =
             "Phone search value must contain 1 to 15 digits, optionally starting with +, "
             + "and may only include spaces, hyphens, full stops, or parentheses as formatting.";
-    private static final String EMAIL_SEARCH_REGEX = "[A-Za-z0-9+_.-]*(?:@[A-Za-z0-9.-]*)?";
+    private static final String EMAIL_SEARCH_REGEX = "[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]*(?:@[A-Za-z0-9.-]*)?";
     private static final String PHONE_CHARACTERS_REGEX = "\\+?[0-9 ().-]*";
     private static final String PHONE_SEARCH_DIGITS_REGEX = "\\+?[0-9]{1,15}";
     private static final Logger logger = LogsCenter.getLogger(FindCommandParser.class);

@@ -69,7 +69,7 @@ public class FindFieldsTest {
     public void parse_invalidValues_rejectsInput() {
         assertParseFailure(parser, "n/@", "Invalid value for n/: " + Name.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "c/" + "A".repeat(101), "Invalid value for c/: " + Company.MESSAGE_CONSTRAINTS);
-        for (String badEmail : List.of("e/@", "e/bad email", "e/a@@b.com", "e/a!b", "e/" + "a".repeat(255))) {
+        for (String badEmail : List.of("e/@", "e/bad email", "e/a@@b.com", "e/a\"b", "e/" + "a".repeat(255))) {
             assertParseFailure(parser, badEmail,
                     "Invalid value for e/: " + FindCommandParser.MESSAGE_INVALID_EMAIL_SEARCH);
         }
