@@ -34,7 +34,7 @@ public final class ArgumentTokenizer {
             "(?i:c/o)\\s+" + COMPANY_FOLLOWING_WORD + "(?:\\s.*|$)",
             Pattern.DOTALL);
     private static final Pattern COMPANY_INFIX_ABBREVIATION = Pattern.compile(
-            "(?i:t/a|d/b/a)\\s+" + COMPANY_FOLLOWING_WORD + "(?:\\s.*|$)",
+            "(?i:d/b/a)\\s+" + COMPANY_FOLLOWING_WORD + "(?:\\s.*|$)",
             Pattern.DOTALL);
 
     private ArgumentTokenizer() {}
@@ -88,10 +88,12 @@ public final class ArgumentTokenizer {
     /**
      * Returns true if the token starting at {@code start} is a common business slash abbreviation
      * inside an active {@code c/} company field (such as {@code S/B}, {@code P/L}, {@code I/O},
-     * {@code A/B}, {@code M/s}, {@code c/o}, {@code t/a}, or {@code d/b/a}), rather than a field prefix.
+     * {@code A/B}, {@code M/s}, {@code c/o}, or {@code d/b/a}), rather than a field prefix.
      */
     static boolean isCompanySlashAbbreviation(String args, int start, String activePrefix, int activeValueStart) {
-        if (!COMPANY_PREFIX.equals(activePrefix)) {
+        // Tag prefixes take precedence over company abbreviations (fix assisted by Codex).
+        if (!COMPANY_PREFIX.equals(activePrefix)
+                || args.regionMatches(true, start, CliSyntax.PREFIX_TAG.getPrefix(), 0, 2)) {
             return false;
         }
         String rest = args.substring(start);

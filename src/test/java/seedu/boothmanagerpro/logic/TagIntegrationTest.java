@@ -111,6 +111,30 @@ public class TagIntegrationTest {
     }
 
     @Test
+    public void tagPrefix_afterCompanyAndBeforeCompany_addFindUpdateAndReloadRemainConsistent() throws Exception {
+        for (String fields : List.of("c/Acme t/a Company", "t/a Company c/Acme",
+                "C/Acme T/A Company", "T/A Company C/Acme")) {
+            logic.execute("add n/Tag Ambiguity " + fields + " e/tagamb@example.com p/81234569");
+            Person added = saved().getLast();
+            assertEquals("Acme", added.getCompany().orElseThrow().value, fields);
+            assertEquals(Set.of(new Tag("a Company")), added.getTags(), fields);
+            assertEquals(added, model.getAddressBook().getPersonList().getLast());
+
+            logic.execute("find " + fields);
+            assertEquals(List.of(added), List.copyOf(model.getFilteredPersonList()), fields);
+
+            logic.execute("update Tag Ambiguity C/Other T/A Sponsor");
+            Person updated = saved().getLast();
+            assertEquals("Other", updated.getCompany().orElseThrow().value);
+            assertEquals(Set.of(new Tag("A Sponsor")), updated.getTags());
+            assertEquals(updated, model.getAddressBook().getPersonList().getLast());
+            logic.execute("find C/Other T/A Sponsor");
+            assertEquals(List.of(updated), List.copyOf(model.getFilteredPersonList()));
+            logic.execute("delete Tag Ambiguity");
+        }
+    }
+
+    @Test
     public void tag_unicodeWhitespaceAndCanonicalEquivalence_normalisesAndToggles() throws Exception {
         assertEquals(
                 "Updated tags for Alicia Tan at TechNova. Added: r\u00E9sum\u00E9. Removed: vip. "

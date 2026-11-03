@@ -61,7 +61,8 @@ public class AddCommandParserTest {
         ModelManager upper = new ModelManager();
         parser.parse("N/Alicia Tan C/TechNova t/a Events E/a@b.com P/91234567 M/email S/Completed F/20261025 T/vip")
                 .execute(upper);
-        assertEquals("TechNova t/a Events", upper.getFilteredPersonList().getFirst().getCompany().orElseThrow().value);
+        assertEquals("TechNova", upper.getFilteredPersonList().getFirst().getCompany().orElseThrow().value);
+        assertEquals(2, upper.getFilteredPersonList().getFirst().getTags().size());
     }
 
     @Test
@@ -175,7 +176,7 @@ public class AddCommandParserTest {
 
         // Common business slash abbreviations inside c/ must not be split or rejected as prefixes.
         for (String company : new String[]{
-            "Acme Pte Ltd t/a Acme Events",
+            "Acme Pte Ltd d/b/a Acme Events",
             "TechNova S/B",
             "TechNova P/L",
             "I/O Interactive",
