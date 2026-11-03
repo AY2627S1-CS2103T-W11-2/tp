@@ -43,7 +43,7 @@ public class UpdateCommandParser implements Parser<UpdateCommand> {
 
     @Override
     public UpdateCommand parse(String args) throws ParseException {
-        logger.finer("Parsing UpdateCommand arguments: " + args);
+        logger.finer("Parsing UpdateCommand fields.");
         ParserUtil.rejectNamePrefix(args, UpdateCommand.COMMAND_WORD, TARGET_USAGE);
         ArgumentMultimap fields = tokenize(args);
         validateStructure(fields);
@@ -56,7 +56,7 @@ public class UpdateCommandParser implements Parser<UpdateCommand> {
             ParserUtil.rejectMultipleIndices(target);
             command = new UpdateCommand(ParserUtil.parseName(target), changes);
         }
-        logger.fine("Successfully parsed UpdateCommand targeting: " + target);
+        logger.fine("Successfully parsed UpdateCommand.");
         return command;
     }
 

@@ -1150,6 +1150,45 @@ public class MainWindowTest {
         });
     }
 
+    @Test
+    public void commandFeedbackAndFailures_doNotCopyContactDataIntoLogs() throws Exception {
+        List<String> logged = new ArrayList<>();
+        java.util.logging.Logger parent = java.util.logging.Logger.getLogger("ab3");
+        java.util.logging.Handler handler = new java.util.logging.Handler() {
+            @Override
+            public void publish(java.util.logging.LogRecord record) {
+                logged.add(record.getMessage());
+            }
+
+            @Override
+            public void flush() {}
+
+            @Override
+            public void close() {}
+        };
+        parent.addHandler(handler);
+        try {
+            withWindow(new ModelManager(), (window, root, storage) -> {
+                enterCommand(root, "add n/Private Person c/Secret Expo e/private@example.com p/91234567");
+                assertTrue(output(root).contains("Private Person"));
+                enterCommand(root, "view n/Private Person");
+                assertTrue(output(root).contains("private@example.com"));
+                enterCommand(root, "add n/Private Person c/Secret Expo e/private@example.com p/91234567");
+                assertTrue(output(root).contains("Private Person"));
+                enterCommand(root, "private@example.com");
+                assertTrue(output(root).contains("Unknown command"));
+                String messages = String.join("\n", logged);
+                for (String sensitive : List.of("Private Person", "Secret Expo", "private@example.com", "91234567")) {
+                    assertFalse(messages.contains(sensitive), sensitive);
+                }
+                assertTrue(messages.contains("Command completed"));
+                assertTrue(messages.contains("Command rejected"));
+            });
+        } finally {
+            parent.removeHandler(handler);
+        }
+    }
+
     private void withWindow(ModelManager model, UiAction action) throws Exception {
         withWindow(model, "", action);
     }

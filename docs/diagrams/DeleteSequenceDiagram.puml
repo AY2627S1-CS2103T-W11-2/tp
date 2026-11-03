@@ -8,6 +8,7 @@ participant ":LogicManager" as LogicManager LOGIC_COLOR
 participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
 participant ":DeleteCommandParser" as DeleteCommandParser LOGIC_COLOR
 participant "d:DeleteCommand" as DeleteCommand LOGIC_COLOR
+participant "ContactTargetResolver" as TargetResolver LOGIC_COLOR
 participant "r:CommandResult" as CommandResult LOGIC_COLOR
 end box
 
@@ -49,16 +50,14 @@ deactivate AddressBookParser
 LogicManager -> DeleteCommand : execute(m)
 activate DeleteCommand
 
-DeleteCommand -> DeleteCommand : findPersonByIndex(m)
-activate DeleteCommand
-
-DeleteCommand -> Model : getFilteredPersonList()
+DeleteCommand -> TargetResolver : resolve(m, index, null, ...)
+activate TargetResolver
+TargetResolver -> Model : getFilteredPersonList()
 activate Model
-Model --> DeleteCommand : lastShownList
+Model --> TargetResolver : displayed
 deactivate Model
-
-DeleteCommand --> DeleteCommand : personToDelete
-deactivate DeleteCommand
+TargetResolver --> DeleteCommand : personToDelete
+deactivate TargetResolver
 
 DeleteCommand -> Model : deletePerson(personToDelete)
 activate Model

@@ -12,6 +12,7 @@ participant ":LogicManager" as LogicManager LOGIC_COLOR
 participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
 participant ":UpdateCommandParser" as UpdateCommandParser LOGIC_COLOR
 participant "u:UpdateCommand" as UpdateCommand LOGIC_COLOR
+participant "ContactTargetResolver" as TargetResolver LOGIC_COLOR
 participant "r:CommandResult" as CommandResult LOGIC_COLOR
 end box
 
@@ -65,25 +66,25 @@ deactivate AddressBookParser
 LogicManager -> UpdateCommand : execute(m)
 activate UpdateCommand
 
-UpdateCommand -> UpdateCommand : resolveTarget(m)
-activate UpdateCommand
+UpdateCommand -> TargetResolver : resolve(m, index, name, ...)
+activate TargetResolver
 
 alt target specified by index
-    UpdateCommand -> Model : getFilteredPersonList()
+    TargetResolver -> Model : getFilteredPersonList()
     activate Model
-    Model --> UpdateCommand : displayed
+    Model --> TargetResolver : displayed
     deactivate Model
-    note right of UpdateCommand : original = displayed[index]
+    note right of TargetResolver : original = displayed[index]
 else target specified by name
-    UpdateCommand -> Model : getAddressBook()
+    TargetResolver -> Model : getAddressBook()
     activate Model
-    Model --> UpdateCommand : addressBook
+    Model --> TargetResolver : addressBook
     deactivate Model
-    note right of UpdateCommand : original = match in addressBook\n(fails if ambiguous or not found)
+    note right of TargetResolver : original = match in addressBook\n(fails if ambiguous or not found)
 end
 
-UpdateCommand --> UpdateCommand : original
-deactivate UpdateCommand
+TargetResolver --> UpdateCommand : original
+deactivate TargetResolver
 
 UpdateCommand -> ContactUpdate : applyTo(original)
 activate ContactUpdate
