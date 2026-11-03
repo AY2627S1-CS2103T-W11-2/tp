@@ -36,9 +36,9 @@ public class FindCommandParserTest {
 
     @Test
     public void parse_companyWithSlashAbbreviations_returnsFindCommand() {
-        FindCommand expectedTradingAs = new FindCommand(new ContactMatchesFieldsPredicate(
-                Map.of("c/", Set.of(ContactMatchesFieldsPredicate.normalise("c/", "Acme Pte Ltd t/a Acme Events")))));
-        assertParseSuccess(parser, " C/Acme Pte Ltd t/a Acme Events", expectedTradingAs);
+        FindCommand expectedDoingBusinessAs = new FindCommand(new ContactMatchesFieldsPredicate(
+                Map.of("c/", Set.of(ContactMatchesFieldsPredicate.normalise("c/", "Acme Pte Ltd d/b/a Acme Events")))));
+        assertParseSuccess(parser, " C/Acme Pte Ltd d/b/a Acme Events", expectedDoingBusinessAs);
 
         FindCommand expectedSdnBhd = new FindCommand(new ContactMatchesFieldsPredicate(
                 Map.of("c/", Set.of(ContactMatchesFieldsPredicate.normalise("c/", "TechNova S/B")))));

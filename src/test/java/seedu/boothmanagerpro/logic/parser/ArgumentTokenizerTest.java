@@ -167,8 +167,8 @@ public class ArgumentTokenizerTest {
         ArgumentMultimap tradingAs = ArgumentTokenizer.tokenize(
                 " n/Alicia c/Acme Pte Ltd t/a Acme Events t/vip e/a@b.com",
                 nSlash, cSlash, eSlash, tSlash);
-        assertArgumentPresent(tradingAs, cSlash, "Acme Pte Ltd t/a Acme Events");
-        assertArgumentPresent(tradingAs, tSlash, "vip");
+        assertArgumentPresent(tradingAs, cSlash, "Acme Pte Ltd");
+        assertArgumentPresent(tradingAs, tSlash, "a Acme Events", "vip");
         assertArgumentPresent(tradingAs, eSlash, "a@b.com");
 
         ArgumentMultimap careOf = ArgumentTokenizer.tokenize(
@@ -189,7 +189,9 @@ public class ArgumentTokenizerTest {
         assertPreamblePresent(partialPrefixes, "x/ignored");
         assertArgumentPresent(partialPrefixes, pSlash, "91234567");
 
-        // Non-abbreviation cases: blank company before t/a, trailing t/a, or t/a outside c/ remain prefixes
+        // Tag prefixes always remain prefixes, even when they resemble trading-as abbreviations.
+        assertFalse(ArgumentTokenizer.isCompanySlashAbbreviation("c/Acme t/a Events", 7, "c/", 2));
+        assertFalse(ArgumentTokenizer.isCompanySlashAbbreviation("c/Acme T/A Events", 7, "c/", 2));
         assertFalse(ArgumentTokenizer.isCompanySlashAbbreviation("t/a Events", 0, "", 0));
         assertFalse(ArgumentTokenizer.isCompanySlashAbbreviation("c/ t/a Events", 3, "c/", 2));
         assertFalse(ArgumentTokenizer.isCompanySlashAbbreviation("c/Acme t/a", 7, "c/", 2));
